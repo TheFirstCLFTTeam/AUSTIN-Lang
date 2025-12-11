@@ -30,8 +30,8 @@ s
 ### The CLFT Team
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://i.imgur.com/1K8lJhb.png">  
-  <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/pSmwoOv.png">  
+  <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/1K8lJhb.png">  
+  <source media="(prefers-color-scheme: light)" srcset="https://i.imgur.com/pSmwoOv.png">  
   <img alt="Shows a black logo in light color mode and a white one in dark color mode. base image is the light theme logo with a background." src="https://i.imgur.com/QhbtwZb.png" width="200">
 </picture>
 
