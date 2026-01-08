@@ -37,10 +37,9 @@ s
 
 #### Code Monkeys
 
-<a href="https://github.com/Zypperman/AUSTIN-Lang
-/graphs/contributors">
-  <img src="contrib.rocks" alt="Contributors" />
-</a>
+- Howe Wang
+- Larry Lee
+- Gavin Ng
 
 #### Visionaries and Legal Counsel
 
