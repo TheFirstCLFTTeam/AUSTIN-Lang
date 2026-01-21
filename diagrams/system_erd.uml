@@ -57,13 +57,20 @@ entity ENGINEER_PERMISSION {
   *permission_id : int <<FK>>
 }
 
+
 entity MODEL_WEIGHTS {
   *id : int
   --
+  *created_by_engineer_id : int <<FK>>
   version : string
   s3_path : string
   security_class : int
   created_at : datetime
+}
+
+entity MODEL_TRAINING_DATA {
+  *model_id : int <<FK>>
+  *recording_id : int <<FK>>
 }
 
 COMMERCIAL_USER ||..o{ RECORDING : uploads
@@ -72,5 +79,8 @@ RECORDING ||..|| RECORDING_RETENTION : requires_deletion
 BACKEND_ENGINEER ||..o{ RECORDING : monitors
 BACKEND_ENGINEER ||..o{ ENGINEER_PERMISSION : has
 PERMISSION_TYPE ||..o{ ENGINEER_PERMISSION : defined_as
+BACKEND_ENGINEER ||..o{ MODEL_WEIGHTS : creates
+MODEL_WEIGHTS ||..|{ MODEL_TRAINING_DATA : trained_on
+RECORDING ||..|{ MODEL_TRAINING_DATA : used_in
 
 @enduml
