@@ -11,7 +11,7 @@ Task: Improve whisperV3 for the two subtasks:
 
 ## Sources 
 
-- Gemini
+- [Gemini](https://gemini.google.com/share/e539690391bc)
 - [Perplexity](https://www.perplexity.ai/search/you-are-a-highly-experienced-m-AYamp0oiRHqON3kBuSPkdA#0)
 - [Undermind](https://app.undermind.ai/report/5f3e6d134857867d670c4be244446cf05dd23789192882546fd1840d1912edf9)
 - [Consensus](https://consensus.app/search/multilingual-code-switching-speech-recognition/6bs6AhdGRI2CLee7VR1irA/?utm_source=share&utm_medium=clipboard)
