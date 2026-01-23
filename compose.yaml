@@ -1,0 +1,12 @@
+services:
+  audio_submission:
+    build: "./audio_submission"
+    ports:
+      - "${AUDIO_SUBMISSION_PORT}:${AUDIO_SUBMISSION_PORT}"
+    volumes:
+      - "./audio_submission:/app"
+
+  transcription-orchestrator:
+    build: "./transcription_orchestrator"
+    ports:
+      - "${TRANSCRIPTION_ORCHESTRATOR_PORT}:${TRANSCRIPTION_ORCHESTRATOR_PORT}"
