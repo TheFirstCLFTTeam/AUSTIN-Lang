@@ -73,6 +73,7 @@ entity MODEL_TRAINING_DATA {
   *recording_id : int <<FK>>
 }
 
+ast
 COMMERCIAL_USER ||..o{ RECORDING : uploads
 RECORDING ||..|{ TRANSCRIPTION : has
 RECORDING ||..|| RECORDING_RETENTION : requires_deletion
