@@ -43,7 +43,7 @@ s
 
 #### Visionaries and Legal Counsel
 
-- Khoo Eng Yeow
+- Khor Eng Yeow
 - Krystal
 - Shaun Goh
 
