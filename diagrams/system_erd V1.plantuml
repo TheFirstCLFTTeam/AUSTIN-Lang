@@ -2,22 +2,55 @@
 
 !include ./UMLDarktheme/theme.puml
 
-entity COMMERCIAL_USER {
+' ========================================
+' SUPERTYPE: USER
+' ========================================
+entity "USER (SUPER)" as USER {
   *id : int
   --
   username : string
   password_hash : string
   email : string
+  user_type : string
+  ' "commercial" or "engineer"
+}
+
+' ========================================
+' SUBTYPE: COMMERCIAL_USER
+' ========================================
+entity COMMERCIAL_USER {
+  *user_id : int <<FK>>
+  --
   company_details : string
 }
 
+' ========================================
+' SUBTYPE: BACKEND_ENGINEER
+' ========================================
+entity BACKEND_ENGINEER {
+  *user_id : int <<FK>>
+  --
+  access_level : string
+}
+
+USER ||--|| COMMERCIAL_USER : is_a
+USER ||--|| BACKEND_ENGINEER : is_a
+
 entity RECORDING {
-  *id : int
+  *rec_id : int
   --
   *user_id : int <<FK>>
   file_url : string
   upload_timestamp : datetime
   status : string
+  ' pending, processing, completed, failed
+}
+
+entity RECORDING_METADATA {
+  *rec_met_id : int
+  --
+  *recording_id : int <<FK>>
+  metadata : json
 }
 
 entity RECORDING_RETENTION {
@@ -37,13 +70,6 @@ entity TRANSCRIPTION {
   created_at : datetime
   updated_at : datetime
   is_reviewed : boolean
-}
-
-entity BACKEND_ENGINEER {
-  *id : int
-  --
-  username : string
-  access_level : string
 }
 
 entity PERMISSION_TYPE {
