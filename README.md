@@ -44,7 +44,7 @@ s
 #### Visionaries and Legal Counsel
 
 - Khor Eng Yeow
-- Krystal
+- Krystal Lim
 - Shaun Goh
 
 #### Sponsors
