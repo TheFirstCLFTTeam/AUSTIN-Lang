@@ -90,15 +90,35 @@ function requireAuth() {
 export async function uploadAudio(file) {
   requireAuth();
 
-  const newFile = {
-    id: Date.now().toString(),
-    name: file.name,
-    audioUrl: URL.createObjectURL(file),
-    transcript: "Transcription will appear here...",
-  };
+  const formData = new FormData();
+  formData.append("file", file);
 
-  files.push(newFile);
-  return newFile;
+  try {
+    const response = await fetch("http://localhost:8001/transcribe/", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const newFile = {
+      id: data.id || Date.now().toString(),
+      name: file.name,
+      audioUrl: URL.createObjectURL(file),
+      transcript: data.transcript || "Transcription in progress...",
+      ...data
+    };
+
+    files.push(newFile);
+    return newFile;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
 }
 
 // Fetch all submitted files
