@@ -1,12 +1,35 @@
 import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import shutil
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Directory where audio files will be stored
 UPLOAD_DIR = "audio_files"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Mount the audio files directory to serve static files
+app.mount("/audio_files", StaticFiles(directory=UPLOAD_DIR), name="audio_files")
+
+@app.get("/get-all-audio/")
+async def get_all_audio():
+    """
+    List all uploaded audio files.
+    """
+    files = os.listdir(UPLOAD_DIR)
+    # Filter for .wav files just in case
+    audio_files = [f for f in files if f.endswith(".wav")]
+    return {"audio_files": audio_files}
 
 @app.post("/upload-audio/")
 async def upload_audio(file: UploadFile = File(...)):

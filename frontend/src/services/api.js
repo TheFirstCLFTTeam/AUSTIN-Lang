@@ -124,13 +124,39 @@ export async function uploadAudio(file) {
 // Fetch all submitted files
 export async function fetchSubmittedFiles() {
   requireAuth();
-  return files;
+  // return files;
+  try {
+    const response = await fetch("http://localhost:8000/get-all-audio/");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch files: ${response.status}`);
+    }
+    const data = await response.json();
+    
+    // Map the backend audio_files array to the structure the UI expects
+    return (data.audio_files || []).map((filename) => ({
+      id: filename,
+      name: filename,
+      transcript: "Transcript retrieval not implemented yet.",
+      // In a real app, you'd fetch the actual transcript and a real URL
+      audioUrl: `http://localhost:8000/audio_files/${filename}` 
+    }));
+  } catch (error) {
+    console.error("Error fetching submitted files:", error);
+    return [];
+  }
 }
 
 // Fetch one file by ID
 export async function fetchFileDetail(id) {
   requireAuth();
-  return files.find((f) => f.id === id);
+  // return files.find((f) => f.id === id);
+  // Construct the file object since ID is the filename
+  return {
+    id: id,
+    name: id,
+    transcript: "Transcript retrieval not implemented yet.",
+    audioUrl: `http://localhost:8000/audio_files/${id}`
+  };
 }
 
 // Update transcript
