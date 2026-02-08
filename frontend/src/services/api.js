@@ -63,17 +63,31 @@ export async function login(email, password) {
 let files = [
   {
     id: "1",
-    name: "sample-audio-1.wav",
-    audioUrl: "/mock-audio/sample1.wav",
-    transcript: "This is a sample transcription.",
-  },
-  {
-    id: "2",
-    name: "sample-audio-2.wav",
-    audioUrl: "/mock-audio/sample2.wav",
-    transcript: "Another example transcription.",
-  },
+    name: "sample1.wav",
+    audioUrl: "/sample1.wav", // ✅ REAL FILE NOW
+    transcriptSegments: [
+      {
+        id: "seg-1",
+        start: 0,
+        end: 4,
+        text: "This is a sample transcription."
+      },
+      {
+        id: "seg-2",
+        start: 4,
+        end: 8,
+        text: "It is split into timestamped segments."
+      },
+      {
+        id: "seg-3",
+        start: 8,
+        end: 12,
+        text: "Each segment can be edited and clicked."
+      }
+    ]
+  }
 ];
+
 
 // Simple auth guard for mock API calls
 function requireAuth() {
@@ -114,12 +128,12 @@ export async function fetchFileDetail(id) {
 }
 
 // Update transcript
-export async function updateTranscript(id, newTranscript) {
+export async function updateTranscript(id, newSegments) {
   requireAuth();
-
   const file = files.find((f) => f.id === id);
   if (file) {
-    file.transcript = newTranscript;
+    file.transcriptSegments = newSegments;
   }
   return file;
 }
+
