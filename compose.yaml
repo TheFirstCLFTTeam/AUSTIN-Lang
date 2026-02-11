@@ -10,3 +10,10 @@ services:
     build: "./transcription_orchestrator"
     ports:
       - "${TRANSCRIPTION_ORCHESTRATOR_PORT}:${TRANSCRIPTION_ORCHESTRATOR_PORT}"
+
+  database:
+    build: "./database"
+    ports:
+      - "${DATABASE_PORT}:${DATABASE_PORT}"
+    volumes:
+      - "./database:/app"
