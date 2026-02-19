@@ -43,8 +43,8 @@ s
 
 #### Visionaries and Legal Counsel
 
-- Khoo Eng Yeow
-- Krystal
+- Khor Eng Yeow
+- Krystal Lim
 - Shaun Goh
 
 #### Sponsors

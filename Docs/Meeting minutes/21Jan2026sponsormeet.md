@@ -66,3 +66,11 @@ Larry mentions the risk of model collapse where the model creates results of lit
 Regarding the generation of audio files to feed the model, it was suggested that there could be a dictionary of financial term which is used by insiders of UBS in conversations. This could be domain specific terms, and could be used as a baseline.
 
 A metric of success would be that the new transcription model could reduce the time taken, and then look at accuracy.
+
+## Misc notes
+
+- Each call averages 5 mins
+- Risk team completes a form as they listen to a call to assess if there are any risks
+  - form completion should aim to be 5 mins
+- 50 calls handled daily, estimated to scale to 3000 tapes daily
+- 
