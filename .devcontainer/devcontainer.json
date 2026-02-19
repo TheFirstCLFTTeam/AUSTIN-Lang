@@ -1,0 +1,19 @@
+{
+    "name": "AUSTIN-Lang Dev",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "workspaceFolder": "/workspaces/AUSTIN-Lang",
+    "forwardPorts": [3000, 8010],
+    "postCreateCommand": "cd frontend && npm install",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "dbaeumer.vscode-eslint"
+            ]
+        }
+    }
+}
