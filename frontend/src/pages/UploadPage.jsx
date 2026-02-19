@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { uploadAudio } from "../services/api";
 import AudioPlayer from "../components/AudioPlayer";
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
   const [uploaded, setUploaded] = useState(false);
+
+  const fileUrl = useMemo(() => {
+    if (file) {
+      return URL.createObjectURL(file);
+    }
+    return null;
+  }, [file]);
 
   const handleUpload = async () => {
     await uploadAudio(file);
@@ -44,7 +51,7 @@ export default function UploadPage() {
 
         {file && (
           <>
-            <AudioPlayer file={file} />
+            <AudioPlayer fileUrl={fileUrl} />
 
             <button
               onClick={handleUpload}
