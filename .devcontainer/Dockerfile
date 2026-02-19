@@ -24,6 +24,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && corepack enable \
     && rm -rf /var/lib/apt/lists/*
 
-RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --upgrade pip --break-system-packages --ignore-installed
 
 WORKDIR /workspaces/AUSTIN-Lang

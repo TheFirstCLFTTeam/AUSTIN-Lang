@@ -37,6 +37,8 @@ else:
     print("No pip dependencies found in configs/server_dev_env.yml")
 PY
 
-EXPOSE 8010
+ENV SERVER_PORT=8003
 
-CMD ["python", "run.py", "--host", "0.0.0.0", "--port", "8010"]
+EXPOSE ${SERVER_PORT}
+
+CMD python run.py --host 0.0.0.0 --port ${SERVER_PORT}

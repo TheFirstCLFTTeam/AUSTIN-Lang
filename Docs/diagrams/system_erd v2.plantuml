@@ -1,0 +1,463 @@
+@startuml
+allow_mixing
+!include ./UMLDarktheme/theme.puml
+
+' legend:
+' # -> section
+' = -> entity
+' - relationships
+
+' ########################################
+' #         END OF USER HANDLING         #
+' ########################################
+
+' ========================================
+' SUPERTYPE: USER
+' ========================================
+entity "User (SUPER)" as USER {
+  *user_id : int
+  --
+  username : string
+  password_hash : string
+  email : string
+  department :string
+  user_type : string
+  ' "business" or "engineer", required for redundancy
+  account_status : string
+  ' active, inactive, suspended, deleted
+  profile_picture : MEDIUMBLOB
+}
+
+
+' ========================================
+' SUBTYPE: BACKEND_ENGINEER
+' ========================================
+entity "Backend Engineer" as BACKEND_ENGINEER {
+  *user_id : int <<FK>>
+  --
+  data_zone_access : string
+  ' "green" (no CID access) or "red" (CID access)
+  phone_number : string
+  engineer_id : string
+  ' for tagging with any external engineer services
+}
+
+
+' ========================================
+' SUPERTYPE: BUSINESS_USER (Verifier + Commercial User)
+' ========================================
+entity "Business User (SUPER)" as BUSINESS_USER {
+  *user_id : int <<FK>>
+  --
+  business_user_type : string
+  sub_department : string
+  ' "commercial" or "verifier"
+}
+' ========================================
+' LANGUAGE_PROFICIENCIES
+' ========================================
+entity "Language Proficiency" as LANGUAGE_PROFICIENCIES {
+  *user_id : int <<FK>>
+  --
+  language : string
+  is_main_language : boolean
+}
+
+' ========================================
+' Client
+' ========================================
+' to indicate whether a user mainly handles a specific client
+entity "Client" as CLIENT {
+  *user_id : int <<FK>>
+  --
+  client : string
+  is_main_client : boolean
+  ' defined as whether the user interacts with this client a minimum of 5 times a month
+  client_type : string 
+  ' "company" or "individual"
+  is_PEP : bool
+  ' whether the client is considered a politically exposed person (PEP)
+}
+
+' ========================================
+' SUBTYPE: COMMERCIAL_USER
+' ========================================
+' someone who just wants transcripts of recordings, nothing else
+entity "Commercial User" as COMMERCIAL_USER {
+  *user_id : int <<FK>>
+  --
+  company_details : string
+  access_level_id : int <<FK>>
+}
+
+' ========================================
+' SUBTYPE: VERIFIER (Risk Team)
+' ========================================
+' perform checks on the DB to perform risk assessments
+
+entity "Verifier" as VERIFIER {
+  *user_id : int <<FK>>
+  --
+  department : string
+  verification_scope : string
+  ' e.g., "payments", "orders"
+}
+
+' ----------------------------------------
+' -         USER RELATIONSHIPS           -
+' ----------------------------------------
+
+' Disjoint inheritance from USER
+usecase (d) as disjoint
+USER -- disjoint : "is a (total participation)"
+disjoint <|-- BUSINESS_USER
+disjoint <|-- BACKEND_ENGINEER
+
+' Disjoint inheritance from BUSINESS_USER
+usecase (d) as disjoint_business
+BUSINESS_USER -- disjoint_business : "is a (total participation)"
+disjoint_business <|-- COMMERCIAL_USER
+disjoint_business <|-- VERIFIER
+
+BUSINESS_USER ||--o{ CLIENT
+BUSINESS_USER ||--o{ LANGUAGE_PROFICIENCIES
+
+' ########################################
+' #         END OF USER HANDLING         #
+' ########################################
+
+
+
+' ########################################
+' #     START OF USER PERM HANDLING      #
+' ########################################
+' (RBAC - Role-Based Access Control)
+
+' ========================================
+' ROLE (Core RBAC)
+' ========================================
+entity "Role" as ROLE {
+  *role_id : int
+  --
+  name : string
+  ' e.g., "admin", "engineer_green", "engineer_red", "verifier", "commercial_basic"
+  description : string
+  data_zone : string
+  ' "green", "red", or "any"
+  is_system_role : boolean
+  ' true = cannot be deleted/modified
+  created_at : datetime
+  updated_at : datetime
+}
+
+' ========================================
+' PERMISSION (Granular Access Rights)
+' ========================================
+entity "Permission" as PERMISSION {
+  *permission_id : int
+  --
+  resource : string
+  ' e.g., "recording", "transcription", "model", "user", "report"
+  action : string
+  ' e.g., "create", "read", "read_cid", "update", "delete", "verify", "export"
+  description : string
+  requires_data_zone : string
+  ' "red" if accessing CID, "green" otherwise, NULL if N/A
+}
+
+note bottom of PERMISSION
+  **Predefined Permission Rules (Seed Data)**
+  ──────────────────────────────────────────
+  | resource      | action        | zone  |
+  |---------------|---------------|-------|
+  | recording     | access        | green |
+  | recording     | create        | green |
+  | recording     | read          | green |
+  | recording     | read_cid      | red   |
+  | recording     | delete        | green |
+  | recording     | export        | green |
+  | transcription | access        | green |
+  | transcription | create        | green |
+  | transcription | read          | green |
+  | transcription | edit          | green |
+  | transcription | edit_training | green |
+  | transcription | verify        | green |
+  | transcription | delete        | green |
+  | model_weights | access        | green |
+  | model_weights | view          | green |
+  | model_weights | download      | red   |
+  | model_weights | train         | green |
+  | model_weights | deploy        | green |
+  | model_weights | manage        | red   |
+  | user          | access        | green |
+  | user          | create        | green |
+  | user          | read          | green |
+  | user          | update        | green |
+  | user          | delete        | green |
+  | user          | assign_role   | green |
+  | report        | access        | green |
+  | report        | view          | green |
+  | report        | generate      | green |
+  | report        | export        | green |
+  | audit_log     | access        | green |
+  | audit_log     | view          | green |
+  | audit_log     | export        | red   |
+  ──────────────────────────────────────────
+  Note: "access" = base gate permission.
+  User must have resource:access before
+  any other actions are evaluated.
+end note
+
+' ========================================
+' ROLE_PERMISSION (Role grants permissions)
+' ========================================
+entity "Role Permission" as ROLE_PERMISSION {
+  *role_id : int <<FK>>
+  *permission_id : int <<FK>>
+  --
+  granted_at : datetime
+  granted_by : int <<FK>>
+  ' user_id who granted this
+}
+
+' ========================================
+' USER_ROLE (User assigned to roles)
+' ========================================
+entity "User Role" as USER_ROLE {
+  *user_id : int <<FK>>
+  *role_id : int <<FK>>
+  --
+  assigned_at : datetime
+  assigned_by : int <<FK>>
+  expires_at : datetime
+  ' NULL = permanent, otherwise temporary
+  is_active : boolean
+}
+
+' ========================================
+' USER_PERMISSION_OVERRIDE (Exception handling)
+' ========================================
+entity "User Permission Override" as USER_PERMISSION_OVERRIDE {
+  *user_id : int <<FK>>
+  *permission_id : int <<FK>>
+  --
+  override_type : string
+  ' "grant" or "deny"
+  reason : string
+  granted_at : datetime
+  granted_by : int <<FK>>
+  expires_at : datetime
+}
+
+' ----------------------------------------
+' -     RBAC RELATIONSHIPS               -
+' ----------------------------------------
+ROLE ||--o{ ROLE_PERMISSION : "grants"
+PERMISSION ||--o{ ROLE_PERMISSION : "granted_by"
+USER ||--o{ USER_ROLE : "has"
+ROLE ||--o{ USER_ROLE : "assigned_to"
+USER ||--o{ USER_PERMISSION_OVERRIDE : "has_override"
+PERMISSION ||--o{ USER_PERMISSION_OVERRIDE : "overridden"
+
+' ########################################
+' #       END OF USER PERM HANDLING      #
+' ########################################
+
+
+' ########################################
+' #      START OF SESSION MANAGEMENT     #
+' ########################################
+
+' ========================================
+' SESSION (Active user sessions)
+' ========================================
+entity "Session" as SESSION {
+  *session_id : uuid
+  --
+  user_id : int <<FK>>
+  ip_address : string
+  user_agent : string
+  created_at : datetime
+  last_active_at : datetime
+  expires_at : datetime
+  is_revoked : boolean
+}
+
+' ========================================
+' REFRESH_TOKEN (For token refresh)
+' ========================================
+entity "Refresh Token" as REFRESH_TOKEN {
+  *token_id : uuid
+  --
+  session_id : uuid <<FK>>
+  token_hash : string
+  ' hashed refresh token
+  created_at : datetime
+  expires_at : datetime
+  is_revoked : boolean
+  revoked_at : datetime
+  revoked_reason : string
+}
+
+' ----------------------------------------
+' -   SESSION RELATIONSHIPS              -
+' ----------------------------------------
+USER ||--o{ SESSION : "has"
+SESSION ||--o{ REFRESH_TOKEN : "generates"
+
+' ########################################
+' #       END OF SESSION MANAGEMENT      #
+' ########################################
+
+
+' ########################################
+' #    START OF API/OAUTH INTEGRATION    #
+' ########################################
+
+' ========================================
+' API_TOKEN (Service accounts & integrations)
+' ========================================
+entity "API Token" as API_TOKEN {
+  *token_id : uuid
+  --
+  user_id : int <<FK>>
+  name : string
+  ' descriptive name like "CI/CD Pipeline"
+  token_hash : string
+  ' hashed API key
+  scopes : string
+  ' comma-separated permissions
+  rate_limit_per_minute : int
+  created_at : datetime
+  expires_at : datetime
+  last_used_at : datetime
+  is_revoked : boolean
+}
+
+' ========================================
+' OAUTH_PROVIDER (External auth providers)
+' ========================================
+entity "OAuth Provider" as OAUTH_PROVIDER {
+  *provider_id : int
+  --
+  name : string
+  ' e.g., "google", "azure_ad", "okta"
+  client_id : string
+  client_secret_encrypted : string
+  authorization_url : string
+  token_url : string
+  is_active : boolean
+}
+
+' ========================================
+' USER_OAUTH_LINK (Link users to OAuth)
+' ========================================
+entity "User OAuth Link" as USER_OAUTH_LINK {
+  *user_id : int <<FK>>
+  *provider_id : int <<FK>>
+  --
+  provider_user_id : string
+  ' external ID from OAuth provider
+  access_token_encrypted : string
+  refresh_token_encrypted : string
+  token_expires_at : datetime
+  linked_at : datetime
+}
+
+' ----------------------------------------
+' -   API/OAUTH RELATIONSHIPS            -
+' ----------------------------------------
+USER ||--o{ API_TOKEN : "owns"
+USER ||--o{ USER_OAUTH_LINK : "linked_via"
+OAUTH_PROVIDER ||--o{ USER_OAUTH_LINK : "provides"
+
+' ########################################
+' #     END OF API/OAUTH INTEGRATION     #
+' ########################################
+
+
+' ########################################
+' #       START OF AUDIT LOGGING         #
+' ########################################
+
+' ========================================
+' AUDIT_LOG (All actions for compliance)
+' ========================================
+entity "Audit Log" as AUDIT_LOG {
+  *log_id : bigint
+  --
+  user_id : int <<FK>>
+  action : string
+  ' e.g., "login", "permission_check", "role_assigned", "data_accessed"
+  resource_type : string
+  resource_id : string
+  details : json
+  ' additional context
+  ip_address : string
+  user_agent : string
+  timestamp : datetime
+  success : boolean
+}
+
+' ========================================
+' PERMISSION_CHANGE_LOG (Permission audit trail)
+' ========================================
+entity "Permission Change Log" as PERMISSION_CHANGE_LOG {
+  *log_id : bigint
+  --
+  changed_by : int <<FK>>
+  target_user_id : int <<FK>>
+  change_type : string
+  ' "role_assigned", "role_revoked", "permission_granted", "permission_denied"
+  role_id : int <<FK>>
+  permission_id : int <<FK>>
+  previous_value : string
+  new_value : string
+  reason : string
+  timestamp : datetime
+}
+
+' ----------------------------------------
+' -   AUDIT RELATIONSHIPS                -
+' ----------------------------------------
+USER ||--o{ AUDIT_LOG : "performed"
+USER ||--o{ PERMISSION_CHANGE_LOG : "changed_by"
+USER ||--o{ PERMISSION_CHANGE_LOG : "target_user"
+
+' ########################################
+' #        END OF AUDIT LOGGING          #
+' ########################################
+
+
+' ########################################
+' #   START OF COMMERCIAL ACCESS TIERS   #
+' ########################################
+
+' ========================================
+' COMMERCIAL_USER_ACCESS_LEVEL (Updated to link with RBAC)
+' ========================================
+entity "Commercial User Access Level" as COMMERCIAL_USER_ACCESS_LEVEL {
+  *id : int
+  --
+  name : string
+  ' e.g., "basic", "standard", "premium"
+  description : string
+  role_id : int <<FK>>
+  ' links to corresponding role for permissions
+  max_uploads_per_day : int
+  max_storage_mb : int
+  max_recording_duration_seconds : int
+  retention_days : int
+}
+
+' ----------------------------------------
+' -   COMMERCIAL ACCESS RELATIONSHIPS    -
+' ----------------------------------------
+ROLE ||--o| COMMERCIAL_USER_ACCESS_LEVEL : "defines_access"
+COMMERCIAL_USER ||--|| COMMERCIAL_USER_ACCESS_LEVEL : "has_tier"
+
+' ########################################
+' #    END OF COMMERCIAL ACCESS TIERS    #
+' ########################################
+
+@enduml 
