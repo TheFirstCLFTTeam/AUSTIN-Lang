@@ -7,7 +7,9 @@ export default function SubmittedFilesPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchSubmittedFiles().then(setFiles);
+    fetchSubmittedFiles()
+      .then(setFiles)
+      .catch(error => console.error("Error setting files:", error));
   }, []);
 
   return (

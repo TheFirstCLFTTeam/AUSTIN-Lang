@@ -3,8 +3,24 @@ from pydantic import BaseModel
 from typing import List, Optional
 from db_client import DatabaseClient
 import os
+from starlette.middleware.cors import CORSMiddleware # Import CORSMiddleware
 
 app = FastAPI(title="AUSTIN-Lang Database Service")
+
+# Add CORS middleware
+origins = [
+    "http://localhost",
+    "http://localhost:3000",  # Allow requests from your React frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 db = DatabaseClient(db_path='poc.db', schema_path='schema.sql')
 
 # --- Pydantic Models ---
@@ -19,10 +35,16 @@ class AudioFile(AudioFileBase):
     id: int
     uploaded_at: str
 
+class RawTranscriptSegment(BaseModel):
+    id: Optional[int] = None # ID from the database for existing segments
+    start: float
+    end: float
+    text: str
+
 class RawTranscriptBase(BaseModel):
-    transcript: str
     rating: Optional[int] = None
     audio_file_id: int
+    transcript_segments: List[RawTranscriptSegment]
 
 class RawTranscriptCreate(RawTranscriptBase):
     pass
@@ -31,9 +53,15 @@ class RawTranscript(RawTranscriptBase):
     id: int
     created_at: str
 
+class TranscriptSegment(BaseModel):
+    id: Optional[int] = None
+    start: float
+    end: float
+    text: str
+
 class EditedTranscriptBase(BaseModel):
     raw_transcript_id: int
-    transcript: str
+    transcript_segments: List[TranscriptSegment]
 
 class EditedTranscriptCreate(EditedTranscriptBase):
     pass
@@ -41,6 +69,7 @@ class EditedTranscriptCreate(EditedTranscriptBase):
 class EditedTranscript(EditedTranscriptBase):
     id: int
     created_at: str
+
 
 # --- Endpoints: Audio Files ---
 
@@ -51,6 +80,17 @@ async def get_audio_files():
     Sample Output: [{"id": 1, "file_name": "meeting.wav", "uploaded_at": "2023-01-01 12:00:00"}]
     """
     return db.fetch_all("SELECT * FROM audio_file")
+
+@app.get("/audio-files/{file_id}", response_model=AudioFile)
+async def get_audio_file(file_id: int):
+    """
+    Sample Input: file_id=1
+    Sample Output: {"id": 1, "file_name": "meeting.wav", "uploaded_at": "2023-01-01 12:00:00"}
+    """
+    audio_file = db.fetch_one("SELECT * FROM audio_file WHERE id = ?", (file_id,))
+    if not audio_file:
+        raise HTTPException(status_code=404, detail="Audio file not found")
+    return audio_file
 
 @app.post("/audio-files/", response_model=int)
 async def create_audio_file(data: AudioFileCreate):
@@ -72,67 +112,145 @@ async def update_audio_file(file_id: int, data: AudioFileCreate):
 # --- Endpoints: Raw Transcripts ---
 
 @app.get("/raw-transcripts/", response_model=List[RawTranscript])
-async def get_raw_transcripts():
+async def get_raw_transcripts(audio_file_id: Optional[int] = None):
     """
-    Sample Input: None
-    Sample Output: [{"id": 1, "transcript": "Hello", "rating": 5, "audio_file_id": 1, "created_at": "..."}]
+    Sample Input: None or audio_file_id=1
+    Sample Output: [{"id": 1, "rating": 5, "audio_file_id": 1, "created_at": "...", "transcript_segments": [{"id": 1, "start": 0.0, "end": 1.5, "text": "Hello"}]}]
     """
-    return db.fetch_all("SELECT * FROM raw_transcript")
+    if audio_file_id:
+        raw_transcripts_data = db.fetch_all("SELECT * FROM raw_transcript WHERE audio_file_id = ?", (audio_file_id,))
+    else:
+        raw_transcripts_data = db.fetch_all("SELECT * FROM raw_transcript")
+    
+    raw_transcripts = []
+    for rt_data in raw_transcripts_data:
+        segments_data = db.fetch_all(
+            "SELECT id, start, end, text FROM raw_transcript_segment WHERE raw_transcript_id = ?",
+            (rt_data['id'],)
+        )
+        segments = [RawTranscriptSegment(**segment) for segment in segments_data]
+        raw_transcripts.append(
+            RawTranscript(
+                id=rt_data['id'],
+                rating=rt_data['rating'],
+                audio_file_id=rt_data['audio_file_id'],
+                created_at=rt_data['created_at'],
+                transcript_segments=segments
+            )
+        )
+    return raw_transcripts
 
 @app.post("/raw-transcripts/", response_model=int)
 async def create_raw_transcript(data: RawTranscriptCreate):
     """
-    Sample Input: {"transcript": "Hello world", "rating": 5, "audio_file_id": 1}
+    Sample Input: {"audio_file_id": 1, "rating": 5, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Hello"}]}
     Sample Output: 1
     """
-    return db.execute_query(
-        "INSERT INTO raw_transcript (transcript, rating, audio_file_id) VALUES (?, ?, ?)",
-        (data.transcript, data.rating, data.audio_file_id)
+    # Insert the main raw_transcript record
+    raw_transcript_id = db.execute_query(
+        "INSERT INTO raw_transcript (rating, audio_file_id) VALUES (?, ?)",
+        (data.rating, data.audio_file_id)
     )
+
+    # Insert each segment
+    for segment in data.transcript_segments:
+        db.execute_query(
+            "INSERT INTO raw_transcript_segment (raw_transcript_id, start, end, text) VALUES (?, ?, ?, ?)",
+            (raw_transcript_id, segment.start, segment.end, segment.text)
+        )
+    return raw_transcript_id
 
 @app.put("/raw-transcripts/{transcript_id}")
 async def update_raw_transcript(transcript_id: int, data: RawTranscriptCreate):
     """
-    Sample Input: transcript_id=1, {"transcript": "Updated", "rating": 4, "audio_file_id": 1}
+    Sample Input: transcript_id=1, {"rating": 4, "audio_file_id": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Updated segment"}]}
     Sample Output: {"message": "Updated successfully"}
     """
+    # Update the main raw_transcript record (e.g., rating)
     db.execute_query(
-        "UPDATE raw_transcript SET transcript = ?, rating = ? WHERE id = ?",
-        (data.transcript, data.rating, transcript_id)
+        "UPDATE raw_transcript SET rating = ? WHERE id = ?",
+        (data.rating, transcript_id)
     )
+
+    # Delete existing segments for this raw_transcript
+    db.execute_query("DELETE FROM raw_transcript_segment WHERE raw_transcript_id = ?", (transcript_id,))
+
+    # Insert new segments
+    for segment in data.transcript_segments:
+        db.execute_query(
+            "INSERT INTO raw_transcript_segment (raw_transcript_id, start, end, text) VALUES (?, ?, ?, ?)",
+            (transcript_id, segment.start, segment.end, segment.text)
+        )
     return {"message": "Updated successfully"}
 
 # --- Endpoints: Edited Transcripts ---
 
 @app.get("/edited-transcripts/", response_model=List[EditedTranscript])
-async def get_edited_transcripts():
+async def get_edited_transcripts(raw_transcript_id: Optional[int] = None):
     """
-    Sample Input: None
-    Sample Output: [{"id": 1, "raw_transcript_id": 1, "transcript": "Corrected text", "created_at": "..."}]
+    Sample Input: None or raw_transcript_id=1
+    Sample Output: [{"id": 1, "raw_transcript_id": 1, "created_at": "...", "transcript_segments": [{"id": 1, "start": 0.0, "end": 1.5, "text": "Hello"}]}]
     """
-    return db.fetch_all("SELECT * FROM edited_transcript")
+    if raw_transcript_id:
+        edited_transcripts_data = db.fetch_all("SELECT * FROM edited_transcript WHERE raw_transcript_id = ?", (raw_transcript_id,))
+    else:
+        edited_transcripts_data = db.fetch_all("SELECT * FROM edited_transcript")
+    
+    edited_transcripts = []
+    for et_data in edited_transcripts_data:
+        segments_data = db.fetch_all(
+            "SELECT id, start, end, text FROM edited_transcript_segment WHERE edited_transcript_id = ?",
+            (et_data['id'],)
+        )
+        segments = [TranscriptSegment(**segment) for segment in segments_data]
+        edited_transcripts.append(
+            EditedTranscript(
+                id=et_data['id'],
+                raw_transcript_id=et_data['raw_transcript_id'],
+                created_at=et_data['created_at'],
+                transcript_segments=segments
+            )
+        )
+    return edited_transcripts
 
 @app.post("/edited-transcripts/", response_model=int)
 async def create_edited_transcript(data: EditedTranscriptCreate):
     """
-    Sample Input: {"raw_transcript_id": 1, "transcript": "Manually corrected"}
+    Sample Input: {"raw_transcript_id": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Hello"}, {"start": 2.0, "end": 3.0, "text": "World"}]}
     Sample Output: 1
     """
-    return db.execute_query(
-        "INSERT INTO edited_transcript (raw_transcript_id, transcript) VALUES (?, ?)",
-        (data.raw_transcript_id, data.transcript)
+    # Insert the main edited_transcript record
+    edited_transcript_id = db.execute_query(
+        "INSERT INTO edited_transcript (raw_transcript_id) VALUES (?)",
+        (data.raw_transcript_id,)
     )
+
+    # Insert each segment
+    for segment in data.transcript_segments:
+        db.execute_query(
+            "INSERT INTO edited_transcript_segment (edited_transcript_id, start, end, text) VALUES (?, ?, ?, ?)",
+            (edited_transcript_id, segment.start, segment.end, segment.text)
+        )
+    return edited_transcript_id
 
 @app.put("/edited-transcripts/{transcript_id}")
 async def update_edited_transcript(transcript_id: int, data: EditedTranscriptCreate):
     """
-    Sample Input: transcript_id=1, {"raw_transcript_id": 1, "transcript": "Final text"}
+    Sample Input: transcript_id=1, {"raw_transcript_id": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Updated segment"}]}
     Sample Output: {"message": "Updated successfully"}
     """
-    db.execute_query(
-        "UPDATE edited_transcript SET transcript = ? WHERE id = ?",
-        (data.transcript, transcript_id)
-    )
+    # Verify that the raw_transcript_id in the payload matches the existing one for integrity, if necessary
+    # For now, we assume the raw_transcript_id in data is the correct one to associate.
+
+    # Delete existing segments for this edited_transcript
+    db.execute_query("DELETE FROM edited_transcript_segment WHERE edited_transcript_id = ?", (transcript_id,))
+
+    # Insert new segments
+    for segment in data.transcript_segments:
+        db.execute_query(
+            "INSERT INTO edited_transcript_segment (edited_transcript_id, start, end, text) VALUES (?, ?, ?, ?)",
+            (transcript_id, segment.start, segment.end, segment.text)
+        )
     return {"message": "Updated successfully"}
 
 if __name__ == "__main__":

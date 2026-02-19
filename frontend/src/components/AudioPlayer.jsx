@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function AudioPlayer({
   fileUrl,
-  audioRef,
-  onTimeUpdate,
-  onReady
+  onTimeUpdate = () => {},
+  onReady = () => {}
 }) {
+  const audioRef = useRef(null);
+
   useEffect(() => {
     if (!audioRef.current) return;
 
@@ -18,7 +19,7 @@ export default function AudioPlayer({
     return () => {
       audioRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [audioRef, onTimeUpdate]);
+  }, [onTimeUpdate]);
 
   return (
     <audio
