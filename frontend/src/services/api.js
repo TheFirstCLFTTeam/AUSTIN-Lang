@@ -131,34 +131,34 @@ export async function uploadAudio(file) {
       throw new Error(`Failed to create raw transcript: ${createRawTranscriptResponse.status}`);
     }
 
-    // const rawTranscriptId = await createRawTranscriptResponse.json();
+    const rawTranscriptId = await createRawTranscriptResponse.json();
 
     // 3. Generate 3 dummy EditedTranscriptSegment objects (can be the same as raw for initial creation)
-    // const dummyEditedSegments = [
-    //   { start: 0, end: 5, text: "This is the first dummy raw segment." },
-    //   { start: 5, end: 10, text: "This is the second dummy raw segment." },
-    //   { start: 10, end: 15, text: "This is the third dummy raw segment." }
-    // ];
+    const dummyEditedSegments = [
+      { start: 0, end: 5, text: "This is the first dummy raw segment." },
+      { start: 5, end: 10, text: "This is the second dummy raw segment." },
+      { start: 10, end: 15, text: "This is the third dummy raw segment." }
+    ];
 
-    // // 4. Create an EditedTranscript with the dummy segments
-    // const createEditedTranscriptResponse = await fetch("http://localhost:8002/edited-transcripts/", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ 
-    //     raw_transcript_id: rawTranscriptId, 
-    //     transcript_segments: dummyEditedSegments 
-    //   }),
-    // });
+    // 4. Create an EditedTranscript with the dummy segments
+    const createEditedTranscriptResponse = await fetch("http://localhost:8002/edited-transcripts/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ 
+        raw_transcript_id: rawTranscriptId, 
+        transcript_segments: dummyEditedSegments 
+      }),
+    });
 
-    // if (!createEditedTranscriptResponse.ok) {
-    //   throw new Error(`Failed to create edited transcript: ${createEditedTranscriptResponse.status}`);
-    // }
+    if (!createEditedTranscriptResponse.ok) {
+      throw new Error(`Failed to create edited transcript: ${createEditedTranscriptResponse.status}`);
+    }
 
     // Edited transcript ID is returned but not explicitly used here,
     // as fetchFileDetail will retrieve the full edited transcript.
-    // const editedTranscriptId = await createEditedTranscriptResponse.json();
+    const editedTranscriptId = await createEditedTranscriptResponse.json();
 
     // 5. Construct the newFile object for frontend display
     const newFile = {
@@ -255,17 +255,22 @@ export async function fetchFileDetail(id) {
 }
 
 // Update transcript
-export async function updateTranscript(editedTranscriptId, rawTranscriptId, newSegments) {
+export async function updateTranscript(editedTranscriptId, rawTranscriptId, newSegments = []) {
   requireAuth();
   try {
+    const processedSegments = newSegments.map(segment => ({
+      ...segment,
+      id: Number.isInteger(Number(segment.id)) ? Number(segment.id) : null // Convert to int or null
+    }));
+
     const response = await fetch(`http://localhost:8002/edited-transcripts/${editedTranscriptId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        raw_transcript_id: rawTranscriptId, // Pass raw_transcript_id for integrity check if needed on backend
-        transcript_segments: newSegments,
+        raw_transcript_id: rawTranscriptId,
+        transcript_segments: processedSegments,
       }),
     });
 

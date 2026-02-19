@@ -7,7 +7,11 @@ export default function TranscriptEditor({
   onSeek,
   onSubmit
 }) {
-  const [localSegments, setLocalSegments] = useState(segments);
+  const [localSegments, setLocalSegments] = useState(segments || []);
+
+  useEffect(() => {
+    setLocalSegments(segments || []);
+  }, [segments]);
 
   const activeId = localSegments.find(
     (s) => currentTime >= s.start && currentTime < s.end

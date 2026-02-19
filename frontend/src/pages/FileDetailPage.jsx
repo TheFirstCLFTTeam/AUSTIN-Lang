@@ -18,8 +18,18 @@ export default function FileDetailPage() {
   }, [id]);
 
   async function handleSubmit(newSegments) {
-    const updated = await updateTranscript(id, newSegments);
-    setFileData(updated);
+    if (!fileData.editedTranscript) {
+      console.error("No edited transcript found for update.");
+      // You might want to create an edited transcript here if none exists
+      return;
+    }
+    const updated = await updateTranscript(
+      fileData.editedTranscript.id,
+      fileData.rawTranscript.id,
+      newSegments
+    );
+    // After update, re-fetch the entire file detail to get the latest state
+    fetchFileDetail(id).then(setFileData);
     setSuccess(true);
     setTimeout(() => setSuccess(false), 3000);
   }
