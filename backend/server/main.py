@@ -8,11 +8,17 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-import whisper
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+
+from model_interface import TranscriptionModel, WhisperModel
+
+
+# ---------------------------------------------------------------------------
+# FastAPI app
+# ---------------------------------------------------------------------------
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -31,7 +37,7 @@ app.add_middleware(
 )
 
 # Global model instance (loaded on startup)
-model = None
+model: Optional[TranscriptionModel] = None
 
 # Supported audio formats
 SUPPORTED_FORMATS = {".mp3", ".wav", ".m4a", ".flac", ".ogg", ".webm", ".mp4"}
@@ -64,9 +70,7 @@ MODEL_NAME = os.getenv(
 async def load_model():
     """Load Whisper model on server startup."""
     global model
-    print(f"Loading Whisper model: {MODEL_NAME}...")
-    model = whisper.load_model(MODEL_NAME)
-    print(f"Model '{MODEL_NAME}' loaded successfully!")
+    model = WhisperModel(MODEL_NAME)
 
 
 @app.get("/", response_model=HealthResponse)

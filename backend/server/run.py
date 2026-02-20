@@ -12,7 +12,8 @@ import uvicorn
 def main():
     parser = argparse.ArgumentParser(description="Run the AUSTIN-Lang Transcription Server")
     parser.add_argument("--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)")
-    parser.add_argument("--port", type=int, default=8000, help="Port to bind to (default: 8000)")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("SERVER_PORT", 8003)), help="Port to bind to (default: 8000 or SERVER_PORT env var)")
+    # should use port 8003
     parser.add_argument(
         "--model",
         default="base",

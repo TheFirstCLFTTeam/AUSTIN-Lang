@@ -16,11 +16,11 @@ Task: Improve whisperV3 for the two subtasks:
 - [Undermind](https://app.undermind.ai/report/5f3e6d134857867d670c4be244446cf05dd23789192882546fd1840d1912edf9)
 - [Consensus](https://consensus.app/search/multilingual-code-switching-speech-recognition/6bs6AhdGRI2CLee7VR1irA/?utm_source=share&utm_medium=clipboard)
 - [Scite](https://scite-ai.libproxy.smu.edu.sg/assistant/shared/06d74462d74e4befaa858f69f4b42d4f)
-- Bohrium (see other doc)
+- [Bohrium](https://www.bohrium.com/en/chat/share/fd17a59e-aa2b-4208-aa20-e54cb8cf0916)
 
 ## Prompting History for searching for papers
 
-#### Prompt V1
+### Prompt V1
 
 You are a highly experienced Machine learning engineer, and an expert in audio transcription models and other related models that deal with unstructured audio data. list some developments in speech to text AI models that specifically focus on the following tasks:
 
@@ -30,7 +30,7 @@ You are a highly experienced Machine learning engineer, and an expert in audio t
 
 - Domain-specific terms: Finance terms in both languages need to be recognisable. However, I want this feature of the model modular and editable such that I can "hot swap" domains i.e. finance to healthcare and biomedical
 
-#### After Prompt Refinement by Undermind
+### Prompt Refinement by Undermind
 
 You are a highly experienced Machine learning engineer, and an expert in audio transcription models and other related models that deal with unstructured audio data. list some developments in speech to text AI models that specifically focus on the following tasks:
 
@@ -38,14 +38,21 @@ I want to find research on multilingual, code-switching speech-to-text models (e
 
 ## Existing literature
 
+### Model Alternatives
+
+- WhisperV3 (Baseline to beat)
+
+- Whisper Family Alternatives
+    - Whisper-X
+    - faster-whisper
+
 ### Initial set
 
 - <https://arxiv.org/abs/2403.05887>
     - Aligning Speech to Languages to Enhance Code-switching Speech Recognition
 - <https://www.isca-archive.org/interspeech_2010/lyu10_interspeech.pdf>
     - SEAME: a Mandarin-English Code-switching Speech Corpus in South-East Asia
-
-### Week 2
+    -
 
 #### Some current difficulties experienced by models
 
@@ -55,3 +62,9 @@ I want to find research on multilingual, code-switching speech-to-text models (e
 
 1. Probabilistic Language-Aware Mechanisms
     -
+
+## Retraining Task
+
+##
+
+## Datasets
