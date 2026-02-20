@@ -1,15 +1,27 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { uploadAudio } from "../services/api";
 import AudioPlayer from "../components/AudioPlayer";
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
-  const [uploaded, setUploaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleUpload = async () => {
-    await uploadAudio(file);
-    setUploaded(true);
-    setTimeout(() => setUploaded(false), 3000);
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const data = await uploadAudio(file);
+      setResult(data);
+    } catch (err) {
+      setError(err.message || "Upload failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,27 +49,59 @@ export default function UploadPage() {
           <input
             type="file"
             accept="audio/*"
-            onChange={(e) => setFile(e.target.files[0])}
+            onChange={(e) => { setFile(e.target.files[0]); setResult(null); setError(null); }}
             className="hidden"
           />
         </label>
 
-        {file && (
+        {file && !result && (
           <>
             <AudioPlayer file={file} />
 
             <button
               onClick={handleUpload}
-              className="mt-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+              disabled={loading}
+              className="mt-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50"
             >
-              Upload & Transcribe
+              {loading ? "Transcribing\u2026" : "Upload & Transcribe"}
             </button>
           </>
         )}
 
-        {uploaded && (
-          <div className="mt-4 text-green-700 bg-green-50 border border-green-200 rounded p-3 text-sm">
-            Upload successful. Processing transcription.
+        {error && (
+          <div className="mt-4 text-red-700 bg-red-50 border border-red-200 rounded p-3 text-sm">
+            {error}
+          </div>
+        )}
+
+        {result && (
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="text-green-700 bg-green-50 border border-green-200 rounded p-3 text-sm">
+              Transcription complete.
+              {result.language && (
+                <span className="ml-2 text-gray-500">
+                  Language: <strong>{result.language}</strong>
+                </span>
+              )}
+            </div>
+
+            <div className="p-4 bg-gray-50 border rounded-lg whitespace-pre-wrap text-sm text-gray-800">
+              {result.transcript}
+            </div>
+
+            <button
+              onClick={() => navigate(`/files/${result.id}`)}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+            >
+              View &amp; Edit Transcript
+            </button>
+
+            <button
+              onClick={() => { setFile(null); setResult(null); }}
+              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition"
+            >
+              Upload Another
+            </button>
           </div>
         )}
       </div>
