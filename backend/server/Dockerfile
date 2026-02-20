@@ -8,6 +8,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    python3-full \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
@@ -15,7 +16,7 @@ COPY . .
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip install --no-cache-dir --upgrade pip pyyaml
+RUN pip3 install --no-cache-dir -r configs/requirements.txt
 
 RUN python - <<'PY'
 import pathlib
@@ -37,7 +38,8 @@ else:
     print("No pip dependencies found in configs/server_dev_env.yml")
 PY
 
-ENV SERVER_PORT=8003
+ARG SERVER_PORT
+ENV SERVER_PORT=${SERVER_PORT}
 
 EXPOSE ${SERVER_PORT}
 

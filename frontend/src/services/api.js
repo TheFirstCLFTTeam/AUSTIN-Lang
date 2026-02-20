@@ -86,15 +86,16 @@ function requireAuth() {
  * FILE API FUNCTIONS
  *********************************/
 
-// Upload audio file
+// Upload audio file and return transcription from the server
 export async function uploadAudio(file) {
   requireAuth();
 
   const formData = new FormData();
-  formData.append("file", file);
+  // Backend expects the field named "audio"
+  formData.append("audio", file);
 
   try {
-    const response = await fetch("http://localhost:8001/transcribe/", {
+    const response = await fetch("http://localhost:8000/transcribe", {
       method: "POST",
       body: formData,
     });
@@ -103,14 +104,17 @@ export async function uploadAudio(file) {
       throw new Error(`Upload failed with status: ${response.status}`);
     }
 
+    // Backend returns: { text, language, duration, segments }
     const data = await response.json();
 
     const newFile = {
-      id: data.id || Date.now().toString(),
+      id: Date.now().toString(),
       name: file.name,
       audioUrl: URL.createObjectURL(file),
-      transcript: data.transcript || "Transcription in progress...",
-      ...data
+      transcript: data.text || "",
+      language: data.language || null,
+      duration: data.duration || null,
+      segments: data.segments || null,
     };
 
     files.push(newFile);
@@ -149,13 +153,15 @@ export async function fetchSubmittedFiles() {
 // Fetch one file by ID
 export async function fetchFileDetail(id) {
   requireAuth();
-  // return files.find((f) => f.id === id);
-  // Construct the file object since ID is the filename
+  // Check in-memory store first (populated after a fresh upload)
+  const cached = files.find((f) => f.id === id);
+  if (cached) return cached;
+  // Fall back to constructing from filename (for files loaded from the server list)
   return {
-    id: id,
+    id,
     name: id,
-    transcript: "Transcript retrieval not implemented yet.",
-    audioUrl: `http://localhost:8000/audio_files/${id}`
+    transcript: "Transcript not available.",
+    audioUrl: `http://localhost:8000/audio_files/${id}`,
   };
 }
 
