@@ -1,26 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
-export default function AudioPlayer({ file, fileUrl }) {
-  const [src, setSrc] = useState(null);
+export default function AudioPlayer({
+  fileUrl,
+  onTimeUpdate = () => {},
+  onReady = () => {}
+}) {
+  const audioRef = useRef(null);
 
   useEffect(() => {
-    if (file instanceof File) {
-      const objectUrl = URL.createObjectURL(file);
-      setSrc(objectUrl);
+    if (!audioRef.current) return;
 
-      return () => URL.revokeObjectURL(objectUrl);
-    }
+    const handleTimeUpdate = () => {
+      onTimeUpdate(audioRef.current.currentTime);
+    };
 
-    if (typeof fileUrl === "string") {
-      setSrc(fileUrl);
-    }
-  }, [file, fileUrl]);
+    audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
 
-  if (!src) return null;
+    return () => {
+      audioRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
+    };
+  }, [onTimeUpdate]);
 
   return (
-    <audio controls className="w-full mt-4">
-      <source src={src} />
-    </audio>
+    <audio
+      ref={audioRef}
+      controls
+      preload="metadata"
+      src={fileUrl}
+      onCanPlay={onReady}
+      className="w-full mt-4"
+    />
   );
 }
