@@ -60,20 +60,8 @@ export async function login(email, password) {
  * MOCK FILE DATABASE
  *********************************/
 
-let files = [
-  {
-    id: "1",
-    name: "sample-audio-1.wav",
-    audioUrl: "/mock-audio/sample1.wav",
-    transcript: "This is a sample transcription.",
-  },
-  {
-    id: "2",
-    name: "sample-audio-2.wav",
-    audioUrl: "/mock-audio/sample2.wav",
-    transcript: "Another example transcription.",
-  },
-];
+
+
 
 // Simple auth guard for mock API calls
 function requireAuth() {
@@ -86,41 +74,103 @@ function requireAuth() {
  * FILE API FUNCTIONS
  *********************************/
 
-// Upload audio file and return transcription from the server
+// Upload audio file
 export async function uploadAudio(file) {
   requireAuth();
 
-  const formData = new FormData();
-  // Backend expects the field named "audio"
-  formData.append("audio", file);
-
   try {
-    const response = await fetch("http://localhost:8000/transcribe", {
+    // 1. Upload the actual audio file to the audio submission module
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const audioUploadResponse = await fetch("http://localhost:8000/upload-audio", {
       method: "POST",
       body: formData,
     });
 
-    if (!response.ok) {
-      throw new Error(`Upload failed with status: ${response.status}`);
+    if (!audioUploadResponse.ok) {
+      throw new Error(`Failed to upload audio file to submission module: ${audioUploadResponse.status}`);
     }
 
-    // Backend returns: { text, language, duration, segments }
-    const data = await response.json();
+    // 2. Register the file name with our database service (create AudioFile)
+    const registerAudioResponse = await fetch("http://localhost:8002/audio-files/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ file_name: file.name }),
+    });
 
+    if (!registerAudioResponse.ok) {
+      throw new Error(`Failed to register audio file with database: ${registerAudioResponse.status}`);
+    }
+
+    const audioFileId = await registerAudioResponse.json();
+
+    // Generate 3 dummy RawTranscriptSegment objects
+    const dummyRawSegments = [
+      { start: 0, end: 5, text: "This is the first dummy raw segment." },
+      { start: 5, end: 10, text: "This is the second dummy raw segment." },
+      { start: 10, end: 15, text: "This is the third dummy raw segment." }
+    ];
+
+    // 2. Create a dummy RawTranscript for the newly created AudioFile with segments
+    const createRawTranscriptResponse = await fetch("http://localhost:8002/raw-transcripts/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ 
+        rating: 0, // Default rating
+        audio_file_id: audioFileId,
+        transcript_segments: dummyRawSegments
+      }),
+    });
+
+    if (!createRawTranscriptResponse.ok) {
+      throw new Error(`Failed to create raw transcript: ${createRawTranscriptResponse.status}`);
+    }
+
+    const rawTranscriptId = await createRawTranscriptResponse.json();
+
+    // 3. Generate 3 dummy EditedTranscriptSegment objects (can be the same as raw for initial creation)
+    const dummyEditedSegments = [
+      { start: 0, end: 5, text: "This is the first dummy raw segment." },
+      { start: 5, end: 10, text: "This is the second dummy raw segment." },
+      { start: 10, end: 15, text: "This is the third dummy raw segment." }
+    ];
+
+    // 4. Create an EditedTranscript with the dummy segments
+    const createEditedTranscriptResponse = await fetch("http://localhost:8002/edited-transcripts/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ 
+        raw_transcript_id: rawTranscriptId, 
+        transcript_segments: dummyEditedSegments 
+      }),
+    });
+
+    if (!createEditedTranscriptResponse.ok) {
+      throw new Error(`Failed to create edited transcript: ${createEditedTranscriptResponse.status}`);
+    }
+
+    // Edited transcript ID is returned but not explicitly used here,
+    // as fetchFileDetail will retrieve the full edited transcript.
+    const editedTranscriptId = await createEditedTranscriptResponse.json();
+
+    // 5. Construct the newFile object for frontend display
     const newFile = {
-      id: Date.now().toString(),
+      id: String(audioFileId), 
       name: file.name,
-      audioUrl: URL.createObjectURL(file),
-      transcript: data.text || "",
-      language: data.language || null,
-      duration: data.duration || null,
-      segments: data.segments || null,
+      audioUrl: URL.createObjectURL(file), // Create a local URL for immediate display
+      transcriptSegments: dummyRawSegments, // Pass the dummy edited segments for immediate display
     };
 
-    files.push(newFile);
     return newFile;
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error("Error uploading or registering file with transcripts:", error);
     throw error;
   }
 }
@@ -128,21 +178,22 @@ export async function uploadAudio(file) {
 // Fetch all submitted files
 export async function fetchSubmittedFiles() {
   requireAuth();
-  // return files;
   try {
-    const response = await fetch("http://localhost:8000/get-all-audio/");
+    const response = await fetch("http://localhost:8002/audio-files/"); // Call the new backend endpoint
     if (!response.ok) {
-      throw new Error(`Failed to fetch files: ${response.status}`);
+      throw new Error(`Failed to fetch audio files: ${response.status}`);
     }
-    const data = await response.json();
+    const audioFiles = await response.json();
     
-    // Map the backend audio_files array to the structure the UI expects
-    return (data.audio_files || []).map((filename) => ({
-      id: filename,
-      name: filename,
-      transcript: "Transcript retrieval not implemented yet.",
-      // In a real app, you'd fetch the actual transcript and a real URL
-      audioUrl: `http://localhost:8000/audio_files/${filename}` 
+    // Map the backend AudioFile array to the structure the UI expects
+    return audioFiles.map((audioFile) => ({
+      id: String(audioFile.id), // Ensure ID is a string for frontend consistency
+      name: audioFile.file_name,
+      // audioUrl will need to be configured based on where your audio files are served
+      // For now, assuming a similar structure as before but targeting port 8000
+      audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`, 
+      transcriptSegments: [], // Summary view, full segments fetched in detail
+      uploaded_at: audioFile.uploaded_at
     }));
   } catch (error) {
     console.error("Error fetching submitted files:", error);
@@ -153,25 +204,84 @@ export async function fetchSubmittedFiles() {
 // Fetch one file by ID
 export async function fetchFileDetail(id) {
   requireAuth();
-  // Check in-memory store first (populated after a fresh upload)
-  const cached = files.find((f) => f.id === id);
-  if (cached) return cached;
-  // Fall back to constructing from filename (for files loaded from the server list)
-  return {
-    id,
-    name: id,
-    transcript: "Transcript not available.",
-    audioUrl: `http://localhost:8000/audio_files/${id}`,
-  };
+  try {
+    // 1. Fetch AudioFile
+    const audioFileResponse = await fetch(`http://localhost:8002/audio-files/${id}`);
+    if (!audioFileResponse.ok) {
+      throw new Error(`Failed to fetch audio file detail for ID ${id}: ${audioFileResponse.status}`);
+    }
+    const audioFile = await audioFileResponse.json();
+
+    // 2. Fetch Raw Transcript(s) for this audio_file_id
+    // Assuming one raw transcript per audio file for simplicity
+    const rawTranscriptsResponse = await fetch(`http://localhost:8002/raw-transcripts/?audio_file_id=${id}`);
+    if (!rawTranscriptsResponse.ok) {
+        throw new Error(`Failed to fetch raw transcripts for audio file ID ${id}: ${rawTranscriptsResponse.status}`);
+    }
+    const rawTranscripts = await rawTranscriptsResponse.json();
+    const rawTranscript = rawTranscripts.length > 0 ? rawTranscripts[0] : null; // Get the first one
+
+    let editedTranscript = null;
+    if (rawTranscript) {
+        // 3. Fetch Edited Transcript(s) for this raw_transcript_id
+        // Assuming one edited transcript per raw transcript for simplicity
+        const editedTranscriptsResponse = await fetch(`http://localhost:8002/edited-transcripts/?raw_transcript_id=${rawTranscript.id}`);
+        if (!editedTranscriptsResponse.ok) {
+            throw new Error(`Failed to fetch edited transcripts for raw transcript ID ${rawTranscript.id}: ${editedTranscriptsResponse.status}`);
+        }
+        const editedTranscripts = await editedTranscriptsResponse.json();
+        editedTranscript = editedTranscripts.length > 0 ? editedTranscripts[0] : null; // Get the first one
+    }
+
+    // Combine all data into the frontend's expected file structure
+    const fileDetail = {
+      id: String(audioFile.id),
+      name: audioFile.file_name,
+      audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`, // Adjust as per your audio serving setup
+      uploaded_at: audioFile.uploaded_at,
+      rawTranscript: rawTranscript, // Include raw transcript data
+      editedTranscript: editedTranscript, // Include edited transcript data
+      transcriptSegments: editedTranscript 
+        ? editedTranscript.transcript_segments 
+        : (rawTranscript ? rawTranscript.transcript_segments : []),
+    };
+
+    return fileDetail;
+
+  } catch (error) {
+    console.error("Error fetching file detail:", error);
+    return null;
+  }
 }
 
 // Update transcript
-export async function updateTranscript(id, newTranscript) {
+export async function updateTranscript(editedTranscriptId, rawTranscriptId, newSegments = []) {
   requireAuth();
+  try {
+    const processedSegments = newSegments.map(segment => ({
+      ...segment,
+      id: Number.isInteger(Number(segment.id)) ? Number(segment.id) : null // Convert to int or null
+    }));
 
-  const file = files.find((f) => f.id === id);
-  if (file) {
-    file.transcript = newTranscript;
+    const response = await fetch(`http://localhost:8002/edited-transcripts/${editedTranscriptId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        raw_transcript_id: rawTranscriptId,
+        transcript_segments: processedSegments,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update transcript: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating transcript:", error);
+    throw error;
   }
-  return file;
 }
+

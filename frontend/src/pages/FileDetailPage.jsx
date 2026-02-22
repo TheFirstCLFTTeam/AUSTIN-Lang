@@ -1,33 +1,54 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AudioPlayer from "../components/AudioPlayer";
 import TranscriptEditor from "../components/TranscriptEditor";
 import { fetchFileDetail, updateTranscript } from "../services/api";
 
 export default function FileDetailPage() {
   const { id } = useParams();
+  const audioRef = useRef(null);
+
   const [fileData, setFileData] = useState(null);
-  const [editing, setEditing] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [audioReady, setAudioReady] = useState(false);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     fetchFileDetail(id).then(setFileData);
   }, [id]);
 
-  const handleSubmit = async (text) => {
-    await updateTranscript(id, text);
-    setEditing(false);
+  async function handleSubmit(newSegments) {
+    if (!fileData.editedTranscript) {
+      console.error("No edited transcript found for update.");
+      // You might want to create an edited transcript here if none exists
+      return;
+    }
+    const updated = await updateTranscript(
+      fileData.editedTranscript.id,
+      fileData.rawTranscript.id,
+      newSegments
+    );
+    // After update, re-fetch the entire file detail to get the latest state
+    fetchFileDetail(id).then(setFileData);
     setSuccess(true);
-
     setTimeout(() => setSuccess(false), 3000);
-  };
+  }
+
+  function handleSeek(time) {
+    if (!audioRef.current || !audioReady) return;
+
+    audioRef.current.currentTime = time;
+
+    if (audioRef.current.readyState >= 2) {
+      audioRef.current.play();
+    }
+  }
 
   if (!fileData) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-6">
       <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm p-8">
-
         <h1 className="text-2xl font-semibold mb-2">
           {fileData.name}
         </h1>
@@ -35,33 +56,26 @@ export default function FileDetailPage() {
           Review audio and transcription
         </p>
 
-        <AudioPlayer fileUrl={fileData.audioUrl} />
+        <AudioPlayer
+          fileUrl={fileData.audioUrl}
+          audioRef={audioRef}
+          onTimeUpdate={setCurrentTime}
+          onReady={() => setAudioReady(true)}
+        />
 
         {success && (
-          <div className="mt-4 p-3 rounded bg-green-50 text-green-700 border border-green-200">
+          <div className="mt-4 p-3 rounded bg-green-50 text-green-700 border">
             Transcript updated successfully
           </div>
         )}
 
-        {!editing ? (
-          <>
-            <div className="mt-6 p-4 bg-gray-50 border rounded-lg whitespace-pre-wrap">
-              {fileData.transcript}
-            </div>
-
-            <button
-              onClick={() => setEditing(true)}
-              className="mt-6 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-            >
-              Update Transcript
-            </button>
-          </>
-        ) : (
-          <TranscriptEditor
-            transcript={fileData.transcript}
-            onSubmit={handleSubmit}
-          />
-        )}
+        <TranscriptEditor
+          segments={fileData.transcriptSegments}
+          currentTime={currentTime}
+          audioReady={audioReady}
+          onSeek={handleSeek}
+          onSubmit={handleSubmit}
+        />
       </div>
     </div>
   );
