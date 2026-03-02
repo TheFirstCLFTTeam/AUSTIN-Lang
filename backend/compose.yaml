@@ -10,6 +10,22 @@ services:
     build: "./transcription_orchestrator"
     ports:
       - "${TRANSCRIPTION_ORCHESTRATOR_PORT}:${TRANSCRIPTION_ORCHESTRATOR_PORT}"
+    depends_on:
+      - audio_submission
+      # - transcription-server
+    environment:
+      - AUDIO_SUBMISSION_PORT=${AUDIO_SUBMISSION_PORT}
+      - SERVER_PORT=${SERVER_PORT}
+
+  transcription-server:
+    build:
+      context: "./server"
+      args:
+        SERVER_PORT: ${SERVER_PORT}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    environment:
+      - SERVER_PORT=${SERVER_PORT}
 
   database:
     build: "./database"
