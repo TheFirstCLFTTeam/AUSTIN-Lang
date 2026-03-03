@@ -4,8 +4,17 @@ from typing import List, Optional
 from db_client import DatabaseClient
 import os
 from starlette.middleware.cors import CORSMiddleware # Import CORSMiddleware
+import sqlite3
+from fastapi.responses import JSONResponse
 
 app = FastAPI(title="AUSTIN-Lang Database Service")
+
+@app.exception_handler(sqlite3.IntegrityError)
+async def integrity_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": f"Database integrity error: {str(exc)}"},
+    )
 
 # Add CORS middleware
 origins = [
