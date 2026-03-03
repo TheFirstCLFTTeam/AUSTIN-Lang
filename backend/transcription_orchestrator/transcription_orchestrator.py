@@ -18,6 +18,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def handle_response(response, service_name: str):
+    """Checks for errors and raises appropriate HTTPExceptions."""
+    if 400 <= response.status_code < 500:
+        # Propagate client errors with the same message
+        try:
+            detail = response.json().get("detail", response.text)
+        except Exception:
+            detail = response.text
+        raise HTTPException(status_code=400, detail=f"{service_name} error: {detail}")
+    
+    try:
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=502, detail=f"{service_name} service failed: {str(e)}")
+
 @app.post("/transcribe/")
 async def transcribe(file: UploadFile = File(...)):
     """
@@ -35,39 +50,54 @@ async def transcribe(file: UploadFile = File(...)):
     
     try:
         submission_response = requests.post(submission_url, files=files)
-        submission_response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=502, detail=f"Audio submission failed: {str(e)}")
+        handle_response(submission_response, "Audio submission")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Audio submission connection failed: {str(e)}")
 
     # 2. Call transcription server
-    transcription_server_host = os.getenv("TRANSCRIPTION_SERVER_HOST", "transcription-server")
-    transcription_server_port = os.getenv("SERVER_PORT", 8003)
-    transcription_url = f"http://{transcription_server_host}:{transcription_server_port}/transcribe"
+    skip_transcription = os.getenv("SKIP_TRANSCRIPTION_SERVER", "true").lower() == "true"
     
-    # We need segments for the database
-    params = {"include_segments": "true"}
-    transcription_files = {"audio": (file.filename, file_content, file.content_type)}
-    
-    try:
-        transcription_response = requests.post(transcription_url, params=params, files=transcription_files)
-        transcription_response.raise_for_status()
-        whisper_data = transcription_response.json()
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=502, detail=f"Transcription service failed: {str(e)}")
+    if skip_transcription:
+        whisper_data = {
+            "text": "This is dummy transcription text because the server is skipped.",
+            "language": "en",
+            "segments": [
+                {"start": 0.0, "end": 5.0, "text": "Dummy segment 1"},
+                {"start": 5.0, "end": 10.0, "text": "Dummy segment 2"}
+            ]
+        }
+    else:
+        transcription_server_host = os.getenv("TRANSCRIPTION_SERVER_HOST", "transcription-server")
+        transcription_server_port = os.getenv("SERVER_PORT", 8003)
+        transcription_url = f"http://{transcription_server_host}:{transcription_server_port}/transcribe"
+        
+        # We need segments for the database
+        params = {"include_segments": "true"}
+        transcription_files = {"audio": (file.filename, file_content, file.content_type)}
+        
+        try:
+            transcription_response = requests.post(transcription_url, params=params, files=transcription_files)
+            handle_response(transcription_response, "Transcription service")
+            whisper_data = transcription_response.json()
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Transcription service connection failed: {str(e)}")
 
     # 3. Database Registration
     db_host = os.getenv("DATABASE_HOST", "database")
     db_port = os.getenv("DATABASE_PORT", 8002)
     db_base_url = f"http://{db_host}:{db_port}"
 
-    # Default dummy segments if whisper returns none
-    segments = whisper_data.get("segments")
-    # segments = [ {"start": 0.0, "end": 5.0, "text": "Dummy segment 1"}, {"start": 5.0, "end": 10.0, "text": "Dummy segment 2"} ] # dummy_segments
+    # Use segments from whisper_data
+    segments = whisper_data.get("segments", [])
 
     try:
         # 3a. Register Audio File
         db_file_response = requests.post(f"{db_base_url}/audio-files/", json={"file_name": file.filename})
-        db_file_response.raise_for_status()
+        handle_response(db_file_response, "Database (audio_file)")
         audio_file_id = db_file_response.json()
 
         # 3b. Create Raw Transcript
@@ -77,7 +107,7 @@ async def transcribe(file: UploadFile = File(...)):
             "transcript_segments": segments
         }
         db_raw_response = requests.post(f"{db_base_url}/raw-transcripts/", json=raw_transcript_payload)
-        db_raw_response.raise_for_status()
+        handle_response(db_raw_response, "Database (raw_transcript)")
         raw_transcript_id = db_raw_response.json()
 
         # 3c. Create Initial Edited Transcript (copy of raw)
@@ -86,11 +116,13 @@ async def transcribe(file: UploadFile = File(...)):
             "transcript_segments": segments
         }
         db_edited_response = requests.post(f"{db_base_url}/edited-transcripts/", json=edited_transcript_payload)
-        db_edited_response.raise_for_status()
+        handle_response(db_edited_response, "Database (edited_transcript)")
         edited_transcript_id = db_edited_response.json()
 
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=502, detail=f"Database registration failed: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Database registration connection failed: {str(e)}")
 
     return {
         "audio_file_id": audio_file_id,

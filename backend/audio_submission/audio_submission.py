@@ -31,10 +31,13 @@ async def get_all_audio():
     audio_files = [f for f in files if f.endswith(".wav")]
     return {"audio_files": audio_files}
 
+# Supported audio formats
+SUPPORTED_FORMATS = {".mp3", ".wav", ".m4a", ".flac", ".ogg", ".webm", ".mp4"}
+
 @app.post("/upload-audio/")
 async def upload_audio(file: UploadFile = File(...)):
     """
-    Upload an audio file (must be .wav).
+    Upload an audio file (mp3, wav, m4a, flac, ogg, webm, mp4).
 
     Usage (Python):
     ```python
@@ -46,19 +49,23 @@ async def upload_audio(file: UploadFile = File(...)):
     print(response.json())
     ```
     """
-    # Check if the file is a .wav file
-    if not file.filename.endswith(".wav"):
-        raise HTTPException(status_code=400, detail="Only .wav files are allowed")
+    # Sanitize filename to prevent directory traversal
+    filename = os.path.basename(file.filename)
+    
+    # Validate file extension
+    file_ext = os.path.splitext(filename)[1].lower()
+    if file_ext not in SUPPORTED_FORMATS:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Unsupported audio format: {file_ext}. Supported formats: {', '.join(SUPPORTED_FORMATS)}"
+        )
 
     # Store the file in UPLOAD_DIR
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    file_path = os.path.join(UPLOAD_DIR, filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # TODO: Make a database insert request
-
-
-    return {"filename": file.filename, "message": "Audio file received successfully"}
+    return {"filename": filename, "message": "Audio file received successfully"}
 
 if __name__ == "__main__":
     import uvicorn
