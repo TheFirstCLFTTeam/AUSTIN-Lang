@@ -1,5 +1,6 @@
 import pytest
 import os
+import sqlite3
 
 def test_database_initialization(db_client, test_db_path):
     """Verify that the database file is created and the schema is applied."""
@@ -29,7 +30,7 @@ def test_fetch_all(db_client):
     db_client.execute_query("INSERT INTO audio_file (file_name) VALUES (?)", ("audio2.wav",))
     
     rows = db_client.fetch_all("SELECT * FROM audio_file")
-    assert len(rows) >= 2
+    assert len(rows) == 2 # Scope="function" ensures clean db
     filenames = [row['file_name'] for row in rows]
     assert "audio1.wav" in filenames
     assert "audio2.wav" in filenames
@@ -46,3 +47,37 @@ def test_fetch_one_not_found(db_client):
     """Verify that fetch_one returns None for non-existent IDs."""
     row = db_client.fetch_one("SELECT * FROM audio_file WHERE id = ?", (9999,))
     assert row is None
+
+# --- ROBUSTNESS TESTS ---
+
+def test_sql_injection_protection(db_client):
+    """Verify that parameterized queries protect against basic SQL injection."""
+    malicious_name = "test'); DROP TABLE audio_file; --"
+    file_id = db_client.execute_query(
+        "INSERT INTO audio_file (file_name) VALUES (?)", 
+        (malicious_name,)
+    )
+    
+    # The table should still exist and the name should be stored as-is
+    row = db_client.fetch_one("SELECT * FROM audio_file WHERE id = ?", (file_id,))
+    assert row['file_name'] == malicious_name
+    
+    # Verify table wasn't dropped
+    tables = db_client.fetch_all("SELECT name FROM sqlite_master WHERE type='table';")
+    assert any(t['name'] == 'audio_file' for t in tables)
+
+def test_integrity_constraint_violation(db_client):
+    """Verify that inserting NULL into a NOT NULL column raises an error."""
+    with pytest.raises(sqlite3.IntegrityError):
+        # file_name is NOT NULL in schema.sql
+        db_client.execute_query("INSERT INTO audio_file (file_name) VALUES (NULL)")
+
+def test_very_long_input(db_client):
+    """Verify that the database handles very long text inputs."""
+    long_text = "A" * 100000 # 100KB string
+    file_id = db_client.execute_query(
+        "INSERT INTO audio_file (file_name) VALUES (?)", 
+        (long_text,)
+    )
+    row = db_client.fetch_one("SELECT * FROM audio_file WHERE id = ?", (file_id,))
+    assert row['file_name'] == long_text

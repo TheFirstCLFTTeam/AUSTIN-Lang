@@ -54,3 +54,43 @@ def test_create_raw_transcript_with_segments(client):
     assert data[0]['rating'] == 5
     assert len(data[0]['transcript_segments']) == 2
     assert data[0]['transcript_segments'][0]['text'] == "First segment"
+
+# --- ROBUSTNESS TESTS ---
+
+def test_create_audio_file_invalid_payload(client):
+    """Verify that POST with malformed JSON returns 422 Unprocessable Entity."""
+    # Missing required field 'file_name'
+    response = client.post("/audio-files/", json={"wrong_field": "test.wav"})
+    assert response.status_code == 422
+    
+    # Empty payload
+    response = client.post("/audio-files/", json={})
+    assert response.status_code == 422
+
+def test_create_raw_transcript_invalid_audio_id(client):
+    """Verify that creating a transcript for a non-existent audio file fails."""
+    # audio_file_id 9999 does not exist
+    payload = {
+        "audio_file_id": 9999,
+        "rating": 5,
+        "transcript_segments": [{"start": 0.0, "end": 1.0, "text": "test"}]
+    }
+    response = client.post("/raw-transcripts/", json=payload)
+    
+    # SQLite raises an IntegrityError (foreign key), handled by global handler returning 400
+    assert response.status_code == 400
+    assert "Database integrity error" in response.json()["detail"]
+
+def test_get_raw_transcripts_invalid_id_filter(client):
+    """Verify that filtering by a non-existent audio_file_id returns empty list."""
+    response = client.get("/raw-transcripts/", params={"audio_file_id": 8888})
+    assert response.status_code == 200
+    assert response.json() == []
+
+def test_update_audio_file_not_found(client):
+    """Verify that updating a non-existent audio file returns success message 
+    (due to current implementation not checking row count)."""
+    # Current main.py doesn't check if row was actually updated, it just returns "Updated successfully"
+    response = client.put("/audio-files/7777", json={"file_name": "new.wav"})
+    assert response.status_code == 200
+    assert response.json() == {"message": "Updated successfully"}
