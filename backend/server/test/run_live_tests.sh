@@ -4,17 +4,17 @@
 # The transcription server must already be running before executing this script.
 #
 # Usage:
-#   ./run_live_tests.sh                                  # defaults: localhost:8000, audio_clips/
-#   ./run_live_tests.sh --base-url http://host:8000
+#   ./run_live_tests.sh                                  # defaults: localhost:8003, audio_clips/
+#   ./run_live_tests.sh --base-url http://host:8003
 #   ./run_live_tests.sh --audio-dir /path/to/audio
-#   ./run_live_tests.sh --base-url http://host:8000 --audio-dir /path/to/audio
+#   ./run_live_tests.sh --base-url http://host:8003 --audio-dir /path/to/audio
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Default values (must match conftest.py defaults)
-BASE_URL="http://localhost:8000"
+BASE_URL="http://localhost:8003"
 AUDIO_DIR="$SCRIPT_DIR/audio_clips/monolang/english"
 
 # Parse optional overrides
