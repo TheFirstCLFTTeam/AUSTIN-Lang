@@ -73,6 +73,8 @@ class DatabaseClient:
         """Returns a connection object with Row factory enabled."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
+        # Enable foreign key support
+        conn.execute("PRAGMA foreign_keys = ON;")
         return conn
 
     def execute_query(self, query, params=()):
