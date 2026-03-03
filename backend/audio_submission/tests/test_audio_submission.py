@@ -25,8 +25,20 @@ def test_upload_wav_success(client, temp_upload_dir):
     with open(file_path, "rb") as f:
         assert f.read() == file_content
 
+def test_upload_mp3_success(client, temp_upload_dir):
+    """Verify that an .mp3 file can be uploaded successfully."""
+    file_content = b"fake mp3 content"
+    file_name = "test_audio.mp3"
+    
+    files = {"file": (file_name, io.BytesIO(file_content), "audio/mpeg")}
+    response = client.post("/upload-audio/", files=files)
+    
+    assert response.status_code == 200
+    assert response.json()["filename"] == file_name
+    assert os.path.exists(os.path.join(temp_upload_dir, file_name))
+
 def test_upload_invalid_extension(client):
-    """Verify that uploading non-.wav files results in a 400 error."""
+    """Verify that uploading unsupported formats results in a detailed 400 error."""
     file_content = b"some text"
     file_name = "test.txt"
     
@@ -34,7 +46,10 @@ def test_upload_invalid_extension(client):
     response = client.post("/upload-audio/", files=files)
     
     assert response.status_code == 400
-    assert response.json()["detail"] == "Only .wav files are allowed"
+    detail = response.json()["detail"]
+    assert "Unsupported audio format" in detail
+    assert ".wav" in detail
+    assert ".mp3" in detail
 
 def test_upload_overwrite(client, temp_upload_dir):
     """Verify that uploading a file with the same name overwrites it."""
