@@ -57,7 +57,7 @@ async def transcribe(file: UploadFile = File(...)):
         raise HTTPException(status_code=502, detail=f"Audio submission connection failed: {str(e)}")
 
     # 2. Call transcription server
-    skip_transcription = os.getenv("SKIP_TRANSCRIPTION_SERVER", "true").lower() == "true"
+    skip_transcription = os.getenv("SKIP_TRANSCRIPTION_SERVER", "false").lower() == "true"
     
     if skip_transcription:
         whisper_data = {
@@ -98,7 +98,10 @@ async def transcribe(file: UploadFile = File(...)):
         # 3a. Register Audio File
         db_file_response = requests.post(f"{db_base_url}/audio-files/", json={"file_name": file.filename})
         handle_response(db_file_response, "Database (audio_file)")
-        audio_file_id = db_file_response.json()
+        try:
+            audio_file_id = db_file_response.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="Database (audio_file) returned invalid JSON")
 
         # 3b. Create Raw Transcript
         raw_transcript_payload = {
@@ -108,7 +111,10 @@ async def transcribe(file: UploadFile = File(...)):
         }
         db_raw_response = requests.post(f"{db_base_url}/raw-transcripts/", json=raw_transcript_payload)
         handle_response(db_raw_response, "Database (raw_transcript)")
-        raw_transcript_id = db_raw_response.json()
+        try:
+            raw_transcript_id = db_raw_response.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="Database (raw_transcript) returned invalid JSON")
 
         # 3c. Create Initial Edited Transcript (copy of raw)
         edited_transcript_payload = {
@@ -117,7 +123,10 @@ async def transcribe(file: UploadFile = File(...)):
         }
         db_edited_response = requests.post(f"{db_base_url}/edited-transcripts/", json=edited_transcript_payload)
         handle_response(db_edited_response, "Database (edited_transcript)")
-        edited_transcript_id = db_edited_response.json()
+        try:
+            edited_transcript_id = db_edited_response.json()
+        except Exception:
+            raise HTTPException(status_code=502, detail="Database (edited_transcript) returned invalid JSON")
 
     except HTTPException:
         raise
