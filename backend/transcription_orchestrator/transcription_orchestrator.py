@@ -64,7 +64,7 @@ async def transcribe(file: UploadFile = File(...)):
             "text": "This is dummy transcription text because the server is skipped.",
             "language": "en",
             "segments": [
-                {"start": 0.0, "end": 5.0, "text": "Dummy segment 1"},
+                {"start": 0.0, "end": 5.0, "text": "Please change SKIP_TRANSCRIPTION_SERVER=false in /backend/.env ONLY when the transcription server is running"},
                 {"start": 5.0, "end": 10.0, "text": "Dummy segment 2"}
             ]
         }
