@@ -16,6 +16,8 @@ services:
     environment:
       - AUDIO_SUBMISSION_PORT=${AUDIO_SUBMISSION_PORT}
       - SERVER_PORT=${SERVER_PORT}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - SKIP_TRANSCRIPTION_SERVER=${SKIP_TRANSCRIPTION_SERVER}
 
   transcription-server:
     build:
