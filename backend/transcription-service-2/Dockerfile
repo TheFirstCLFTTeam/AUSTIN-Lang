@@ -17,8 +17,8 @@ COPY . .
 
 # Environment variables for model caching
 ENV HF_HOME=/app/models_cache
-ENV TRANSCRIPTION_PORT=8004
+ENV TRANSCRIPTION_PORT=8005
 
-EXPOSE 8004
+EXPOSE 8005
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8004"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8005"]
