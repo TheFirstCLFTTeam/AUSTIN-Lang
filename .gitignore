@@ -1,4 +1,10 @@
 backend/server/cache/*
 backend/server/.venv/
+backend/server/pretrained_weights/*
 *.pyc
 .coverage
+
+# Environment variables - never commit real secrets
+.env
+.env.*
+!.env.example

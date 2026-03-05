@@ -190,7 +190,7 @@ peft_model.print_trainable_parameters()
 | Package | Purpose | Notes |
 | --- | --- | --- |
 | `avalanche-lib` | Full continual learning framework (EWC, replay, GEM, etc.) | Research-grade. Supports PyTorch models. Strategies include `EWC`, `Replay`, `GEM`, `LwF` |
-| `river` | Classical online learning for tabular / streaming data | Not suitable for deep speech models, but useful for lightweight downstream components (e.g. language model scoring, keyword detection) |
+| [`river`](https://riverml.xyz/latest/) | Classical online learning for tabular / streaming data | Not suitable for deep speech models, but useful for lightweight downstream components (e.g. language model scoring, keyword detection) |
 | `sequoia` | Continual learning research library (UdeM) | More experimental than Avalanche; useful for benchmarking forgetting |
 
 **EWC with Avalanche:**
@@ -257,6 +257,3 @@ model, optimizer, train_loader = privacy_engine.make_private(
 5. **Trigger fine-tuning asynchronously** (e.g. nightly batch), not in real-time per request, to avoid unstable updates and to aggregate enough correction signal for a meaningful gradient step.
 
 6. **Track WER** before and after each fine-tuning run on a held-out validation set. If WER regresses, roll back to the previous LoRA checkpoint.
-
-- [River](https://riverml.xyz/latest/)
-- [Vowpal Wabbit](https://vowpalwabbit.org/)

@@ -12,7 +12,7 @@ services:
       - "${TRANSCRIPTION_ORCHESTRATOR_PORT}:${TRANSCRIPTION_ORCHESTRATOR_PORT}"
     depends_on:
       - audio_submission
-      # - transcription-server
+      - transcription-server
     environment:
       - AUDIO_SUBMISSION_PORT=${AUDIO_SUBMISSION_PORT}
       - SERVER_PORT=${SERVER_PORT}
