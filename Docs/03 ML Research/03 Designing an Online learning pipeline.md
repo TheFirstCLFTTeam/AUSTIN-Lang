@@ -220,6 +220,7 @@ strategy = EWC(
 | `cryptography` | Encryption of stored features/embeddings | Ensure replay buffer features are encrypted at rest |
 
 **Differential Privacy with Opacus:**
+
 ```python
 from opacus import PrivacyEngine
 
@@ -236,7 +237,7 @@ model, optimizer, train_loader = privacy_engine.make_private(
 ### Evaluation and monitoring
 
 | Package | Purpose | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `evaluate` (HuggingFace) | WER (Word Error Rate), CER, BLEU | `evaluate.load("wer")` — standard ASR metric |
 | `jiwer` | Fast WER/CER computation | Lightweight alternative to `evaluate` for production monitoring |
 | `wandb` / `mlflow` | Experiment tracking | Track WER per fine-tuning run, detect performance regression |
