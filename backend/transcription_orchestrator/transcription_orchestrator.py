@@ -69,18 +69,20 @@ async def transcribe(file: UploadFile = File(...)):
             ]
         }
     else:
-        transcription_server_host = os.getenv("TRANSCRIPTION_SERVER_HOST", "transcription-server")
-        transcription_server_port = os.getenv("SERVER_PORT", 8003)
-        transcription_url = f"http://{transcription_server_host}:{transcription_server_port}/transcribe"
+        transcription_service_host = os.getenv("TRANSCRIPTION_SERVICE_2_HOST", "transcription-service-2")
+        transcription_service_port = os.getenv("TRANSCRIPTION_SERVICE_2_PORT", 8004)
+        transcription_url = f"http://{transcription_service_host}:{transcription_service_port}/transcribe"
         
-        # We need segments for the database
-        params = {"include_segments": "true"}
+        # New service uses 'audio' field and returns 'chunks'
         transcription_files = {"audio": (file.filename, file_content, file.content_type)}
         
         try:
-            transcription_response = requests.post(transcription_url, params=params, files=transcription_files)
-            handle_response(transcription_response, "Transcription service")
+            transcription_response = requests.post(transcription_url, files=transcription_files)
+            handle_response(transcription_response, "Transcription service 2")
             whisper_data = transcription_response.json()
+            # Map 'chunks' to 'segments' for compatibility with database registration
+            if "chunks" in whisper_data:
+                whisper_data["segments"] = whisper_data["chunks"]
         except HTTPException:
             raise
         except Exception as e:

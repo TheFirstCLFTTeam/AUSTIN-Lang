@@ -12,10 +12,11 @@ services:
       - "${TRANSCRIPTION_ORCHESTRATOR_PORT}:${TRANSCRIPTION_ORCHESTRATOR_PORT}"
     depends_on:
       - audio_submission
-      # - transcription-server
+      - transcription-service-2
     environment:
       - AUDIO_SUBMISSION_PORT=${AUDIO_SUBMISSION_PORT}
       - SERVER_PORT=${SERVER_PORT}
+      - TRANSCRIPTION_SERVICE_2_PORT=${TRANSCRIPTION_SERVICE_2_PORT}
       - DATABASE_PORT=${DATABASE_PORT}
       - SKIP_TRANSCRIPTION_SERVER=${SKIP_TRANSCRIPTION_SERVER}
 
