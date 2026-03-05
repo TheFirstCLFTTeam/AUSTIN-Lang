@@ -8,7 +8,7 @@ Main Task: Automatic Speech Recognition (ASR)
 
 ## Objectives
 
-### 01 model architecture
+### GOAL01 model architecture
 
 Distill / propose a new model for the following subtasks:
 
@@ -16,18 +16,42 @@ Distill / propose a new model for the following subtasks:
     - where a recording involves the use of multiple languages, the model must be able to transcribe the spoken languages accurately and quickly
 - interleaved conversation
     - If 2 people are speaking simultaneously, the model should be able to distinguish them and split them apart
-    - generate a recording to fit the generated tokens (so if I speak chinese and english in the recording, they may be mixed but the transcripted document must contain both langauges and be perfectly transcribed
+    - generate a recording to fit the generated tokens (so if I speak chinese and english in the recording, they may be mixed but the transcripted document must contain both languages and be perfectly transcribed
     - the task is formally defined as "Code-switching"
 
 - Domain-specific terms
     - The model must be able to handle finance terms in both languages need to be recognisable.
+    - ideally, this should be implemented as a model adapter that can be swapped out (and updated) as required.
 
-### Retraining Pipeline
+### GOAL02 Retraining Pipeline
 
-- Data restrictions
-    - Data for each annotated recording is to be stored for a macimum of 5 working days before it has to be deleted. We also need to ensure that the retraining data cannot be retraced and that PIIs are not traceable.
+- Data restrictions 1
+    - Data for each annotated recording is to be stored for a maximum of 5 working days before it has to be deleted. We also need to ensure that the retraining data cannot be retraced and that PIIs are not traceable.
 
-### Misc features for users
+- Data restrictions 2
+    - model must be capable of "exact unlearning" since storing of model weights is ambiguously considered storage of private info and infringement on the right of bank clients to remain anonymous, so we need to make sure these weights can be forgotten at a moment's notice, or to use synthetic data that cannot be retraced to specific individuals.
+    - follow as per 5 working day forgetting scheme, data cannot be retained after 5 days
+        - alternatively, due to association, model retraining pipeline should not retain model weights associated to data after said data has "expired" i.e. retention date has exceeded.
+
+- Synthetic data generation (stretch goal)
+    - Data for each recording should be modified to sustain contiuous training since it is no longer associated with a model, to update the long-term model weights to be used.
+    - ideally, we separate the information into 2 classes:
+        - sementically relelvant personal information
+            - i.e. x person traded stock y &#8594; censoring y will remove critical info from the recording and hinder the model's reasoning abilities
+        - semantically irrelevant personal information
+            - x person was involved in a car crash &#8594; censoring x won't impact the accuracy of the model
+
+### GOAL03 Misc features for users
+
+- There are 3 types of users:
+    - commercial users / editors
+    - Admin staff for permission control and monitoring
+    - ML Engineers
+
+- commercial users can review their transcripts and edit them.
+- the edits are stored as diffs that are applied onto the original transcribed document.
+    - these documents are never seen by the
+- these edits are then used for retraining the model over time, and obtaining long-term versions of the weights for our model to be trained on.
 
 ---
 
@@ -38,17 +62,24 @@ Distill / propose a new model for the following subtasks:
 
 ## Existing literature
 
-### Model Alternatives
+
+
+
+## Proposed solutions
+
+### GOAL03 solution: Model Alternatives
 
 - WhisperV3 (Baseline to beat)
-    -
+    - Architecture feats:
+        - 
 
 - Whisper Family Alternatives
     - Whisper-X
     - faster-whisper
 
 - MERaLiON
-    - Latest Model: MERaLiON-3-10B-preview
+    - Latest Model: MERaLiON-3-10B-preview / 
+    - 
 
 ### References
 
