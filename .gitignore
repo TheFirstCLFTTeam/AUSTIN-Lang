@@ -1,6 +1,6 @@
 backend/server/cache/*
 backend/server/.venv/
-backend/server/pretrained_weights/*
+backend/server/pretrained_weights/
 *.pyc
 .coverage
 
