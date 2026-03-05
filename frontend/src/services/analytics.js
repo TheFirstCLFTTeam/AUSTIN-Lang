@@ -54,3 +54,17 @@ export async function getDashboardStats() {
     estimatedAccuracy: estimatedAccuracy.toFixed(1)
   };
 }
+
+export async function triggerRetraining() {
+  console.log("Retraining started...");
+
+  // simulate training time
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  console.log("Retraining finished");
+
+  return {
+    status: "success",
+    message: "Model retrained successfully"
+  };
+}
