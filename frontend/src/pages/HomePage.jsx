@@ -37,6 +37,12 @@ export default function HomePage() {
         >
           View Submitted Files
         </Link>
+        <Link
+          to="/dashboard"
+          className="px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition"
+        >
+          Analytics Dashboard
+        </Link>
       </div>
     </div>
   );
