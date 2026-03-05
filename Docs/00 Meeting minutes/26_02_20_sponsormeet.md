@@ -14,9 +14,9 @@
 - Use synth data (gen text > gen audio > add background noise (to mimic live audio) > train model)
 - TLDR
    	- We're moving on to:
-		- prep for week 8 mid term presentation
-		- dataset generate/cleaning
-		- re-train
+      		- prep for week 8 mid term presentation
+      		- dataset generate/cleaning
+      		- re-train
 
 Next step: Finalise end-to-end flow + Mid term presentation
 

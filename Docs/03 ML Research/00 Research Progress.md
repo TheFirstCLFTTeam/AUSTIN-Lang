@@ -62,31 +62,30 @@ Distill / propose a new model for the following subtasks:
 
 ## Existing literature
 
-
-
-
 ## Proposed solutions
 
 ### GOAL03 solution: Model Alternatives
 
 - WhisperV3 (Baseline to beat)
-    - Architecture feats:
+
+  - Architecture feats
         - 
 
 - Whisper Family Alternatives
     - Whisper-X
     - faster-whisper
 
+- OWSM v3.1
+    -
+
 - MERaLiON
-    - Latest Model: MERaLiON-3-10B-preview / 
+    - Latest Model: MERaLiON-3-10B-preview /
+    -
+
+- Qwen3-ASR
+    - [Latest Model: Qwen/Qwen3-ASR-1.7B](https://huggingface.co/Qwen/Qwen3-ASR-1.7B)
     - 
 
-### References
-
-- <https://arxiv.org/abs/2403.05887>
-    - Aligning Speech to Languages to Enhance Code-switching Speech Recognition
-- <https://www.isca-archive.org/interspeech_2010/lyu10_interspeech.pdf>
-    - SEAME: a Mandarin-English Code-switching Speech Corpus in South-East Asia
 
 #### Some current difficulties experienced by models
 
@@ -102,3 +101,22 @@ Distill / propose a new model for the following subtasks:
 ##
 
 ## Datasets
+
+### References
+
+- <https://arxiv.org/abs/2403.05887>
+    - Aligning Speech to Languages to Enhance Code-switching Speech Recognition
+- <https://www.isca-archive.org/interspeech_2010/lyu10_interspeech.pdf>
+    - SEAME: a Mandarin-English Code-switching Speech Corpus in South-East Asia
+
+- WhisperV3
+    -
+
+- MeRALion
+    - arxiv:2412.09818
+    - arxiv:2501.01034
+    - arxiv:2409.06635
+    - arxiv:2501.08335
+
+- Qwen3
+    - arxiv: 2601.21337
