@@ -25,6 +25,9 @@ export default function Layout() {
             <Link to="/files" className="text-gray-600 hover:text-black">
               Submitted Files
             </Link>
+            <Link to="/dashboard" className="text-gray-600 hover:text-black">
+              Analytics Dashboard
+            </Link>
 
             <button
               onClick={handleLogout}
