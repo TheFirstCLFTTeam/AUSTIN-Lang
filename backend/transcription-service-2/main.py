@@ -8,6 +8,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from transformers import pipeline, AutoModelForSpeechSeq2Seq, AutoProcessor
+from peft import PeftModel
 
 # ---------------------------------------------------------------------------
 # FastAPI app setup
@@ -32,12 +33,14 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 MODEL_ID = "openai/whisper-large-v3-turbo"
+ADAPTERS_DIR = "/app/adapters"
+
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 
-print(f"Loading model {MODEL_ID} on {device}...")
+print(f"Loading base model {MODEL_ID} on {device}...")
 
-# Load model and processor
+# Load base model
 model = AutoModelForSpeechSeq2Seq.from_pretrained(
     MODEL_ID, 
     torch_dtype=torch_dtype, 
@@ -45,6 +48,9 @@ model = AutoModelForSpeechSeq2Seq.from_pretrained(
     use_safetensors=True
 )
 model.to(device)
+
+# We will inject PEFT functionality only when an adapter is actually requested
+# to avoid 404 errors looking for remote adapters on startup.
 
 processor = AutoProcessor.from_pretrained(MODEL_ID)
 
@@ -63,6 +69,35 @@ pipe = pipeline(
 )
 
 print(f"Model {MODEL_ID} loaded successfully!")
+
+# Cache of loaded adapters
+loaded_adapters = set()
+
+def ensure_adapter_loaded(domain: str):
+    """
+    Check if a LoRA adapter is already loaded.
+    If not, wrap the model with PeftModel (if not already) and load it.
+    """
+    global model
+    if not domain or domain == "base":
+        return
+
+    if domain not in loaded_adapters:
+        adapter_path = os.path.join(ADAPTERS_DIR, domain)
+        if os.path.exists(adapter_path):
+            print(f"Loading adapter: {domain} from {adapter_path}...")
+            
+            # If model is not already a PeftModel, we need to initialize it
+            if not isinstance(model, PeftModel):
+                model = PeftModel.from_pretrained(model, adapter_path, adapter_name=domain)
+                # Update the pipeline to use the new PEFT-wrapped model
+                pipe.model = model
+            else:
+                model.load_adapter(adapter_path, adapter_name=domain)
+            
+            loaded_adapters.add(domain)
+        else:
+            raise HTTPException(status_code=404, detail=f"Adapter {domain} not found at {adapter_path}")
 
 # ---------------------------------------------------------------------------
 # Pydantic Models
@@ -84,17 +119,44 @@ class TranscriptionResponse(BaseModel):
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy", "model": MODEL_ID, "device": device}
+    return {
+        "status": "healthy", 
+        "model": MODEL_ID, 
+        "device": device,
+        "loaded_adapters": list(loaded_adapters),
+        "active_adapter": getattr(model, "active_adapter", "base")
+    }
 
 @app.post("/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio(
     audio: UploadFile = File(...),
-    language: Optional[str] = None
+    language: Optional[str] = None,
+    domain: Optional[str] = None
 ):
     """
     Transcribe an uploaded audio file using whisper-large-v3-turbo.
+    Supports optional domain-specific LoRA adapters.
     """
-    # Validate file extension
+    # 1. Handle Adapter Switching
+    try:
+        if domain and domain != "base":
+            ensure_adapter_loaded(domain)
+            model.set_adapter(domain)
+            print(f"Using adapter: {domain}")
+        else:
+            # Revert to base behavior
+            if hasattr(model, "disable_adapter"):
+                model.disable_adapter()
+                print("Using base model (no adapter)")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Adapter switching error: {e}")
+        # Fallback to base
+        if hasattr(model, "disable_adapter"):
+            model.disable_adapter()
+
+    # 2. Validate file extension
     file_ext = Path(audio.filename).suffix.lower() if audio.filename else ""
     supported_formats = {".mp3", ".wav", ".m4a", ".flac", ".ogg", ".webm", ".mp4"}
     
@@ -146,5 +208,5 @@ async def transcribe_audio(
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("TRANSCRIPTION_PORT", 8005))
+    port = int(os.getenv("TRANSCRIPTION_SERVICE_2_PORT", 8005))
     uvicorn.run(app, host="0.0.0.0", port=port)
