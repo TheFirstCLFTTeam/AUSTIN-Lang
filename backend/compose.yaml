@@ -36,6 +36,7 @@ services:
       - "${TRANSCRIPTION_SERVICE_2_PORT}:8004"
     volumes:
       - "./transcription-service-2:/app"
+      - "./retraining-pipeline/adapters:/app/adapters"
       - hf_models_cache:/app/models_cache
     environment:
       - TRANSCRIPTION_PORT=8004
