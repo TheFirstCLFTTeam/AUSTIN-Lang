@@ -1,0 +1,15 @@
+services:
+  transcription-server:
+    build:
+      context: .
+      args:
+        SERVER_PORT: ${SERVER_PORT:-8003}
+    image: austin-transcription-server
+    ports:
+      - "${SERVER_PORT:-8003}:${SERVER_PORT:-8003}"
+    environment:
+      - SERVER_PORT=${SERVER_PORT:-8003}
+      - WHISPER_MODEL=${WHISPER_MODEL:-base}
+    volumes:
+      - ./pretrained_weights:/app/pretrained_weights:ro
+    restart: unless-stopped

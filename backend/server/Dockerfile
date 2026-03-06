@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -16,27 +16,14 @@ COPY . .
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN pip3 install --no-cache-dir -r configs/requirements.txt
-
-RUN python - <<'PY'
-import pathlib
-import subprocess
-import yaml
-
-env_file = pathlib.Path("configs/server_dev_env.yml")
-data = yaml.safe_load(env_file.read_text(encoding="utf-8"))
-deps = data.get("dependencies", [])
-pip_deps = []
-
-for dep in deps:
-    if isinstance(dep, dict) and "pip" in dep:
-        pip_deps.extend(dep["pip"])
-
-if pip_deps:
-    subprocess.check_call(["pip", "install", "--no-cache-dir", *pip_deps])
-else:
-    print("No pip dependencies found in configs/server_dev_env.yml")
-PY
+# configs/docker-requirements.txt contains only clean, cross-platform package
+# names (no conda local file:// paths, no Windows-only packages).
+# openai-whisper's setup.py uses pkg_resources which was removed from setuptools
+# 80+. Pin to a compatible setuptools, install whisper, then upgrade if needed.
+RUN pip install --upgrade pip && \
+    pip install "setuptools==78.1.1" && \
+    pip install --no-cache-dir --no-build-isolation openai-whisper==20240930 && \
+    pip install --no-cache-dir -r configs/docker-requirements.txt
 
 ARG SERVER_PORT
 ENV SERVER_PORT=${SERVER_PORT}

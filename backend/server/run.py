@@ -9,6 +9,8 @@ import os
 import uvicorn
 
 
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run the AUSTIN-Lang Transcription Server"
@@ -39,7 +41,7 @@ def main():
     args = parser.parse_args()
 
     # Set environment variable for the model
-    os.environ["WHISPER_MODEL"] = args.model
+    os.environ["CURRENT_MODEL"] = args.model
 
     print(f"Starting server with Whisper model: {args.model}")
     print(f"Server will be available at: http://{args.host}:{args.port}")
