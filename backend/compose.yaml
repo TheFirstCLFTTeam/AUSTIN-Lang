@@ -12,10 +12,11 @@ services:
       - "${TRANSCRIPTION_ORCHESTRATOR_PORT}:${TRANSCRIPTION_ORCHESTRATOR_PORT}"
     depends_on:
       - audio_submission
-      - transcription-server
+      - transcription-service-2
     environment:
       - AUDIO_SUBMISSION_PORT=${AUDIO_SUBMISSION_PORT}
       - SERVER_PORT=${SERVER_PORT}
+      - TRANSCRIPTION_SERVICE_2_PORT=${TRANSCRIPTION_SERVICE_2_PORT}
       - DATABASE_PORT=${DATABASE_PORT}
       - SKIP_TRANSCRIPTION_SERVER=${SKIP_TRANSCRIPTION_SERVER}
 
@@ -29,9 +30,22 @@ services:
     environment:
       - SERVER_PORT=${SERVER_PORT}
 
+  transcription-service-2:
+    build: "./transcription-service-2"
+    ports:
+      - "${TRANSCRIPTION_SERVICE_2_PORT}:8004"
+    volumes:
+      - "./transcription-service-2:/app"
+      - hf_models_cache:/app/models_cache
+    environment:
+      - TRANSCRIPTION_PORT=8004
+
   database:
     build: "./database"
     ports:
       - "${DATABASE_PORT}:${DATABASE_PORT}"
     volumes:
       - "./database:/app"
+
+volumes:
+  hf_models_cache:
