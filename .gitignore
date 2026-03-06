@@ -3,6 +3,7 @@ backend/server/.venv/
 backend/server/pretrained_weights/
 *.pyc
 .coverage
+backend/retraining-pipeline/data
 
 # Environment variables - never commit real secrets
 .env

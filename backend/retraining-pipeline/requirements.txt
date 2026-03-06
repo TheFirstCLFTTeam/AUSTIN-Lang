@@ -1,0 +1,14 @@
+transformers
+peft
+bitsandbytes
+datasets
+evaluate
+torch
+accelerate
+librosa
+jiwer
+requests
+python-dotenv
+torchcodec
+soundfile
+tensorboard
