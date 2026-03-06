@@ -76,7 +76,7 @@ Distill / propose a new model for the following subtasks:
     - faster-whisper
 
 - OWSM v3.1
-    -
+    - 
 
 - MERaLiON
     - Latest Model: MERaLiON-3-10B-preview /
