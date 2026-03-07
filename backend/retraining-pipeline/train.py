@@ -22,6 +22,7 @@ load_dotenv()
 MODEL_ID = "openai/whisper-large-v3-turbo"
 MANIFEST_PATH = os.getenv("MANIFEST_PATH", "data/manifest.jsonl")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "adapters/meralion_v1")
+BASE_ADAPTER_PATH = os.getenv("BASE_ADAPTER_PATH", None) 
 
 def train_one_round():
     # 2. Load Dataset
@@ -90,14 +91,22 @@ def train_one_round():
 
     # 5. Prepare for PEFT (LoRA)
     model = prepare_model_for_kbit_training(model)
-    config = LoraConfig(
-        r=32, 
-        lora_alpha=64, 
-        target_modules=["q_proj", "v_proj"], 
-        lora_dropout=0.05, 
-        bias="none"
-    )
-    model = get_peft_model(model, config)
+    
+    if BASE_ADAPTER_PATH and os.path.exists(BASE_ADAPTER_PATH):
+        print(f"Loading existing adapter from {BASE_ADAPTER_PATH} for incremental training...")
+        from peft import PeftModel
+        model = PeftModel.from_pretrained(model, BASE_ADAPTER_PATH, is_trainable=True)
+    else:
+        print("Initializing fresh LoRA adapters...")
+        config = LoraConfig(
+            r=32, 
+            lora_alpha=64, 
+            target_modules=["q_proj", "v_proj"], 
+            lora_dropout=0.05, 
+            bias="none"
+        )
+        model = get_peft_model(model, config)
+    
     model.print_trainable_parameters()
 
     # 6. Training Arguments
