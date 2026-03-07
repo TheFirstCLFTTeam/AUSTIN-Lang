@@ -1,5 +1,6 @@
 import os
 import tempfile
+import json
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
@@ -49,9 +50,6 @@ model = AutoModelForSpeechSeq2Seq.from_pretrained(
 )
 model.to(device)
 
-# We will inject PEFT functionality only when an adapter is actually requested
-# to avoid 404 errors looking for remote adapters on startup.
-
 processor = AutoProcessor.from_pretrained(MODEL_ID)
 
 # Create the pipeline
@@ -84,18 +82,44 @@ def ensure_adapter_loaded(domain: str):
 
     if domain not in loaded_adapters:
         adapter_path = os.path.join(ADAPTERS_DIR, domain)
+        config_path = os.path.join(adapter_path, "adapter_config.json")
+        
         if os.path.exists(adapter_path):
             print(f"Loading adapter: {domain} from {adapter_path}...")
             
-            # If model is not already a PeftModel, we need to initialize it
-            if not isinstance(model, PeftModel):
-                model = PeftModel.from_pretrained(model, adapter_path, adapter_name=domain)
-                # Update the pipeline to use the new PEFT-wrapped model
-                pipe.model = model
-            else:
-                model.load_adapter(adapter_path, adapter_name=domain)
-            
-            loaded_adapters.add(domain)
+            # 1. WHITELIST cleanup of the config to ensure compatibility across PEFT versions
+            if os.path.exists(config_path):
+                with open(config_path, "r") as f:
+                    config_data = json.load(f)
+                
+                # These are the core LoRA keys supported by almost all PEFT versions
+                whitelist = {
+                    "peft_type", "base_model_name_or_path", "task_type", "inference_mode",
+                    "r", "target_modules", "lora_alpha", "lora_dropout", "fan_in_fan_out",
+                    "bias", "modules_to_save", "init_lora_weights"
+                }
+                
+                new_config = {k: v for k, v in config_data.items() if k in whitelist}
+                
+                # Force some defaults if missing
+                if "peft_type" not in new_config: new_config["peft_type"] = "LORA"
+                
+                print(f"Applying version-compatible whitelist to adapter_config.json for {domain}...")
+                with open(config_path, "w") as f:
+                    json.dump(new_config, f, indent=2)
+
+            # 2. Load into model
+            try:
+                if not isinstance(model, PeftModel):
+                    model = PeftModel.from_pretrained(model, adapter_path, adapter_name=domain)
+                    pipe.model = model
+                else:
+                    model.load_adapter(adapter_path, adapter_name=domain)
+                
+                loaded_adapters.add(domain)
+            except Exception as load_err:
+                print(f"Critical error loading adapter {domain}: {load_err}")
+                raise HTTPException(status_code=500, detail=f"Failed to load adapter: {str(load_err)}")
         else:
             raise HTTPException(status_code=404, detail=f"Adapter {domain} not found at {adapter_path}")
 
@@ -119,12 +143,16 @@ class TranscriptionResponse(BaseModel):
 
 @app.get("/health")
 async def health():
+    active_adapter = "base"
+    if isinstance(model, PeftModel):
+        active_adapter = model.active_adapter
+        
     return {
         "status": "healthy", 
         "model": MODEL_ID, 
         "device": device,
         "loaded_adapters": list(loaded_adapters),
-        "active_adapter": getattr(model, "active_adapter", "base")
+        "active_adapter": active_adapter
     }
 
 @app.post("/transcribe", response_model=TranscriptionResponse)
@@ -145,15 +173,15 @@ async def transcribe_audio(
             print(f"Using adapter: {domain}")
         else:
             # Revert to base behavior
-            if hasattr(model, "disable_adapter"):
+            if isinstance(model, PeftModel):
                 model.disable_adapter()
-                print("Using base model (no adapter)")
+                print("Using base model (adapter disabled)")
     except HTTPException:
         raise
     except Exception as e:
         print(f"Adapter switching error: {e}")
         # Fallback to base
-        if hasattr(model, "disable_adapter"):
+        if isinstance(model, PeftModel):
             model.disable_adapter()
 
     # 2. Validate file extension
@@ -208,5 +236,6 @@ async def transcribe_audio(
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("TRANSCRIPTION_SERVICE_2_PORT", 8005))
+    # Use environment variable for port or default to 8005
+    port = int(os.getenv("TRANSCRIPTION_PORT", 8005))
     uvicorn.run(app, host="0.0.0.0", port=port)

@@ -33,13 +33,13 @@ services:
   transcription-service-2:
     build: "./transcription-service-2"
     ports:
-      - "${TRANSCRIPTION_SERVICE_2_PORT}:8004"
+      - "${TRANSCRIPTION_SERVICE_2_PORT}:8005"
     volumes:
       - "./transcription-service-2:/app"
       - "./retraining-pipeline/adapters:/app/adapters"
       - hf_models_cache:/app/models_cache
     environment:
-      - TRANSCRIPTION_PORT=8004
+      - TRANSCRIPTION_PORT=8005
 
   database:
     build: "./database"
