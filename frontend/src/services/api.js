@@ -1,5 +1,8 @@
 // src/services/api.js
 
+// Set REACT_APP_MOCK_API=true in .env.development to run without the backend.
+const MOCK_MODE = process.env.REACT_APP_MOCK_API === "true";
+
 /*********************************
  * MOCK AUTH SECTION
  *********************************/
@@ -60,8 +63,68 @@ export async function login(email, password) {
  * MOCK FILE DATABASE
  *********************************/
 
+let _nextMockId = 3;
 
-
+const MOCK_FILE_STORE = [
+  {
+    id: "1",
+    name: "interview_sample.wav",
+    audioUrl: null,
+    uploaded_at: "2026-03-01T10:00:00Z",
+    rawTranscript: {
+      id: 101,
+      audio_file_id: 1,
+      transcript_segments: [
+        { id: 1, start: 0.0, end: 3.5, text: "Hello, welcome to AUSTIN-Lang.", originalText: "Hello, welcome to AUSTIN-Lang." },
+        { id: 2, start: 3.5, end: 7.0, text: "This is a sample transcription segment.", originalText: "This is a sample transcription segment." },
+        { id: 3, start: 7.0, end: 11.0, text: "You can edit this text to correct any errors.", originalText: "You can edit this text to correct any errors." },
+      ],
+    },
+    editedTranscript: {
+      id: 201,
+      raw_transcript_id: 101,
+      transcript_segments: [
+        { id: 1, start: 0.0, end: 3.5, text: "Hello, welcome to AUSTIN-Lang.", originalText: "Hello, welcome to AUSTIN-Lang." },
+        { id: 2, start: 3.5, end: 7.0, text: "This is a sample transcription segment.", originalText: "This is a sample transcription segment." },
+        { id: 3, start: 7.0, end: 11.0, text: "You can edit this text to correct any errors.", originalText: "You can edit this text to correct any errors." },
+      ],
+    },
+    transcriptSegments: [
+      { id: 1, start: 0.0, end: 3.5, text: "Hello, welcome to AUSTIN-Lang.", originalText: "Hello, welcome to AUSTIN-Lang." },
+      { id: 2, start: 3.5, end: 7.0, text: "This is a sample transcription segment.", originalText: "This is a sample transcription segment." },
+      { id: 3, start: 7.0, end: 11.0, text: "You can edit this text to correct any errors.", originalText: "You can edit this text to correct any errors." },
+    ],
+  },
+  {
+    id: "2",
+    name: "lecture_recording.mp3",
+    audioUrl: null,
+    uploaded_at: "2026-03-02T14:30:00Z",
+    rawTranscript: {
+      id: 102,
+      audio_file_id: 2,
+      transcript_segments: [
+        { id: 4, start: 0.0, end: 4.0, text: "Today we will discuss machine learning.", originalText: "Today we will discuss machine learning." },
+        { id: 5, start: 4.0, end: 9.0, text: "Neural networks form the foundation of modern AI.", originalText: "Neural networks form the foundation of modern AI." },
+        { id: 6, start: 9.0, end: 14.5, text: "Training data quality directly impacts model performance.", originalText: "Training data quality directly impacts model performance." },
+      ],
+    },
+    editedTranscript: {
+      id: 202,
+      raw_transcript_id: 102,
+      transcript_segments: [
+        { id: 4, start: 0.0, end: 4.0, text: "Today we will discuss machine learning.", originalText: "Today we will discuss machine learning." },
+        { id: 5, start: 4.0, end: 9.0, text: "Neural networks form the foundation of modern AI.", originalText: "Neural networks form the foundation of modern AI." },
+        { id: 6, start: 9.0, end: 14.5, text: "Training data quality directly impacts model performance.", originalText: "Training data quality directly impacts model performance." },
+      ],
+    },
+    transcriptSegments: [
+      { id: 4, start: 0.0, end: 4.0, text: "Today we will discuss machine learning.", originalText: "Today we will discuss machine learning." },
+      { id: 5, start: 4.0, end: 9.0, text: "Neural networks form the foundation of modern AI.", originalText: "Neural networks form the foundation of modern AI." },
+      { id: 6, start: 9.0, end: 14.5, text: "Training data quality directly impacts model performance.", originalText: "Training data quality directly impacts model performance." },
+    ],
+  },
+];
 
 // Simple auth guard for mock API calls
 function requireAuth() {
@@ -77,6 +140,26 @@ function requireAuth() {
 // Upload audio file
 export async function uploadAudio(file) {
   requireAuth();
+
+  if (MOCK_MODE) {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const newId = String(_nextMockId++);
+    const segments = [
+      { id: Date.now(), start: 0.0, end: 3.0, text: "Mock transcription for " + file.name, originalText: "Mock transcription for " + file.name },
+      { id: Date.now() + 1, start: 3.0, end: 6.0, text: "This is a placeholder transcript.", originalText: "This is a placeholder transcript." },
+    ];
+    const newFile = {
+      id: newId,
+      name: file.name,
+      audioUrl: URL.createObjectURL(file),
+      uploaded_at: new Date().toISOString(),
+      rawTranscript: { id: 100 + Number(newId), audio_file_id: Number(newId), transcript_segments: segments },
+      editedTranscript: { id: 200 + Number(newId), raw_transcript_id: 100 + Number(newId), transcript_segments: segments },
+      transcriptSegments: segments,
+    };
+    MOCK_FILE_STORE.push(newFile);
+    return newFile;
+  }
 
   try {
     // 1. Call the Orchestrator which handles upload, transcription, and DB registration
@@ -113,6 +196,18 @@ export async function uploadAudio(file) {
 // Fetch all submitted files
 export async function fetchSubmittedFiles() {
   requireAuth();
+
+  if (MOCK_MODE) {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return MOCK_FILE_STORE.map(({ id, name, audioUrl, uploaded_at }) => ({
+      id,
+      name,
+      audioUrl,
+      uploaded_at,
+      transcriptSegments: [],
+    }));
+  }
+
   try {
     const response = await fetch("http://localhost:8002/audio-files/"); // Call the new backend endpoint
     if (!response.ok) {
@@ -139,6 +234,12 @@ export async function fetchSubmittedFiles() {
 // Fetch one file by ID
 export async function fetchFileDetail(id) {
   requireAuth();
+
+  if (MOCK_MODE) {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return MOCK_FILE_STORE.find((f) => f.id === String(id)) || null;
+  }
+
   try {
     // 1. Fetch AudioFile
     const audioFileResponse = await fetch(`http://localhost:8002/audio-files/${id}`);
@@ -192,6 +293,19 @@ export async function fetchFileDetail(id) {
 // Update transcript
 export async function updateTranscript(editedTranscriptId, rawTranscriptId, newSegments = []) {
   requireAuth();
+
+  if (MOCK_MODE) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const file = MOCK_FILE_STORE.find(
+      (f) => f.editedTranscript && f.editedTranscript.id === editedTranscriptId
+    );
+    if (file) {
+      file.editedTranscript.transcript_segments = newSegments;
+      file.transcriptSegments = newSegments;
+    }
+    return { id: editedTranscriptId, raw_transcript_id: rawTranscriptId, transcript_segments: newSegments };
+  }
+
   try {
     const processedSegments = newSegments.map(segment => ({
       ...segment,
