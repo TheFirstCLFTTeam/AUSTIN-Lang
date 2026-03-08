@@ -2,28 +2,31 @@ import { useEffect, useRef } from "react";
 
 export default function AudioPlayer({
   fileUrl,
+  audioRef,
   onTimeUpdate = () => {},
   onReady = () => {}
 }) {
-  const audioRef = useRef(null);
+  const localRef = useRef(null);
+  const actualRef = audioRef || localRef;
 
   useEffect(() => {
-    if (!audioRef.current) return;
+    const node = actualRef.current;
+    if (!node) return;
 
     const handleTimeUpdate = () => {
-      onTimeUpdate(audioRef.current.currentTime);
+      onTimeUpdate(node.currentTime);
     };
 
-    audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
+    node.addEventListener("timeupdate", handleTimeUpdate);
 
     return () => {
-      audioRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
+      node.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [onTimeUpdate]);
+  }, [onTimeUpdate, actualRef]);
 
   return (
     <audio
-      ref={audioRef}
+      ref={actualRef}
       controls
       preload="metadata"
       src={fileUrl}
