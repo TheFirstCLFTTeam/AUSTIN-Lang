@@ -79,98 +79,33 @@ export async function uploadAudio(file) {
   requireAuth();
 
   try {
-    // 1. Upload the actual audio file to the audio submission module
+    // 1. Call the Orchestrator which handles upload, transcription, and DB registration
     const formData = new FormData();
     formData.append("file", file);
 
-    const audioUploadResponse = await fetch("http://localhost:8000/upload-audio", {
+    const response = await fetch("http://localhost:8001/transcribe/", {
       method: "POST",
       body: formData,
     });
 
-    if (!audioUploadResponse.ok) {
-      throw new Error(`Failed to upload audio file to submission module: ${audioUploadResponse.status}`);
+    if (!response.ok) {
+      throw new Error(`Orchestrator failed: ${response.status}`);
     }
 
-    // 2. Register the file name with our database service (create AudioFile)
-    const registerAudioResponse = await fetch("http://localhost:8002/audio-files/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ file_name: file.name }),
-    });
+    const data = await response.json();
 
-    if (!registerAudioResponse.ok) {
-      throw new Error(`Failed to register audio file with database: ${registerAudioResponse.status}`);
-    }
-
-    const audioFileId = await registerAudioResponse.json();
-
-    // Generate 3 dummy RawTranscriptSegment objects
-    const dummyRawSegments = [
-      { start: 0, end: 5, text: "This is the first dummy raw segment." },
-      { start: 5, end: 10, text: "This is the second dummy raw segment." },
-      { start: 10, end: 15, text: "This is the third dummy raw segment." }
-    ];
-
-    // 2. Create a dummy RawTranscript for the newly created AudioFile with segments
-    const createRawTranscriptResponse = await fetch("http://localhost:8002/raw-transcripts/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ 
-        rating: 0, // Default rating
-        audio_file_id: audioFileId,
-        transcript_segments: dummyRawSegments
-      }),
-    });
-
-    if (!createRawTranscriptResponse.ok) {
-      throw new Error(`Failed to create raw transcript: ${createRawTranscriptResponse.status}`);
-    }
-
-    const rawTranscriptId = await createRawTranscriptResponse.json();
-
-    // 3. Generate 3 dummy EditedTranscriptSegment objects (can be the same as raw for initial creation)
-    const dummyEditedSegments = [
-      { start: 0, end: 5, text: "This is the first dummy raw segment." },
-      { start: 5, end: 10, text: "This is the second dummy raw segment." },
-      { start: 10, end: 15, text: "This is the third dummy raw segment." }
-    ];
-
-    // 4. Create an EditedTranscript with the dummy segments
-    const createEditedTranscriptResponse = await fetch("http://localhost:8002/edited-transcripts/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ 
-        raw_transcript_id: rawTranscriptId, 
-        transcript_segments: dummyEditedSegments 
-      }),
-    });
-
-    if (!createEditedTranscriptResponse.ok) {
-      throw new Error(`Failed to create edited transcript: ${createEditedTranscriptResponse.status}`);
-    }
-
-    // Edited transcript ID is returned but not explicitly used here,
-    // as fetchFileDetail will retrieve the full edited transcript.
-    const editedTranscriptId = await createEditedTranscriptResponse.json();
-
-    // 5. Construct the newFile object for frontend display
+    // 2. Construct the file object for frontend display
+    // Using the real segments returned from Whisper
     const newFile = {
-      id: String(audioFileId), 
+      id: String(data.audio_file_id), 
       name: file.name,
-      audioUrl: URL.createObjectURL(file), // Create a local URL for immediate display
-      transcriptSegments: dummyRawSegments, // Pass the dummy edited segments for immediate display
+      audioUrl: `http://localhost:8000/audio_files/${file.name}`,
+      transcriptSegments: data.transcription.segments || [], 
     };
 
     return newFile;
   } catch (error) {
-    console.error("Error uploading or registering file with transcripts:", error);
+    console.error("Error in uploadAudio workflow:", error);
     throw error;
   }
 }
