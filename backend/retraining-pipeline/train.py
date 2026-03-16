@@ -13,13 +13,13 @@ from transformers import (
     Seq2SeqTrainer,
     BitsAndBytesConfig
 )
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # 1. Configuration
-MODEL_ID = os.getenv("MANIFEST_PATH", "openai/whisper-large-v3-turbo")
+MODEL_ID = os.getenv("MODEL_ID", "openai/whisper-large-v3-turbo")
 MANIFEST_PATH = os.getenv("MANIFEST_PATH", "data/manifest.jsonl")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "adapters/meralion_v1")
 BASE_ADAPTER_PATH = os.getenv("BASE_ADAPTER_PATH", None) 
@@ -79,7 +79,6 @@ def train_one_round():
             return batch
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
-
     # 4. Load Model with 8-bit Quantization
     print(f"Loading model {MODEL_ID} in 8-bit...")
     bnb_config = BitsAndBytesConfig(load_in_8bit=True)
@@ -89,12 +88,15 @@ def train_one_round():
         device_map="auto"
     )
 
+    # Official HF Fix: Clear decoder IDs to allow auto-detection of task/language
+    model.config.forced_decoder_ids = None
+    model.config.suppress_tokens = []
+
     # 5. Prepare for PEFT (LoRA)
     model = prepare_model_for_kbit_training(model)
-    
+
     if BASE_ADAPTER_PATH and os.path.exists(BASE_ADAPTER_PATH):
         print(f"Loading existing adapter from {BASE_ADAPTER_PATH} for incremental training...")
-        from peft import PeftModel
         model = PeftModel.from_pretrained(model, BASE_ADAPTER_PATH, is_trainable=True)
     else:
         print("Initializing fresh LoRA adapters...")
@@ -106,7 +108,7 @@ def train_one_round():
             bias="none"
         )
         model = get_peft_model(model, config)
-    
+
     model.print_trainable_parameters()
 
     # 6. Training Arguments
@@ -116,8 +118,9 @@ def train_one_round():
         gradient_accumulation_steps=1,
         learning_rate=1e-3,
         warmup_steps=5,
-        max_steps=50, # Set low for a quick "1 round" test
+        max_steps=50, 
         fp16=True,
+        gradient_checkpointing=True, # Recommended for Whisper v3 stability
         eval_strategy="no",
         save_strategy="steps",
         save_steps=50,
