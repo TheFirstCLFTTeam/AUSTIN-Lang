@@ -25,17 +25,31 @@ export default function SubmittedFilesPage() {
               <th className="text-left px-6 py-3 font-medium text-gray-500">
                 File Name
               </th>
+              <th className="text-left px-6 py-3 font-medium text-gray-500">
+                Upload Date
+              </th>
             </tr>
           </thead>
           <tbody>
             {files.map((file) => (
               <tr
                 key={file.id}
-                className="hover:bg-gray-50 cursor-pointer"
+                className="hover:bg-gray-50 cursor-pointer border-b last:border-0"
                 onClick={() => navigate(`/files/${file.id}`)}
               >
                 <td className="px-6 py-4 font-medium">
                   {file.name}
+                </td>
+                <td className="px-6 py-4 text-gray-600">
+                  {file.uploaded_at 
+                    ? new Date(file.uploaded_at + " UTC").toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) 
+                    : "N/A"}
                 </td>
               </tr>
             ))}

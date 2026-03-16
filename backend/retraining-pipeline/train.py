@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 1. Configuration
-MODEL_ID = "openai/whisper-large-v3-turbo"
+MODEL_ID = os.getenv("MANIFEST_PATH", "openai/whisper-large-v3-turbo")
 MANIFEST_PATH = os.getenv("MANIFEST_PATH", "data/manifest.jsonl")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "adapters/meralion_v1")
 BASE_ADAPTER_PATH = os.getenv("BASE_ADAPTER_PATH", None) 

@@ -12,6 +12,7 @@ export default function FileDetailPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [audioReady, setAudioReady] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchFileDetail(id).then(setFileData);
@@ -20,18 +21,29 @@ export default function FileDetailPage() {
   async function handleSubmit(newSegments) {
     if (!fileData.editedTranscript) {
       console.error("No edited transcript found for update.");
-      // You might want to create an edited transcript here if none exists
       return;
     }
-    const updated = await updateTranscript(
-      fileData.editedTranscript.id,
-      fileData.rawTranscript.id,
-      newSegments
-    );
-    // After update, re-fetch the entire file detail to get the latest state
-    fetchFileDetail(id).then(setFileData);
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+    
+    setSaving(true);
+    setSuccess(false);
+
+    try {
+      await updateTranscript(
+        fileData.editedTranscript.id,
+        fileData.rawTranscript.id,
+        newSegments
+      );
+      // After update, re-fetch the entire file detail to get the latest state
+      const updatedData = await fetchFileDetail(id);
+      setFileData(updatedData);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert("Failed to save transcript. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleSeek(time) {
@@ -73,6 +85,7 @@ export default function FileDetailPage() {
           segments={fileData.transcriptSegments}
           currentTime={currentTime}
           audioReady={audioReady}
+          saving={saving}
           onSeek={handleSeek}
           onSubmit={handleSubmit}
         />
