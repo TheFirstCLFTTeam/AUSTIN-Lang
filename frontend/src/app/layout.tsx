@@ -1,29 +1,26 @@
-import React from 'react';
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import { siteConfig } from "./config/metadata";
+import '../index.css';
+
+export const metadata: Metadata = {
+  title: siteConfig.title,
+  description: siteConfig.description,
+  openGraph: {
+    images: siteConfig.ogImage,
+  },
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="%PUBLIC_URL%/head.png" />
-        <meta name="theme-color" content="#000000" />
-        <meta
-          name="description"
-          content="Web site created using create-react-app"
-        />
-        <link rel="icon" href="%PUBLIC_URL%/logo.png" />
-
-        <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-
-        <title>AUSTIN-Lang</title>
-      </head>
       <body>
         <div id="root">{children}</div>
       </body>
     </html>
-
   );
 }
