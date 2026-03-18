@@ -4,6 +4,8 @@ backend/server/pretrained_weights/
 *.pyc
 .coverage
 backend/retraining-pipeline/data
+backend/retraining-pipeline/adapters
+*.tar.gz
 
 # Environment variables - never commit real secrets
 .env
