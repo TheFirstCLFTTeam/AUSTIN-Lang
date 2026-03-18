@@ -33,47 +33,44 @@ def train_one_round():
 
     processor = WhisperProcessor.from_pretrained(MODEL_ID)
 
-    def prepare_dataset(batch):
-        audio_item = batch["audio_path"]
-        
-        # If it's a dict with 'bytes', use them. If it's a string path, read it.
-        if isinstance(audio_item, dict) and audio_item.get("bytes"):
-            audio_bytes = audio_item["bytes"]
-            with io.BytesIO(audio_bytes) as b:
-                array, sampling_rate = sf.read(b)
-        elif isinstance(audio_item, str):
-            array, sampling_rate = sf.read(audio_item)
-        else:
-            # Fallback for other datasets-specific structures
-            path = audio_item.get("path") if isinstance(audio_item, dict) else audio_item
-            array, sampling_rate = sf.read(path)
-            
-        # Ensure 16kHz
-        if sampling_rate != 16000:
-            array = librosa.resample(array, orig_sr=sampling_rate, target_sr=16000)
-            
-        batch["input_features"] = processor.feature_extractor(
-            array, sampling_rate=16000
-        ).input_features[0]
-        
-        # Process labels
-        batch["labels"] = processor.tokenizer(batch["sentence"]).input_ids
-        return batch
-
-    print("Preprocessing dataset...")
-    dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names)
-
     # 3. Data Collator
     @dataclass
     class DataCollatorSpeechSeq2SeqWithPadding:
         processor: Any
-        def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
-            input_features = [{"input_features": feature["input_features"]} for feature in features]
-            batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
-            
-            label_features = [{"input_ids": feature["labels"]} for feature in features]
-            labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
-            
+        def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
+            # Feature extraction is now done per-batch to save RAM
+            input_features_list = []
+            label_features_list = []
+
+            for feature in features:
+                audio_item = feature["audio_path"]
+                sentence = feature["sentence"]
+
+                # Load audio
+                try:
+                    # 'path' from manifest
+                    path = audio_item.get("path") if isinstance(audio_item, dict) else audio_item
+                    array, sampling_rate = sf.read(path)
+
+                    if sampling_rate != 16000:
+                        array = librosa.resample(array, orig_sr=sampling_rate, target_sr=16000)
+
+                    input_features = self.processor.feature_extractor(
+                        array, sampling_rate=16000
+                    ).input_features[0]
+                    input_features_list.append({"input_features": input_features})
+
+                    # Tokenize sentence
+                    labels = self.processor.tokenizer(sentence).input_ids
+                    label_features_list.append({"input_ids": labels})
+                except Exception as e:
+                    print(f"Error processing sample: {e}")
+                    continue
+
+            batch = self.processor.feature_extractor.pad(input_features_list, return_tensors="pt")
+            labels_batch = self.processor.tokenizer.pad(label_features_list, return_tensors="pt")
+
+            # Mask padding for loss calculation
             labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
             batch["labels"] = labels
             return batch
@@ -114,8 +111,8 @@ def train_one_round():
     # 6. Training Arguments
     training_args = Seq2SeqTrainingArguments(
         output_dir=OUTPUT_DIR,
-        per_device_train_batch_size=8,
-        gradient_accumulation_steps=1,
+        per_device_train_batch_size=1, # min batch size to test 
+        gradient_accumulation_steps=1, 
         learning_rate=1e-3,
         warmup_steps=5,
         max_steps=50, 

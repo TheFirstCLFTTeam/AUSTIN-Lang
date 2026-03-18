@@ -24,6 +24,9 @@ else
     ID_FLAG=""
 fi
 
+# SSH options to handle ephemeral cloud GPU pods (skips host key verification errors)
+SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
 echo -e "${GREEN}Step 1: Preparing data on local server...${NC}"
 # Navigate to the directory where the script is located
 cd "$(dirname "$0")"
@@ -34,11 +37,11 @@ echo -e "${GREEN}Step 2: Packaging entire retraining pipeline (excluding adapter
 tar --exclude='adapters' --exclude='training_data.tar.gz' -czf training_data.tar.gz .
 
 echo -e "${GREEN}Step 3: Uploading pipeline to Cloud GPU ($CLOUD_IP:$CLOUD_PORT)...${NC}"
-ssh $ID_FLAG -p $CLOUD_PORT $CLOUD_USER@$CLOUD_IP "mkdir -p $CLOUD_REPO_PATH/backend/retraining-pipeline"
-scp $ID_FLAG -P $CLOUD_PORT training_data.tar.gz $CLOUD_USER@$CLOUD_IP:$CLOUD_REPO_PATH/backend/retraining-pipeline/
+ssh $SSH_OPTS $ID_FLAG -p $CLOUD_PORT $CLOUD_USER@$CLOUD_IP "mkdir -p $CLOUD_REPO_PATH/backend/retraining-pipeline"
+scp $SSH_OPTS $ID_FLAG -P $CLOUD_PORT training_data.tar.gz $CLOUD_USER@$CLOUD_IP:$CLOUD_REPO_PATH/backend/retraining-pipeline/
 
 echo -e "${GREEN}Step 4: Starting Remote Training...${NC}"
-ssh $ID_FLAG -p $CLOUD_PORT $CLOUD_USER@$CLOUD_IP << EOF
+ssh $SSH_OPTS $ID_FLAG -p $CLOUD_PORT $CLOUD_USER@$CLOUD_IP << EOF
     set -e
     cd $CLOUD_REPO_PATH/backend/retraining-pipeline
     tar --no-same-owner -xzf training_data.tar.gz
@@ -58,6 +61,6 @@ EOF
 
 echo -e "${GREEN}Step 5: Downloading trained adapters...${NC}"
 mkdir -p adapters/
-scp $ID_FLAG -P $CLOUD_PORT -r $CLOUD_USER@$CLOUD_IP:$CLOUD_REPO_PATH/backend/retraining-pipeline/adapters/$ADAPTER_NAME ./adapters/
+scp $SSH_OPTS $ID_FLAG -P $CLOUD_PORT -r $CLOUD_USER@$CLOUD_IP:$CLOUD_REPO_PATH/backend/retraining-pipeline/adapters/$ADAPTER_NAME ./adapters/
 
 echo -e "${GREEN}COMPLETE! Adapter saved to: backend/retraining-pipeline/adapters/$ADAPTER_NAME${NC}"
