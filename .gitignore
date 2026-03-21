@@ -4,6 +4,7 @@ backend/server/pretrained_weights/
 *.pyc
 .coverage
 backend/retraining-pipeline/data
+.pnpm-store/
 
 # Environment variables - never commit real secrets
 .env
