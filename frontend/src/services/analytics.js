@@ -18,41 +18,32 @@ function wordDifference(original, edited) {
 }
 
 export async function getDashboardStats() {
-  const files = await fetchSubmittedFiles();
-
-  let totalFiles = files.length;
-  let totalSegments = 0;
-  let totalWordsEdited = 0;
-
-  files.forEach((file) => {
-    if (!file.transcriptSegments) return;
-
-    totalSegments += file.transcriptSegments.length;
-
-    file.transcriptSegments.forEach((seg) => {
-      if (seg.originalText) {
-        totalWordsEdited += wordDifference(
-          [seg.originalText],
-          [seg.text]
-        );
-      }
-    });
-  });
-
-  const estimatedAccuracy =
-    totalSegments === 0
-      ? 100
-      : Math.max(
-          70,
-          100 - totalWordsEdited / totalSegments
-        );
-
-  return {
-    totalFiles,
-    totalSegments,
-    totalWordsEdited,
-    estimatedAccuracy: estimatedAccuracy.toFixed(1)
-  };
+  try {
+    const response = await fetch("http://localhost:8006/metrics/dashboard");
+    if (!response.ok) {
+      throw new Error("Failed to fetch dashboard stats");
+    }
+    const metrics = await response.json();
+    
+    return {
+      totalFiles: metrics.total_files,
+      totalSegments: metrics.files_with_edits, // Reuse this field to show progress
+      totalWordsEdited: metrics.needs_attention ? 1 : 0, // Flag for high WER
+      estimatedAccuracy: metrics.average_wer !== null 
+        ? ((1 - metrics.average_wer) * 100).toFixed(1) 
+        : "100.0",
+      average_queue_latency: metrics.average_queue_latency,
+      average_transcription_time: metrics.average_transcription_time
+    };
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    return {
+      totalFiles: 0,
+      totalSegments: 0,
+      totalWordsEdited: 0,
+      estimatedAccuracy: "100.0"
+    };
+  }
 }
 
 export async function triggerRetraining() {

@@ -216,7 +216,7 @@ export async function updateTranscript(editedTranscriptId, rawTranscriptId, newS
 
     // Trigger metrics refresh (invalidate cache)
     try {
-        await fetch("http://localhost:8003/metrics/refresh", { method: "POST" });
+        await fetch("http://localhost:8006/metrics/refresh", { method: "POST" });
     } catch (e) {
         console.warn("Failed to refresh metrics cache:", e);
     }
