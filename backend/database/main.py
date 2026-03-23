@@ -110,9 +110,11 @@ async def get_bulk_context(start_date: Optional[str] = None, end_date: Optional[
     Returns a list of joined objects (file info + raw/edited segments) for metrics processing.
     """
     query = """
-    SELECT af.id, af.file_name, af.uploaded_at, 
-           rt.transcription_started_at, rt.transcription_ended_at, rt.created_at as rt_created_at,
-           et.is_user_edited,
+    SELECT af.id as id, af.file_name as file_name, af.uploaded_at as uploaded_at, 
+           rt.transcription_started_at as transcription_started_at, 
+           rt.transcription_ended_at as transcription_ended_at, 
+           rt.created_at as rt_created_at,
+           et.is_user_edited as is_user_edited,
            (SELECT GROUP_CONCAT(text, ' ') FROM (SELECT text FROM raw_transcript_segment WHERE raw_transcript_id = rt.id ORDER BY start)) as raw_text,
            (SELECT GROUP_CONCAT(text, ' ') FROM (SELECT text FROM edited_transcript_segment WHERE edited_transcript_id = et.id ORDER BY start)) as edited_text
     FROM audio_file af
@@ -132,9 +134,11 @@ async def get_full_context(file_id: int):
     Returns joined object for a specific file.
     """
     query = """
-    SELECT af.id, af.file_name, af.uploaded_at, 
-           rt.transcription_started_at, rt.transcription_ended_at, rt.created_at as rt_created_at,
-           et.is_user_edited,
+    SELECT af.id as id, af.file_name as file_name, af.uploaded_at as uploaded_at, 
+           rt.transcription_started_at as transcription_started_at, 
+           rt.transcription_ended_at as transcription_ended_at, 
+           rt.created_at as rt_created_at,
+           et.is_user_edited as is_user_edited,
            (SELECT GROUP_CONCAT(text, ' ') FROM (SELECT text FROM raw_transcript_segment WHERE raw_transcript_id = rt.id ORDER BY start)) as raw_text,
            (SELECT GROUP_CONCAT(text, ' ') FROM (SELECT text FROM edited_transcript_segment WHERE edited_transcript_id = et.id ORDER BY start)) as edited_text
     FROM audio_file af
@@ -153,7 +157,7 @@ async def get_audio_file(file_id: int):
     Sample Input: file_id=1
     Sample Output: {"id": 1, "file_name": "meeting.wav", "uploaded_at": "2023-01-01 12:00:00"}
     """
-    audio_file = db.fetch_one("SELECT * FROM audio_file WHERE id = ?", (file_id,))
+    audio_file = db.fetch_one("SELECT id, file_name, uploaded_at FROM audio_file WHERE id = ?", (file_id,))
     if not audio_file:
         raise HTTPException(status_code=404, detail="Audio file not found")
     return audio_file
@@ -201,6 +205,8 @@ async def get_raw_transcripts(audio_file_id: Optional[int] = None):
                 rating=rt_data['rating'],
                 audio_file_id=rt_data['audio_file_id'],
                 created_at=rt_data['created_at'],
+                transcription_started_at=rt_data.get('transcription_started_at'),
+                transcription_ended_at=rt_data.get('transcription_ended_at'),
                 transcript_segments=segments
             )
         )
@@ -273,6 +279,7 @@ async def get_edited_transcripts(raw_transcript_id: Optional[int] = None):
             EditedTranscript(
                 id=et_data['id'],
                 raw_transcript_id=et_data['raw_transcript_id'],
+                is_user_edited=et_data['is_user_edited'],
                 created_at=et_data['created_at'],
                 transcript_segments=segments
             )

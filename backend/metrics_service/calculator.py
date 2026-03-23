@@ -26,10 +26,18 @@ def parse_iso(dt_str: Optional[str]) -> Optional[datetime.datetime]:
     if not dt_str:
         return None
     try:
-        # Handle cases where Z or +00:00 might be present
-        return datetime.datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
+        # Standardize format: replace space with T, remove Z, handle +00:00
+        clean_str = dt_str.replace(' ', 'T').replace('Z', '')
+        if '+' in clean_str:
+             clean_str = clean_str.split('+')[0]
+        
+        return datetime.datetime.fromisoformat(clean_str)
     except ValueError:
-        return None
+        # Fallback for other potential formats
+        try:
+            return datetime.datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            return None
 
 def aggregate_metrics(data: List[Dict]) -> Dict:
     """
