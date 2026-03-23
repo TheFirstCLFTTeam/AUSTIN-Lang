@@ -33,7 +33,7 @@ app.add_middleware(
 # Model Initialization
 # ---------------------------------------------------------------------------
 
-MODEL_ID = "openai/whisper-large-v3-turbo"
+MODEL_ID = "openai/whisper-tiny"
 ADAPTERS_DIR = "/app/adapters"
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"

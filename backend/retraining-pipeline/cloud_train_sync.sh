@@ -55,12 +55,13 @@ ssh $SSH_OPTS $ID_FLAG -p $CLOUD_PORT $CLOUD_USER@$CLOUD_IP << EOF
     export MANIFEST_PATH="data/$MANIFEST_NAME"
     export OUTPUT_DIR="adapters/$ADAPTER_NAME"
     python3 train.py
-
-    rm training_data.tar.gz
 EOF
 
 echo -e "${GREEN}Step 5: Downloading trained adapters...${NC}"
 mkdir -p adapters/
 scp $SSH_OPTS $ID_FLAG -P $CLOUD_PORT -r $CLOUD_USER@$CLOUD_IP:$CLOUD_REPO_PATH/backend/retraining-pipeline/adapters/$ADAPTER_NAME ./adapters/
+
+echo -e "${GREEN}Removing ./AUSTIN-Lang${NC}"
+ssh $SSH_OPTS $ID_FLAG -p $CLOUD_PORT $CLOUD_USER@$CLOUD_IP "rm -r AUSTIN-Lang/"
 
 echo -e "${GREEN}COMPLETE! Adapter saved to: backend/retraining-pipeline/adapters/$ADAPTER_NAME${NC}"
