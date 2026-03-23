@@ -205,12 +205,20 @@ export async function updateTranscript(editedTranscriptId, rawTranscriptId, newS
       },
       body: JSON.stringify({
         raw_transcript_id: rawTranscriptId,
+        is_user_edited: 1,
         transcript_segments: processedSegments,
       }),
     });
 
     if (!response.ok) {
       throw new Error(`Failed to update transcript: ${response.status}`);
+    }
+
+    // Trigger metrics refresh (invalidate cache)
+    try {
+        await fetch("http://localhost:8003/metrics/refresh", { method: "POST" });
+    } catch (e) {
+        console.warn("Failed to refresh metrics cache:", e);
     }
 
     return await response.json();
