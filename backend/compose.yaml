@@ -48,5 +48,15 @@ services:
     volumes:
       - "./database:/app"
 
+  metrics-service:
+    build: "./metrics_service"
+    ports:
+      - "8003:8003"
+    environment:
+      - DATABASE_URL=http://database:8002
+      - METRICS_SERVICE_PORT=8003
+    depends_on:
+      - database
+
 volumes:
   hf_models_cache:
