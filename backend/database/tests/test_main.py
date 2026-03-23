@@ -175,3 +175,40 @@ def test_update_audio_file_not_found(client):
     response = client.put("/audio-files/7777", json={"file_name": "new.wav"})
     assert response.status_code == 200
     assert response.json() == {"message": "Updated successfully"}
+
+def test_bulk_context(client):
+    """Verify that the bulk-context endpoint returns joined data with ordered segments."""
+    # Setup: Create audio file, raw transcript, and edited transcript
+    file_id = client.post("/audio-files/", json={"file_name": "bulk_test.wav"}).json()
+    
+    raw_payload = {
+        "audio_file_id": file_id,
+        "rating": 4,
+        "transcript_segments": [
+            {"start": 1.0, "end": 2.0, "text": "World"},
+            {"start": 0.0, "end": 1.0, "text": "Hello"} # Out of order
+        ]
+    }
+    raw_id = client.post("/raw-transcripts/", json=raw_payload).json()
+    
+    edited_payload = {
+        "raw_transcript_id": raw_id,
+        "transcript_segments": [
+            {"start": 1.0, "end": 2.0, "text": "Edited World"},
+            {"start": 0.0, "end": 1.0, "text": "Edited Hello"} # Out of order
+        ]
+    }
+    client.post("/edited-transcripts/", json=edited_payload)
+
+    # Get bulk context
+    response = client.get("/audio-files/bulk-context")
+    assert response.status_code == 200
+    data = response.json()
+    
+    assert len(data) >= 1
+    target = next(item for item in data if item["id"] == file_id)
+    
+    # Verify ordering and joining
+    assert target["raw_text"] == "Hello World"
+    assert target["edited_text"] == "Edited Hello Edited World"
+    assert "uploaded_at" in target

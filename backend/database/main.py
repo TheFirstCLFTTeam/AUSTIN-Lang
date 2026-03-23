@@ -53,6 +53,8 @@ class RawTranscriptSegment(BaseModel):
 class RawTranscriptBase(BaseModel):
     rating: Optional[int] = None
     audio_file_id: int
+    transcription_started_at: Optional[str] = None
+    transcription_ended_at: Optional[str] = None
     transcript_segments: List[RawTranscriptSegment]
 
 class RawTranscriptCreate(RawTranscriptBase):
@@ -70,6 +72,7 @@ class TranscriptSegment(BaseModel):
 
 class EditedTranscriptBase(BaseModel):
     raw_transcript_id: int
+    is_user_edited: Optional[int] = 0
     transcript_segments: List[TranscriptSegment]
 
 class EditedTranscriptCreate(EditedTranscriptBase):
@@ -78,6 +81,17 @@ class EditedTranscriptCreate(EditedTranscriptBase):
 class EditedTranscript(EditedTranscriptBase):
     id: int
     created_at: str
+
+class FullContext(BaseModel):
+    id: int
+    file_name: str
+    uploaded_at: str
+    transcription_started_at: Optional[str] = None
+    transcription_ended_at: Optional[str] = None
+    rt_created_at: Optional[str] = None
+    is_user_edited: Optional[int] = 0
+    raw_text: Optional[str] = None
+    edited_text: Optional[str] = None
 
 
 # --- Endpoints: Audio Files ---
@@ -89,6 +103,49 @@ async def get_audio_files():
     Sample Output: [{"id": 1, "file_name": "meeting.wav", "uploaded_at": "2023-01-01 12:00:00"}]
     """
     return db.fetch_all("SELECT * FROM audio_file")
+
+@app.get("/audio-files/bulk-context", response_model=List[FullContext])
+async def get_bulk_context(start_date: Optional[str] = None, end_date: Optional[str] = None):
+    """
+    Returns a list of joined objects (file info + raw/edited segments) for metrics processing.
+    """
+    query = """
+    SELECT af.id, af.file_name, af.uploaded_at, 
+           rt.transcription_started_at, rt.transcription_ended_at, rt.created_at as rt_created_at,
+           et.is_user_edited,
+           (SELECT GROUP_CONCAT(text, ' ') FROM (SELECT text FROM raw_transcript_segment WHERE raw_transcript_id = rt.id ORDER BY start)) as raw_text,
+           (SELECT GROUP_CONCAT(text, ' ') FROM (SELECT text FROM edited_transcript_segment WHERE edited_transcript_id = et.id ORDER BY start)) as edited_text
+    FROM audio_file af
+    LEFT JOIN raw_transcript rt ON af.id = rt.audio_file_id
+    LEFT JOIN edited_transcript et ON rt.id = et.raw_transcript_id
+    """
+    params = []
+    if start_date and end_date:
+        query += " WHERE af.uploaded_at BETWEEN ? AND ?"
+        params = [start_date, end_date]
+    
+    return db.fetch_all(query, tuple(params))
+
+@app.get("/audio-files/{file_id}/full-context", response_model=FullContext)
+async def get_full_context(file_id: int):
+    """
+    Returns joined object for a specific file.
+    """
+    query = """
+    SELECT af.id, af.file_name, af.uploaded_at, 
+           rt.transcription_started_at, rt.transcription_ended_at, rt.created_at as rt_created_at,
+           et.is_user_edited,
+           (SELECT GROUP_CONCAT(text, ' ') FROM (SELECT text FROM raw_transcript_segment WHERE raw_transcript_id = rt.id ORDER BY start)) as raw_text,
+           (SELECT GROUP_CONCAT(text, ' ') FROM (SELECT text FROM edited_transcript_segment WHERE edited_transcript_id = et.id ORDER BY start)) as edited_text
+    FROM audio_file af
+    LEFT JOIN raw_transcript rt ON af.id = rt.audio_file_id
+    LEFT JOIN edited_transcript et ON rt.id = et.raw_transcript_id
+    WHERE af.id = ?
+    """
+    result = db.fetch_one(query, (file_id,))
+    if not result:
+        raise HTTPException(status_code=404, detail="Audio file context not found")
+    return result
 
 @app.get("/audio-files/{file_id}", response_model=AudioFile)
 async def get_audio_file(file_id: int):
@@ -152,13 +209,13 @@ async def get_raw_transcripts(audio_file_id: Optional[int] = None):
 @app.post("/raw-transcripts/", response_model=int)
 async def create_raw_transcript(data: RawTranscriptCreate):
     """
-    Sample Input: {"audio_file_id": 1, "rating": 5, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Hello"}]}
+    Sample Input: {"audio_file_id": 1, "rating": 5, "transcription_started_at": "...", "transcription_ended_at": "...", "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Hello"}]}
     Sample Output: 1
     """
     # Insert the main raw_transcript record
     raw_transcript_id = db.execute_query(
-        "INSERT INTO raw_transcript (rating, audio_file_id) VALUES (?, ?)",
-        (data.rating, data.audio_file_id)
+        "INSERT INTO raw_transcript (rating, audio_file_id, transcription_started_at, transcription_ended_at) VALUES (?, ?, ?, ?)",
+        (data.rating, data.audio_file_id, data.transcription_started_at, data.transcription_ended_at)
     )
 
     # Insert each segment
@@ -177,8 +234,8 @@ async def update_raw_transcript(transcript_id: int, data: RawTranscriptCreate):
     """
     # Update the main raw_transcript record (e.g., rating)
     db.execute_query(
-        "UPDATE raw_transcript SET rating = ? WHERE id = ?",
-        (data.rating, transcript_id)
+        "UPDATE raw_transcript SET rating = ?, transcription_started_at = ?, transcription_ended_at = ? WHERE id = ?",
+        (data.rating, data.transcription_started_at, data.transcription_ended_at, transcript_id)
     )
 
     # Delete existing segments for this raw_transcript
@@ -225,13 +282,13 @@ async def get_edited_transcripts(raw_transcript_id: Optional[int] = None):
 @app.post("/edited-transcripts/", response_model=int)
 async def create_edited_transcript(data: EditedTranscriptCreate):
     """
-    Sample Input: {"raw_transcript_id": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Hello"}, {"start": 2.0, "end": 3.0, "text": "World"}]}
+    Sample Input: {"raw_transcript_id": 1, "is_user_edited": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Hello"}, {"start": 2.0, "end": 3.0, "text": "World"}]}
     Sample Output: 1
     """
     # Insert the main edited_transcript record
     edited_transcript_id = db.execute_query(
-        "INSERT INTO edited_transcript (raw_transcript_id) VALUES (?)",
-        (data.raw_transcript_id,)
+        "INSERT INTO edited_transcript (raw_transcript_id, is_user_edited) VALUES (?, ?)",
+        (data.raw_transcript_id, data.is_user_edited)
     )
 
     # Insert each segment
@@ -245,11 +302,17 @@ async def create_edited_transcript(data: EditedTranscriptCreate):
 @app.put("/edited-transcripts/{transcript_id}")
 async def update_edited_transcript(transcript_id: int, data: EditedTranscriptCreate):
     """
-    Sample Input: transcript_id=1, {"raw_transcript_id": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Updated segment"}]}
+    Sample Input: transcript_id=1, {"raw_transcript_id": 1, "is_user_edited": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Updated segment"}]}
     Sample Output: {"message": "Updated successfully"}
     """
     # Verify that the raw_transcript_id in the payload matches the existing one for integrity, if necessary
     # For now, we assume the raw_transcript_id in data is the correct one to associate.
+
+    # Update main record
+    db.execute_query(
+        "UPDATE edited_transcript SET is_user_edited = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        (data.is_user_edited, transcript_id)
+    )
 
     # Delete existing segments for this edited_transcript
     db.execute_query("DELETE FROM edited_transcript_segment WHERE edited_transcript_id = ?", (transcript_id,))
