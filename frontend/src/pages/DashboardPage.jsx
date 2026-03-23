@@ -41,17 +41,31 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-3 gap-6 mb-8">
         <StatCard title="Files Processed" value={stats.totalFiles} />
 
-        <StatCard title="Transcript Segments" value={stats.totalSegments} />
-
-        <StatCard title="Words Corrected" value={stats.totalWordsEdited} />
+        <StatCard title="Files with Edits" value={stats.totalSegments} />
 
         <StatCard
-          title="Estimated Accuracy"
+          title="Word Accuracy"
           value={`${stats.estimatedAccuracy}%`}
         />
+
+        <StatCard 
+            title="Queue Latency" 
+            value={stats.average_queue_latency !== null ? `${stats.average_queue_latency.toFixed(1)}s` : "N/A"} 
+        />
+
+        <StatCard 
+            title="Transcription Time" 
+            value={stats.average_transcription_time !== null ? `${stats.average_transcription_time.toFixed(1)}s` : "N/A"} 
+        />
+
+        {stats.totalWordsEdited > 0 && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative flex items-center justify-center font-bold">
+            ⚠️ HIGH ERROR RATE DETECTED
+          </div>
+        )}
       </div>
 
       <ErrorChart accuracy={stats.estimatedAccuracy} />
