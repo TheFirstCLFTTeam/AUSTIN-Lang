@@ -18,6 +18,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# --- MONKEY PATCH FOR OLDER TORCH VERSIONS ---
+if not hasattr(torch.nn.Module, "set_submodule"):
+    def set_submodule(self, target: str, module: torch.nn.Module) -> None:
+        parts = target.split(".")
+        obj = self
+        for i in range(len(parts) - 1):
+            obj = getattr(obj, parts[i])
+        setattr(obj, parts[-1], module)
+    torch.nn.Module.set_submodule = set_submodule
+    print("Applied monkey-patch for torch.nn.Module.set_submodule")
+# ---------------------------------------------
+
 # 1. Configuration
 MODEL_ID = "openai/whisper-tiny" #os.getenv("MODEL_ID", "openai/whisper-tiny") 
 MANIFEST_PATH = "data/meralion_manifest.jsonl" #os.getenv("MANIFEST_PATH", "data/meralion_manifest.jsonl")
@@ -147,7 +159,7 @@ def train_one_round():
         max_steps=MAX_STEPS, 
         fp16=(device == "cuda"),
         optim="paged_adamw_8bit" if device == "cuda" else "adamw_torch",
-        gradient_checkpointing=True, 
+        gradient_checkpointing=False, 
         eval_strategy="no",
         save_strategy="steps",
         save_steps=50,
