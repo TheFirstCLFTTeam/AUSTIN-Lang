@@ -74,14 +74,32 @@ function requireAuth() {
  * FILE API FUNCTIONS
  *********************************/
 
+export async function fetchAdapters() {
+  requireAuth();
+  try {
+    const response = await fetch("http://localhost:8001/adapters/");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch adapters: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.adapters || ["base"];
+  } catch (error) {
+    console.error("Error fetching adapters:", error);
+    return ["base"];
+  }
+}
+
 // Upload audio file
-export async function uploadAudio(file) {
+export async function uploadAudio(file, domain = null) {
   requireAuth();
 
   try {
     // 1. Call the Orchestrator which handles upload, transcription, and DB registration
     const formData = new FormData();
     formData.append("file", file);
+    if (domain && domain !== "base") {
+      formData.append("domain", domain);
+    }
 
     const response = await fetch("http://localhost:8001/transcribe/", {
       method: "POST",

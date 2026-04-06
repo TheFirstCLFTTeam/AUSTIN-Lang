@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import requests
@@ -37,9 +37,23 @@ def handle_response(response, service_name: str):
             status_code=502, detail=f"{service_name} service failed: {str(e)}"
         )
 
+@app.get("/adapters/")
+async def get_adapters():
+    """Fetches the list of available adapters from the transcription service."""
+    transcription_service_host = os.getenv("TRANSCRIPTION_SERVICE_2_HOST", "transcription-service-2")
+    transcription_service_port = os.getenv("TRANSCRIPTION_SERVICE_2_PORT", 8005)
+    adapters_url = f"http://{transcription_service_host}:{transcription_service_port}/adapters"
+    
+    try:
+        response = requests.get(adapters_url)
+        handle_response(response, "Transcription service 2")
+        return response.json()
+    except Exception as e:
+        # If the service is unreachable or skip is enabled, return a fallback
+        return {"adapters": ["base"]}
 
 @app.post("/transcribe/")
-async def transcribe(file: UploadFile = File(...)):
+async def transcribe(file: UploadFile = File(...), domain: str = Form(None)):
     """
     Orchestrates the full transcription workflow:
     1. Uploads the file to the audio submission service.
@@ -109,9 +123,12 @@ async def transcribe(file: UploadFile = File(...)):
         
         # New service uses 'audio' field and returns 'chunks'
         transcription_files = {"audio": (file.filename, file_content, file.content_type)}
-        
+        transcription_data = {}
+        if domain:
+            transcription_data["domain"] = domain
+            
         try:
-            transcription_response = requests.post(transcription_url, files=transcription_files)
+            transcription_response = requests.post(transcription_url, files=transcription_files, data=transcription_data)
             handle_response(transcription_response, "Transcription service 2")
             whisper_data = transcription_response.json()
             # Map 'chunks' to 'segments' for compatibility with database registration

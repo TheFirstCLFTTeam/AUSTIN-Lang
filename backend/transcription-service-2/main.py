@@ -155,6 +155,16 @@ async def health():
         "active_adapter": active_adapter
     }
 
+@app.get("/adapters")
+async def list_adapters():
+    """Returns a list of all available adapters in the ADAPTERS_DIR."""
+    adapters = ["base"]
+    if os.path.exists(ADAPTERS_DIR):
+        for item in os.listdir(ADAPTERS_DIR):
+            if os.path.isdir(os.path.join(ADAPTERS_DIR, item)):
+                adapters.append(item)
+    return {"adapters": adapters}
+
 @app.post("/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio(
     audio: UploadFile = File(...),

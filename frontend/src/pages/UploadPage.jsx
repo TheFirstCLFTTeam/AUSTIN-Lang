@@ -1,11 +1,21 @@
-import { useState, useMemo } from "react";
-import { uploadAudio } from "../services/api";
+import { useState, useMemo, useEffect } from "react";
+import { uploadAudio, fetchAdapters } from "../services/api";
 import AudioPlayer from "../components/AudioPlayer";
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
   const [uploaded, setUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [adapters, setAdapters] = useState(["base"]);
+  const [selectedAdapter, setSelectedAdapter] = useState("base");
+
+  useEffect(() => {
+    async function loadAdapters() {
+      const availableAdapters = await fetchAdapters();
+      setAdapters(availableAdapters);
+    }
+    loadAdapters();
+  }, []);
 
   const fileUrl = useMemo(() => {
     if (file) {
@@ -20,7 +30,7 @@ export default function UploadPage() {
     setUploaded(false);
 
     try {
-      await uploadAudio(file);
+      await uploadAudio(file, selectedAdapter);
       setUploaded(true);
       setTimeout(() => setUploaded(false), 5000);
     } catch (error) {
@@ -61,6 +71,26 @@ export default function UploadPage() {
             className="hidden"
           />
         </label>
+
+        {/* Adapter Selection */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="adapter-select" className="text-sm font-medium text-gray-700">
+            Select Model/Adapter:
+          </label>
+          <select
+            id="adapter-select"
+            value={selectedAdapter}
+            onChange={(e) => setSelectedAdapter(e.target.value)}
+            disabled={loading}
+            className="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          >
+            {adapters.map((adapter) => (
+              <option key={adapter} value={adapter}>
+                {adapter === "base" ? "Base Model (Default)" : adapter}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {file && (
           <>
