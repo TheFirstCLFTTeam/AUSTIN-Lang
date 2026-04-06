@@ -33,7 +33,7 @@ app.add_middleware(
 # Model Initialization
 # ---------------------------------------------------------------------------
 
-MODEL_ID = "openai/whisper-tiny"
+MODEL_ID = os.getenv("MODEL_ID")
 ADAPTERS_DIR = "/app/adapters"
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -209,8 +209,9 @@ async def transcribe_audio(
         if language:
             generate_kwargs["language"] = language
 
-        # HF Whisper pipeline handles the audio loading internally via ffmpeg/librosa
-        result = pipe(tmp_path, generate_kwargs=generate_kwargs)
+        # result = pipe(tmp_path, generate_kwargs=generate_kwargs)
+        # Force passing as a string path to ensure it doesn't try to use bytes
+        result = pipe(str(tmp_path), generate_kwargs=generate_kwargs)
 
         # Build response
         response = TranscriptionResponse(

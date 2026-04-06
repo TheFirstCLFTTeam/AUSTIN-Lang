@@ -31,9 +31,10 @@ if not hasattr(torch.nn.Module, "set_submodule"):
 # ---------------------------------------------
 
 # 1. Configuration
-MODEL_ID = "openai/whisper-tiny" #os.getenv("MODEL_ID", "openai/whisper-tiny") 
-MANIFEST_PATH = "data/meralion_manifest.jsonl" #os.getenv("MANIFEST_PATH", "data/meralion_manifest.jsonl")
-OUTPUT_DIR = "adapters/meralion_min" #os.getenv("OUTPUT_DIR", "adapters/meralion_v1")
+MODEL_ID = "openai/whisper-tiny"#os.getenv("MODEL_ID") 
+ADAPTER_NAME = "fypaudio"#os.getenv("ADAPTER_NAME")
+MANIFEST_PATH = os.path.join("data", f"{ADAPTER_NAME}_manifest.jsonl") #os.getenv("MANIFEST_PATH", "data/meralion_manifest.jsonl")
+OUTPUT_DIR = os.path.join("adapters", ADAPTER_NAME) #os.getenv("OUTPUT_DIR", "adapters/meralion_v1")
 BASE_ADAPTER_PATH = None #os.getenv("BASE_ADAPTER_PATH", None) 
 EPOCHS = 50
 BATCH_SIZE = 5
@@ -75,7 +76,10 @@ def train_one_round():
             label_features_list = []
 
             for feature in features:
-                path = feature["audio_path"]
+                # Normalize path for the current OS
+                raw_path = feature["audio_path"].replace("\\", "/")
+                path = os.path.normpath(raw_path)
+                # path = os.path.normpath(feature["audio_path"])
                 sentence = feature["sentence"]
 
                 try:
