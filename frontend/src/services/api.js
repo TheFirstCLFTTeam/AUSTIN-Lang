@@ -228,3 +228,29 @@ export async function updateTranscript(editedTranscriptId, rawTranscriptId, newS
   }
 }
 
+// Delete audio file and all associated transcripts
+export async function deleteAudioFile(id) {
+  requireAuth();
+  try {
+    const response = await fetch(`http://localhost:8002/audio-files/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete audio file: ${response.status}`);
+    }
+
+    // Trigger metrics refresh (invalidate cache)
+    try {
+        await fetch("http://localhost:8006/metrics/refresh", { method: "POST" });
+    } catch (e) {
+        console.warn("Failed to refresh metrics cache:", e);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting audio file:", error);
+    throw error;
+  }
+}
+

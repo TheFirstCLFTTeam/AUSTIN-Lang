@@ -179,6 +179,37 @@ async def update_audio_file(file_id: int, data: AudioFileCreate):
     db.execute_query("UPDATE audio_file SET file_name = ? WHERE id = ?", (data.file_name, file_id))
     return {"message": "Updated successfully"}
 
+@app.delete("/audio-files/{file_id}")
+async def delete_audio_file(file_id: int):
+    """
+    Deletes an audio file and all its associated transcripts and segments from the database.
+    Does NOT delete the physical file from the storage service.
+    """
+    # 1. Get raw transcript IDs
+    raw_transcripts = db.fetch_all("SELECT id FROM raw_transcript WHERE audio_file_id = ?", (file_id,))
+    
+    for rt in raw_transcripts:
+        rid = rt['id']
+        # 2. Get edited transcript IDs for this raw transcript
+        edited_transcripts = db.fetch_all("SELECT id FROM edited_transcript WHERE raw_transcript_id = ?", (rid,))
+        
+        for et in edited_transcripts:
+            eid = et['id']
+            # 3. Delete edited segments
+            db.execute_query("DELETE FROM edited_transcript_segment WHERE edited_transcript_id = ?", (eid,))
+            # 4. Delete edited transcript
+            db.execute_query("DELETE FROM edited_transcript WHERE id = ?", (eid,))
+        
+        # 5. Delete raw segments
+        db.execute_query("DELETE FROM raw_transcript_segment WHERE raw_transcript_id = ?", (rid,))
+        # 6. Delete raw transcript
+        db.execute_query("DELETE FROM raw_transcript WHERE id = ?", (rid,))
+
+    # 7. Finally delete the audio file record
+    db.execute_query("DELETE FROM audio_file WHERE id = ?", (file_id,))
+    
+    return {"message": "Database records deleted successfully"}
+
 # --- Endpoints: Raw Transcripts ---
 
 @app.get("/raw-transcripts/", response_model=List[RawTranscript])
