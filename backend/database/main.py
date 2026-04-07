@@ -46,8 +46,8 @@ class AudioFile(AudioFileBase):
 
 class RawTranscriptSegment(BaseModel):
     id: Optional[int] = None # ID from the database for existing segments
-    start: float
-    end: float
+    start: Optional[float] = None
+    end: Optional[float] = None
     text: str
 
 class RawTranscriptBase(BaseModel):
@@ -66,8 +66,8 @@ class RawTranscript(RawTranscriptBase):
 
 class TranscriptSegment(BaseModel):
     id: Optional[int] = None
-    start: float
-    end: float
+    start: Optional[float] = None
+    end: Optional[float] = None
     text: str
 
 class EditedTranscriptBase(BaseModel):

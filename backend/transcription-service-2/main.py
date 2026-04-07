@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 import torch
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from transformers import pipeline, AutoModelForSpeechSeq2Seq, AutoProcessor
@@ -128,8 +128,8 @@ def ensure_adapter_loaded(domain: str):
 # ---------------------------------------------------------------------------
 
 class Segment(BaseModel):
-    start: float
-    end: float
+    start: Optional[float] = None
+    end: Optional[float] = None
     text: str
 
 class TranscriptionResponse(BaseModel):
@@ -168,8 +168,8 @@ async def list_adapters():
 @app.post("/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio(
     audio: UploadFile = File(...),
-    language: Optional[str] = None,
-    domain: Optional[str] = None
+    language: Optional[str] = Form(None),
+    domain: Optional[str] = Form(None)
 ):
     """
     Transcribe an uploaded audio file using whisper-large-v3-turbo.
@@ -238,6 +238,8 @@ async def transcribe_audio(
         return response
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
     finally:

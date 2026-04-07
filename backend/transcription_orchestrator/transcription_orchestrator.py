@@ -121,6 +121,8 @@ async def transcribe(file: UploadFile = File(...), domain: str = Form(None)):
         transcription_service_port = os.getenv("TRANSCRIPTION_SERVICE_2_PORT", 8005)
         transcription_url = f"http://{transcription_service_host}:{transcription_service_port}/transcribe"
         
+        print(f"Calling transcription service at: {transcription_url} with domain: {domain}")
+        
         # New service uses 'audio' field and returns 'chunks'
         transcription_files = {"audio": (file.filename, file_content, file.content_type)}
         transcription_data = {}
@@ -133,6 +135,10 @@ async def transcribe(file: UploadFile = File(...), domain: str = Form(None)):
             whisper_data = transcription_response.json()
             # Map 'chunks' to 'segments' for compatibility with database registration
             if "chunks" in whisper_data:
+                # Ensure start/end are not None for DB registration
+                for chunk in whisper_data["chunks"]:
+                    if chunk.get("start") is None: chunk["start"] = 0.0
+                    if chunk.get("end") is None: chunk["end"] = 0.0
                 whisper_data["segments"] = whisper_data["chunks"]
         except HTTPException:
             raise
