@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-surface": "#2d3435",
+            "on-secondary": "#fff7f6",
+            "surface-bright": "#f9f9f9",
+            "primary": "#5e5e5e",
+            "tertiary-fixed": "#f6f3f2",
+            "on-secondary-container": "#a80100",
+            "error-dim": "#4f0116",
+            "primary-fixed-dim": "#d4d4d4",
+            "on-tertiary-fixed-variant": "#676666",
+            "error": "#9e3f4e",
+            "primary-dim": "#525252",
+            "on-background": "#2d3435",
+            "on-primary-fixed-variant": "#5b5b5b",
+            "secondary-dim": "#ab0100",
+            "on-primary-fixed": "#3f3f3f",
+            "error-container": "#ff8b9a",
+            "inverse-surface": "#0c0f0f",
+            "outline-variant": "#adb3b4",
+            "surface-container-lowest": "#ffffff",
+            "secondary-fixed": "#ffdad4",
+            "secondary-fixed-dim": "#ffc7be",
+            "on-primary": "#f8f8f8",
+            "on-tertiary": "#fbf8f8",
+            "tertiary": "#5f5f5f",
+            "on-tertiary-container": "#5c5b5b",
+            "surface-container": "#ebeeef",
+            "on-tertiary-fixed": "#4a4949",
+            "tertiary-container": "#f6f3f2",
+            "on-surface-variant": "#5a6061",
+            "tertiary-dim": "#535353",
+            "primary-container": "#e2e2e2",
+            "inverse-on-surface": "#9c9d9d",
+            "inverse-primary": "#ffffff",
+            "tertiary-fixed-dim": "#e7e5e4",
+            "surface-dim": "#d4dbdd",
+            "background": "#f9f9f9",
+            "surface-container-highest": "#dde4e5",
+            "on-error": "#fff7f7",
+            "on-secondary-fixed": "#850100",
+            "secondary": "#c20000",
+            "surface-container-low": "#f2f4f4",
+            "on-error-container": "#782232",
+            "on-primary-container": "#525252",
+            "surface-tint": "#5e5e5e",
+            "outline": "#757c7d",
+            "surface-variant": "#dde4e5",
+            "primary-fixed": "#e2e2e2",
+            "surface-container-high": "#e4e9ea",
+            "on-secondary-fixed-variant": "#bb0100",
+            "secondary-container": "#ffdad4",
+            "surface": "#f9f9f9"
+          },
+          fontFamily: {
+            "headline": ["Manrope"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
+    body { font-family: 'Inter', sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-surface text-on-surface overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-black flex justify-between items-center w-full px-8 py-4 fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tighter text-black dark:text-white uppercase font-headline">AUSTIN-Lang</span>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white font-['Manrope'] tracking-tight font-bold uppercase py-1" href="#">Dashboard</a>
+<a class="text-red-700 dark:text-red-600 border-b-2 border-red-700 font-['Manrope'] tracking-tight font-bold uppercase py-1" href="#">System Admin</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined text-zinc-600 dark:text-zinc-400 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 cursor-pointer">notifications</span>
+</div>
+<span class="material-symbols-outlined text-zinc-600 dark:text-zinc-400 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 cursor-pointer">settings</span>
+<img alt="Administrator Profile" class="w-8 h-8 bg-zinc-200" data-alt="Close up professional headshot of a system administrator with a neutral expression and high-end corporate lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT33zn1Wzx1tY9IqbxhyjdzN_zyg1vYizsdQndsD3ILJnX098MmWjVbXLttaAxgio4t7MTnJcYPjPeN55TLOP8erdDzo7Qsn2JMVcWSAeb4wtxUoicJeNo2p1Gq5fZePK2tU3NRJMhJxWFHNKwWdwIN9IO8eX8m277pUQlPQkKA5ORae_S0X_Uz27uroRjZKjfz7hsZusXW00QCfSTt6EOQd-RW-aAIaJLawsdv6uEldtblNUb3NFGynuSr7HYb0NekCMCdlXPer42"/>
+</div>
+</header>
+<div class="flex h-screen pt-20">
+<!-- SideNavBar -->
+<aside class="bg-slate-50 dark:bg-zinc-950 fixed left-0 top-0 h-screen flex flex-col pt-20 w-64 border-r-0 shadow-none z-40">
+<div class="px-6 py-6 border-b border-slate-200 dark:border-zinc-900 mb-4">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-10 h-10 bg-black flex items-center justify-center">
+<span class="material-symbols-outlined text-white">shield_person</span>
+</div>
+<div>
+<p class="font-['Inter'] text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400">System Admin</p>
+<p class="font-headline font-bold text-sm tracking-tight">Institutional Admin</p>
+</div>
+</div>
+<p class="text-[10px] text-zinc-500 font-mono mt-1">Terminal ID: 8829-QX</p>
+</div>
+<nav class="flex-1">
+<a class="text-zinc-600 dark:text-zinc-400 py-3 px-6 flex items-center gap-3 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out font-['Inter'] text-xs font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="person_manage">person</span> User Management
+        </a>
+<a class="bg-white dark:bg-black text-red-700 dark:text-red-500 border-l-4 border-red-700 shadow-sm py-3 px-6 flex items-center gap-3 font-['Inter'] text-xs font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span> Group Management
+        </a>
+<a class="text-zinc-600 dark:text-zinc-400 py-3 px-6 flex items-center gap-3 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out font-['Inter'] text-xs font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span> Compliance
+        </a>
+<a class="text-zinc-600 dark:text-zinc-400 py-3 px-6 flex items-center gap-3 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all duration-200 ease-in-out font-['Inter'] text-xs font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span> Statistics
+        </a>
+</nav>
+<div class="p-6 border-t border-slate-200 dark:border-zinc-900">
+<button class="w-full bg-black text-white py-3 font-['Inter'] text-xs font-bold uppercase tracking-widest hover:bg-secondary transition-colors duration-200">
+          New Report
+        </button>
+<div class="mt-6 flex flex-col gap-2">
+<a class="text-zinc-500 text-[10px] uppercase tracking-widest flex items-center gap-2 hover:text-black transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline">help_outline</span> Support
+          </a>
+<a class="text-zinc-500 text-[10px] uppercase tracking-widest flex items-center gap-2 hover:text-black transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="list_alt">list_alt</span> Logs
+          </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 overflow-y-auto bg-surface-container-low p-10 flex gap-8">
+<div class="flex-1">
+<div class="flex justify-between items-end mb-10">
+<div>
+<span class="text-secondary font-label text-xs font-bold uppercase tracking-[0.2em] mb-2 block">Institutional Management</span>
+<h1 class="text-4xl font-headline font-extrabold tracking-tighter uppercase text-on-surface">User Groups</h1>
+</div>
+<button class="bg-on-surface text-surface py-3 px-8 font-label text-xs font-bold uppercase tracking-widest hover:bg-secondary transition-colors">
+            Create New User Group
+          </button>
+</div>
+<!-- Asymmetric Bento Grid for Groups -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Compliance Group (Large Card) -->
+<div class="col-span-8 bg-surface-container-lowest p-8 cursor-pointer border-l-4 border-secondary hover:translate-y-[-2px] transition-transform duration-200">
+<div class="flex justify-between items-start mb-12">
+<div>
+<h3 class="text-2xl font-headline font-bold uppercase tracking-tight mb-1">Compliance</h3>
+<p class="text-zinc-500 text-xs font-label uppercase tracking-widest">Core Regulatory Monitoring</p>
+</div>
+<span class="material-symbols-outlined text-secondary scale-150">security</span>
+</div>
+<div class="flex gap-12">
+<div>
+<p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-1">Total Members</p>
+<p class="text-3xl font-headline font-extrabold tracking-tighter">142</p>
+</div>
+<div>
+<p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-1">Activity Level</p>
+<p class="text-3xl font-headline font-extrabold tracking-tighter text-secondary">CRITICAL</p>
+</div>
+<div class="flex -space-x-2 items-center ml-auto">
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-white bg-slate-100" data-alt="Portrait of a banking professional in business attire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY5-U6QpFy_Y6rFkEsNMqFsymdGbUJvNX2RlgosMU4juVau_64ufEsn2JcWRgifhRFQy8_AGVCEE2EI5THByeSXlna-UTvZsOTEF9BIQDviwDV-IOuDp0TyaHGYIxzrVnlfCkwX_SFu8CANxY5mjbuploUD9fbtccRWAb2NlonCySYp-tNxdbxQ3N4bx_d6GRskPNqAq2RjuBtyGN2m1yBRNZ1ZtABPM-ehms_XojB2xxMid7Xt8iHzm-7eI6XHS8Y7bgij2UGFf8A"/>
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-white bg-slate-100" data-alt="Professional woman in corporate setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtx0N-TDWXRjxLRGncNTJ5qBMY27jSVQvP2xRNzTQp9fJb9pXA32PROj7ZQw8iOIPlIQ2xLDqZXPufAnZcoEcL1E8j02nj2_6nlvmiCP_k0eZRxw2WWFfWoGu3iVCVmQEKP3CpcWsxCaWqNfTuH-6TPt7XQQNatcIT98VKlwVDphBedOxSJ6UxqraKbksTXM4kiUQ1UP3ppvaDv5K52Hb2RUI7m_Ch5UnMuzX-1nu2ZsGbkGcR1s3Low8jDTQZmQuqq-KqsVsdmjpt"/>
+<img alt="Member" class="w-8 h-8 rounded-full border-2 border-white bg-slate-100" data-alt="Senior executive with gray hair in a studio portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt46eDtu54L5_-8ZDsyW2-NsLncOP83OQsCd0B3l_2I1cETtWb0UdMd1DTV4eDK35sInPq0V2JGh1zGcy_lKqwytmsT61xn8fe2t4Xe7YsswkqG5gzWCDH7SOT13NjxgVr7Pc06fdisuFdQFQ_dOZXY9q6LNBW-XbLk7nc17zgblLMkPR-93hsRTlfyGIj9k2xun5IYRlxR5a9oPsgZmRE68xyhvb-pCH3hU3jF1Ui0OyASFj2UgIFtfVpmlQqQqyniSp3e4CSVBre"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-zinc-200 flex items-center justify-center text-[10px] font-bold">+139</div>
+</div>
+</div>
+</div>
+<!-- Market Trading (Medium Card) -->
+<div class="col-span-4 bg-surface-container-lowest p-8 border border-surface-container-highest hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="mb-16">
+<span class="material-symbols-outlined text-zinc-400 group-hover:text-black transition-colors mb-4">candlestick_chart</span>
+<h3 class="text-xl font-headline font-bold uppercase tracking-tight">Market Trading</h3>
+<p class="text-zinc-500 text-[10px] font-label uppercase tracking-widest">Equity &amp; Fixed Income</p>
+</div>
+<p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-1">Active Transcriptions</p>
+<p class="text-2xl font-headline font-extrabold tracking-tighter">2,841</p>
+</div>
+<!-- Retail Banking -->
+<div class="col-span-4 bg-surface-container-lowest p-8 border border-surface-container-highest hover:bg-surface-container transition-colors cursor-pointer">
+<div class="mb-16">
+<span class="material-symbols-outlined text-zinc-400 mb-4">payments</span>
+<h3 class="text-xl font-headline font-bold uppercase tracking-tight">Retail Banking</h3>
+<p class="text-zinc-500 text-[10px] font-label uppercase tracking-widest">Customer Relations</p>
+</div>
+<p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-1">Storage Allocation</p>
+<p class="text-2xl font-headline font-extrabold tracking-tighter">1.2 TB</p>
+</div>
+<!-- ML Research -->
+<div class="col-span-8 bg-surface-container-lowest p-8 border border-surface-container-highest hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-12">
+<div>
+<h3 class="text-xl font-headline font-bold uppercase tracking-tight">ML Research</h3>
+<p class="text-zinc-500 text-[10px] font-label uppercase tracking-widest">Model Training &amp; Data Ops</p>
+</div>
+<span class="material-symbols-outlined text-zinc-400">psychology</span>
+</div>
+<div class="grid grid-cols-3 gap-8">
+<div>
+<p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-1">Avg WER</p>
+<p class="text-2xl font-headline font-extrabold tracking-tighter">4.2%</p>
+</div>
+<div>
+<p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-1">GPU Compute</p>
+<p class="text-2xl font-headline font-extrabold tracking-tighter">High Load</p>
+</div>
+<div>
+<p class="text-[10px] text-zinc-400 uppercase tracking-widest mb-1">Datasets</p>
+<p class="text-2xl font-headline font-extrabold tracking-tighter">24</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: Group Profile (Selected Context) -->
+<aside class="w-[400px] shrink-0">
+<div class="bg-white border-[3px] border-black h-full flex flex-col p-8">
+<div class="flex justify-between items-start mb-8">
+<div class="bg-secondary text-white p-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<button class="text-zinc-400 hover:text-black">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<h2 class="text-3xl font-headline font-extrabold uppercase tracking-tighter mb-1">Group Profile</h2>
+<p class="text-zinc-500 text-xs font-label uppercase tracking-[0.1em] mb-10 border-b border-zinc-100 pb-4">Compliance Division</p>
+<!-- Group Metrics Stack -->
+<div class="space-y-6 mb-12">
+<div>
+<div class="flex justify-between items-end mb-1">
+<span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Total Transcriptions</span>
+<span class="text-lg font-headline font-extrabold">412,903</span>
+</div>
+<div class="h-1 bg-zinc-100 w-full">
+<div class="h-1 bg-black w-[75%]"></div>
+</div>
+</div>
+<div class="flex justify-between items-center py-4 border-y border-zinc-50">
+<span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Average WER per group</span>
+<span class="text-lg font-headline font-extrabold">2.14%</span>
+</div>
+<div class="flex justify-between items-center py-4 border-b border-zinc-50">
+<span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Flagged Privacy Violations</span>
+<span class="text-lg font-headline font-extrabold text-secondary">03</span>
+</div>
+<div class="flex justify-between items-center py-4 border-b border-zinc-50">
+<span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Storage Usage</span>
+<span class="text-lg font-headline font-extrabold">842.1 GB</span>
+</div>
+</div>
+<!-- User Management in Group -->
+<div class="flex-1 flex flex-col min-h-0">
+<h4 class="text-[10px] font-bold uppercase tracking-[0.2em] mb-4">Assigned Operators (142)</h4>
+<div class="flex-1 overflow-y-auto no-scrollbar space-y-3 mb-6">
+<div class="flex items-center justify-between p-3 bg-slate-50 border border-transparent hover:border-zinc-200 transition-all">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 font-bold text-[10px] flex items-center justify-center">JD</div>
+<div>
+<p class="text-xs font-bold uppercase">John Deveraux</p>
+<p class="text-[9px] text-zinc-500 tracking-wider">Lead Compliance Analyst</p>
+</div>
+</div>
+<button class="text-zinc-400 hover:text-secondary">
+<span class="material-symbols-outlined text-sm">person_remove</span>
+</button>
+</div>
+<div class="flex items-center justify-between p-3 bg-slate-50 border border-transparent hover:border-zinc-200 transition-all">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 font-bold text-[10px] flex items-center justify-center">MS</div>
+<div>
+<p class="text-xs font-bold uppercase">Marcus Sterling</p>
+<p class="text-[9px] text-zinc-500 tracking-wider">Junior Auditor</p>
+</div>
+</div>
+<button class="text-zinc-400 hover:text-secondary">
+<span class="material-symbols-outlined text-sm">person_remove</span>
+</button>
+</div>
+<div class="flex items-center justify-between p-3 bg-slate-50 border border-transparent hover:border-zinc-200 transition-all">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 font-bold text-[10px] flex items-center justify-center">SL</div>
+<div>
+<p class="text-xs font-bold uppercase">Sarah Lindt</p>
+<p class="text-[9px] text-zinc-500 tracking-wider">Privacy Officer</p>
+</div>
+</div>
+<button class="text-zinc-400 hover:text-secondary">
+<span class="material-symbols-outlined text-sm">person_remove</span>
+</button>
+</div>
+</div>
+<div class="mt-auto pt-4 flex gap-3">
+<button class="flex-1 bg-black text-white py-3 font-label text-[10px] font-bold uppercase tracking-widest hover:bg-secondary transition-colors">
+                Add User
+              </button>
+<button class="flex-1 bg-white border border-black text-black py-3 font-label text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-100 transition-colors">
+                View All
+              </button>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</div>
+<!-- Bottom Data Bar (Audit Component) -->
+<footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-100 px-8 py-2 flex justify-between items-center z-50">
+<div class="flex gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-green-500 rounded-full"></span>
+<span class="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">System Online</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">Latency: <span class="text-black font-bold">14ms</span></span>
+</div>
+</div>
+<div class="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+      AUSTIN-LANG INST_ADMIN_VER: 2.94.0_STABLE
+    </div>
+</footer>
+</body></html>

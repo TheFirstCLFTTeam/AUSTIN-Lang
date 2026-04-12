@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Version History &amp; Diff View | CLFT TRANSCRIPTION</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&amp;family=Inter:wght@300;400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#d4dbdd",
+              "secondary-dim": "#ab0100",
+              "primary-container": "#e2e2e2",
+              "outline-variant": "#adb3b4",
+              "tertiary": "#5f5f5f",
+              "surface-bright": "#f9f9f9",
+              "secondary-fixed-dim": "#ffc7be",
+              "on-primary-fixed": "#3f3f3f",
+              "on-tertiary-fixed-variant": "#676666",
+              "surface-container-low": "#f2f4f4",
+              "secondary-container": "#ffdad4",
+              "background": "#f9f9f9",
+              "on-surface": "#2d3435",
+              "tertiary-dim": "#535353",
+              "surface": "#f9f9f9",
+              "on-secondary": "#fff7f6",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary-fixed": "#4a4949",
+              "primary-fixed-dim": "#d4d4d4",
+              "inverse-on-surface": "#9c9d9d",
+              "on-tertiary-container": "#5c5b5b",
+              "primary-dim": "#525252",
+              "tertiary-fixed": "#f6f3f2",
+              "primary": "#5e5e5e",
+              "on-surface-variant": "#5a6061",
+              "inverse-primary": "#ffffff",
+              "error": "#9e3f4e",
+              "surface-container-high": "#e4e9ea",
+              "on-secondary-container": "#a80100",
+              "tertiary-fixed-dim": "#e7e5e4",
+              "on-secondary-fixed-variant": "#bb0100",
+              "error-dim": "#4f0116",
+              "on-primary-fixed-variant": "#5b5b5b",
+              "on-primary": "#f8f8f8",
+              "surface-container-highest": "#dde4e5",
+              "primary-fixed": "#e2e2e2",
+              "surface-container": "#ebeeef",
+              "surface-tint": "#5e5e5e",
+              "on-secondary-fixed": "#850100",
+              "outline": "#757c7d",
+              "on-error": "#fff7f7",
+              "secondary-fixed": "#ffdad4",
+              "on-tertiary": "#fbf8f8",
+              "on-background": "#2d3435",
+              "on-error-container": "#782232",
+              "inverse-surface": "#0c0f0f",
+              "on-primary-container": "#525252",
+              "secondary": "#c20000",
+              "surface-variant": "#dde4e5",
+              "tertiary-container": "#f6f3f2",
+              "error-container": "#ff8b9a"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .diff-added { background-color: #dcfce7; color: #166534; text-decoration: none; }
+        .diff-removed { background-color: #fee2e2; color: #991b1b; text-decoration: line-through; }
+        /* Custom scrollbar for institutional feel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #2d3435; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex flex-col h-screen overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-white dark:bg-black flex justify-between items-center w-full px-6 h-16 docked full-width top-0 border-b-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black tracking-tighter text-black dark:text-white uppercase">CLFT TRANSCRIPTION</span>
+<nav class="hidden md:flex gap-6 h-full items-center">
+<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white transition-colors duration-150 h-full flex items-center px-2" href="#">Dashboard</a>
+<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white transition-colors duration-150 h-full flex items-center px-2" href="#">Analytics</a>
+<a class="text-red-600 dark:text-red-500 border-b-2 border-red-600 font-bold h-full flex items-center px-2" href="#">History</a>
+<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white transition-colors duration-150 h-full flex items-center px-2" href="#">Team</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 rounded-full">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 bg-zinc-200 overflow-hidden">
+<img alt="User profile" data-alt="Professional headshot of a business executive in a dark suit with neutral background and sharp lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjz4UvRAnSk-Kv5zmxWE-MpMRg0uRBr-7jpzI-SIMXcIJ9NapWLGu-QBmrD7Mki7NXxDRw5_WTdW8NIP36bcYMUyizsxKQQMhFe7P5Dvr0uqMzCepc-EA1HAJhovf-PzXtQHt_GHSE5Uf8ptYPPbQXomkzi7ObliFzd-SW9pJ0tLGyfdQc1fvYjJQeg2BQcWNg-vkUVw9bBYLLAhB_thVUlo-R8avq5GMTpWReQ4wf86oenakOIJRpimLafj0h_W2uCNeKLthH0t_N"/>
+</div>
+</div>
+</header>
+<!-- Audio Playback Bar (Institutional Style) -->
+<section class="h-20 bg-black text-white flex items-center px-6 gap-6 shrink-0 shadow-lg z-40">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined" data-icon="fast_rewind">fast_rewind</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center bg-white text-black hover:bg-secondary hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined" data-icon="fast_forward">fast_forward</span>
+</button>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex justify-between text-[10px] font-bold tracking-widest uppercase opacity-60">
+<span>04:12 / 12:45</span>
+<span>AUSTIN-LANG_PRECISION_V4.MP3</span>
+</div>
+<div class="w-full h-1 bg-white/20 relative">
+<div class="absolute top-0 left-0 h-full bg-secondary w-1/3"></div>
+</div>
+</div>
+<div class="flex items-center gap-4 border-l border-white/10 pl-6">
+<span class="material-symbols-outlined text-sm" data-icon="volume_up">volume_up</span>
+<div class="w-24 h-1 bg-white/20">
+<div class="w-3/4 h-full bg-white"></div>
+</div>
+</div>
+</section>
+<div class="flex flex-1 overflow-hidden">
+<!-- Main Comparison Canvas -->
+<main class="flex-1 flex flex-col bg-surface-container overflow-hidden">
+<!-- Metadata Strip -->
+<div class="px-8 py-4 bg-white flex justify-between items-center border-b border-zinc-100">
+<div>
+<h1 class="text-2xl font-black tracking-tight uppercase">AUSTIN-Lang Transcription</h1>
+<p class="text-[10px] font-bold text-zinc-400 tracking-widest uppercase mt-1">Institutional Audit ID: #TX-992-B</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 border border-black text-[10px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all">Export Report</button>
+<button class="px-4 py-2 bg-secondary text-white text-[10px] font-bold uppercase tracking-widest hover:bg-secondary-dim transition-all">Approve Current</button>
+</div>
+</div>
+<!-- Diff Panels -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Original Panel -->
+<section class="flex-1 bg-white border-r border-zinc-100 flex flex-col">
+<div class="p-4 border-b border-zinc-50 bg-zinc-50/50">
+<span class="text-[10px] font-bold tracking-[0.2em] uppercase text-zinc-500">Source: Original Draft</span>
+</div>
+<div class="p-8 overflow-y-auto leading-relaxed text-zinc-600 font-light selection:bg-black selection:text-white">
+<p class="mb-6">The quarterly fiscal projection indicates a steady growth in the emerging markets sector. We should consider the impact of recent legislative changes in the Austin region. However, the initial data suggests that the Austin-Lang model remains valid for the next two fiscal periods.</p>
+<p class="mb-6">Management has proposed a temporary halt on hiring until the audit is complete. This was expected due to the previous year's performance metrics. We will review this decision in the upcoming board meeting scheduled for October.</p>
+<p class="mb-6">Stakeholders are particularly concerned about the latency in data processing. The transition to the new infrastructure has been slower than anticipated, causing a bottleneck in the reporting pipeline.</p>
+</div>
+</section>
+<!-- Edited Panel -->
+<section class="flex-1 bg-white flex flex-col">
+<div class="p-4 border-b border-zinc-50 bg-zinc-50/50 flex justify-between items-center">
+<span class="text-[10px] font-bold tracking-[0.2em] uppercase text-secondary">View: Comparative Changes</span>
+<div class="flex gap-4 text-[9px] font-bold uppercase tracking-tighter">
+<span class="flex items-center gap-1 text-green-700"><span class="w-2 h-2 bg-green-500"></span> 12 Additions</span>
+<span class="flex items-center gap-1 text-red-700"><span class="w-2 h-2 bg-red-500"></span> 8 Removals</span>
+</div>
+</div>
+<div class="p-8 overflow-y-auto leading-relaxed font-light text-on-surface">
+<p class="mb-6">The <span class="diff-removed">quarterly</span> fiscal projection <span class="diff-added">for Q4</span> indicates a <span class="diff-removed">steady</span> <span class="diff-added">robust 14%</span> growth in the emerging markets sector. We <span class="diff-removed">should</span> <span class="diff-added">must urgently</span> consider the impact of recent legislative changes in the Austin region. However, the initial data suggests that the Austin-Lang model remains valid for the next <span class="diff-removed">two</span> <span class="diff-added">three</span> fiscal periods.</p>
+<p class="mb-6">Management has proposed a <span class="diff-removed">temporary halt on</span> <span class="diff-added">strategic pause in</span> hiring until the <span class="diff-added">external</span> audit is complete. This was expected due to the previous year's performance metrics. We will review this decision in the upcoming board meeting <span class="diff-removed">scheduled for October</span> <span class="diff-added">on Oct 15th</span>.</p>
+<p class="mb-6">Stakeholders are particularly concerned about the latency in data processing. The transition to the <span class="diff-added">proprietary CLFT</span> infrastructure has been slower than anticipated, causing a bottleneck in the reporting pipeline <span class="diff-added">which requires immediate remediation</span>.</p>
+</div>
+</section>
+</div>
+</main>
+<!-- SideNavBar (Version History) -->
+<aside class="w-80 bg-zinc-50 border-l border-zinc-200 flex flex-col overflow-hidden">
+<div class="p-6 border-b border-zinc-200">
+<h2 class="text-xs font-bold uppercase tracking-[0.3em] text-zinc-400 mb-4">Version History</h2>
+<button class="w-full py-3 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-secondary transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                    New Transcription
+                </button>
+</div>
+<div class="flex-1 overflow-y-auto">
+<!-- Current Active -->
+<div class="p-6 bg-black text-white relative border-b border-black">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-widest">v4.0 Final Approval</span>
+<span class="text-[10px] opacity-60">NOW</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-800 border border-white/20">
+<img alt="Admin avatar" data-alt="Portrait of a female executive in professional attire with direct gaze and high-contrast lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2pxQDXiWpHv5IXxOapEbXvPFeNtneokyc2TvF6WIJ14620Lp4W3st6hcZ3bWeI27rpJWVPwcZYJRnkUJUpQPKb_veBNGTUY8Ggn0xT03-GIurJ9K0TcZGUtWMf7Ms4U4GXfWYwVaegB2Dws_CJQuS3Jv3A7m73MhwiBNr8gd5SfGRBO6-RtNOimrWYcjQ5j0TbVerixNXVqULbxDtYSVUdRCLcJs2hsUChwkwo_DEdkqYFe8A92w9JIQnmzeYwKN_MiOF4iKq4mMt"/>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-tight">Approved by Admin</p>
+<p class="text-[9px] opacity-60">Verified &amp; Authenticated</p>
+</div>
+</div>
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-secondary"></div>
+</div>
+<!-- Previous Versions -->
+<div class="p-6 border-b border-zinc-200 hover:bg-white transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-black">v3.2 Revised</span>
+<span class="text-[10px] text-zinc-400">2h ago</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200">
+<img alt="Marcus avatar" data-alt="Close-up of a man with glasses looking thoughtfully at a monitor in a modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjINVSosLPx3gS8Y_0IQt4iHEugfa7lBkXySk66lzN4FDtvy5lw9-W392_CEpDlm_B4Kw3zJTON5Hw8pweIfQD2hn6mUoNoXuCQprmC89DfS4QkKvS9ViDLtK8ZjJ474LDOUGx-1zov9tM8KFKWIzCUzrSkVz3LInmfA7BrLZLOTcRXWaYQlNpCjzN740Z9doiZvmnqgLK7jRWYQgE5fg82RTb46OKbREDJSHufxnwngkRFsXyvY0LFCKD2Is9Pj1wlYLBNC9DMFEQ"/>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-tight text-zinc-600 group-hover:text-black">Edited by Marcus</p>
+<p class="text-[9px] text-zinc-400 italic">Adjusted fiscal terminology</p>
+</div>
+</div>
+</div>
+<div class="p-6 border-b border-zinc-200 hover:bg-white transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-black">v2.1 Draft</span>
+<span class="text-[10px] text-zinc-400">5h ago</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200">
+<img alt="Sarah avatar" data-alt="Studio portrait of a woman with minimalist aesthetic and neutral gray background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6jU61R30zcsRoe5Eqd-fRJr09g4s5-s6sYy3v796u6uoV53fCX6bb-_QTmZF4dYk8L8O77XndoV4Z7ued-CF_IkCevxiYpia_Tbrt7cwzxyF6FFtGwLMmYGt2F0aMQg9-Rs5x8WqEaIKJdgorJqMjxcVzkKHA_CMd3ZJVNOpJtcxasDn0SNwnRB47Dq76_5VaWcktyCJu8etwK-1MSRvYfNpwubTPBBYdivPVRjO9wqicVPRG3ETXVGBbX0USTGWNPO3M7P7IVbF9"/>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-tight text-zinc-600 group-hover:text-black">Sarah Chen</p>
+<p class="text-[9px] text-zinc-400 italic">Initial formatting</p>
+</div>
+</div>
+</div>
+<div class="p-6 border-b border-zinc-200 hover:bg-white transition-colors cursor-pointer group opacity-60">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-black">v1.0 Original</span>
+<span class="text-[10px] text-zinc-400">Yesterday</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 flex items-center justify-center">
+<span class="material-symbols-outlined text-zinc-400 text-sm" data-icon="smart_toy">smart_toy</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-tight text-zinc-600 group-hover:text-black">System AI</p>
+<p class="text-[9px] text-zinc-400 italic">Raw transcription</p>
+</div>
+</div>
+</div>
+</div>
+<!-- SideNav Footer -->
+<div class="p-4 bg-zinc-100 flex justify-around">
+<button class="flex flex-col items-center gap-1 text-zinc-500 hover:text-black transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="help">help</span>
+<span class="text-[8px] font-bold uppercase tracking-tighter">Support</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500 hover:text-black transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="archive">archive</span>
+<span class="text-[8px] font-bold uppercase tracking-tighter">Archive</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500 hover:text-black transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="download">download</span>
+<span class="text-[8px] font-bold uppercase tracking-tighter">Export</span>
+</button>
+</div>
+</aside>
+</div>
+<!-- Layout Labels (Institutional Audit Components) -->
+<div class="fixed bottom-4 left-4 pointer-events-none">
+<div class="flex flex-col gap-1">
+<span class="text-[8px] font-black uppercase text-secondary tracking-[0.4em] bg-white/80 px-2 py-1 border-l-2 border-secondary">Institutional System Active</span>
+<span class="text-[8px] font-black uppercase text-zinc-400 tracking-[0.4em] bg-white/80 px-2 py-1 border-l-2 border-zinc-200">Terminal ID: CLFT-009-PRO</span>
+</div>
+</div>
+</body></html>

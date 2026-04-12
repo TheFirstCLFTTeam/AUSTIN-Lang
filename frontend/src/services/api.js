@@ -1,24 +1,20 @@
 // src/services/api.js
 
-// Set REACT_APP_MOCK_API=true in .env.development to run without the backend.
-const MOCK_MODE = process.env.REACT_APP_MOCK_API === 'true';
+import { users, MOCK_FILE_STORE, MOCK_PROCESSING_JOBS, MOCK_USER_PROFILES } from './mock-data';
 
-/*********************************
- * MOCK AUTH SECTION
- *********************************/
-
-// Mock users (plain-text for demo only)
-const users = [
-    {
-        id: 'u1',
-        email: 'test@example.com',
-        password: 'password123',
-        name: 'Test User',
-    },
-];
+// Set NEXT_PUBLIC_MOCK_API=true in .env.development to run without the backend.
+const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_API === 'true';
 
 // Token helpers
 const TOKEN_KEY = 'token';
+
+function setTokenCookie(value) {
+    document.cookie = TOKEN_KEY + '=' + value + '; path=/; SameSite=Lax';
+}
+
+function clearTokenCookie() {
+    document.cookie = TOKEN_KEY + '=; path=/; max-age=0';
+}
 
 export function getToken() {
     return localStorage.getItem(TOKEN_KEY);
@@ -26,10 +22,21 @@ export function getToken() {
 
 export function logout() {
     localStorage.removeItem(TOKEN_KEY);
+    clearTokenCookie();
 }
 
 export function isAuthenticated() {
     return !!getToken();
+}
+
+export function getCurrentUser() {
+    const token = getToken();
+    if (!token) return null;
+    try {
+        return JSON.parse(atob(token));
+    } catch {
+        return null;
+    }
 }
 
 // Mock login
@@ -44,10 +51,11 @@ export async function login(email, password) {
 
     // fake JWT
     const fakeToken = btoa(
-        JSON.stringify({ id: user.id, email: user.email }),
+        JSON.stringify({ id: user.id, email: user.email, role: user.role }),
     );
 
     localStorage.setItem(TOKEN_KEY, fakeToken);
+    setTokenCookie(fakeToken);
 
     return {
         token: fakeToken,
@@ -55,199 +63,16 @@ export async function login(email, password) {
             id: user.id,
             email: user.email,
             name: user.name,
+            role: user.role,
         },
     };
 }
 
 /*********************************
- * MOCK FILE DATABASE
+ * MOCK FILE DATABASE (imported from mock-data.js)
  *********************************/
 
 let _nextMockId = 3;
-
-const MOCK_FILE_STORE = [
-    {
-        id: '1',
-        name: 'interview_sample.wav',
-        audioUrl: null,
-        uploaded_at: '2026-03-01T10:00:00Z',
-        rawTranscript: {
-            id: 101,
-            audio_file_id: 1,
-            transcript_segments: [
-                {
-                    id: 1,
-                    start: 0.0,
-                    end: 3.5,
-                    text: 'Hello, welcome to AUSTIN-Lang.',
-                    originalText: 'Hello, welcome to AUSTIN-Lang.',
-                },
-                {
-                    id: 2,
-                    start: 3.5,
-                    end: 7.0,
-                    text: 'This is a sample transcription segment.',
-                    originalText:
-                        'This is a sample transcription segment.',
-                },
-                {
-                    id: 3,
-                    start: 7.0,
-                    end: 11.0,
-                    text: 'You can edit this text to correct any errors.',
-                    originalText:
-                        'You can edit this text to correct any errors.',
-                },
-            ],
-        },
-        editedTranscript: {
-            id: 201,
-            raw_transcript_id: 101,
-            transcript_segments: [
-                {
-                    id: 1,
-                    start: 0.0,
-                    end: 3.5,
-                    text: 'Hello, welcome to AUSTIN-Lang.',
-                    originalText: 'Hello, welcome to AUSTIN-Lang.',
-                },
-                {
-                    id: 2,
-                    start: 3.5,
-                    end: 7.0,
-                    text: 'This is a sample transcription segment.',
-                    originalText:
-                        'This is a sample transcription segment.',
-                },
-                {
-                    id: 3,
-                    start: 7.0,
-                    end: 11.0,
-                    text: 'You can edit this text to correct any errors.',
-                    originalText:
-                        'You can edit this text to correct any errors.',
-                },
-            ],
-        },
-        transcriptSegments: [
-            {
-                id: 1,
-                start: 0.0,
-                end: 3.5,
-                text: 'Hello, welcome to AUSTIN-Lang.',
-                originalText: 'Hello, welcome to AUSTIN-Lang.',
-            },
-            {
-                id: 2,
-                start: 3.5,
-                end: 7.0,
-                text: 'This is a sample transcription segment.',
-                originalText:
-                    'This is a sample transcription segment.',
-            },
-            {
-                id: 3,
-                start: 7.0,
-                end: 11.0,
-                text: 'You can edit this text to correct any errors.',
-                originalText:
-                    'You can edit this text to correct any errors.',
-            },
-        ],
-    },
-    {
-        id: '2',
-        name: 'lecture_recording.mp3',
-        audioUrl: null,
-        uploaded_at: '2026-03-02T14:30:00Z',
-        rawTranscript: {
-            id: 102,
-            audio_file_id: 2,
-            transcript_segments: [
-                {
-                    id: 4,
-                    start: 0.0,
-                    end: 4.0,
-                    text: 'Today we will discuss machine learning.',
-                    originalText:
-                        'Today we will discuss machine learning.',
-                },
-                {
-                    id: 5,
-                    start: 4.0,
-                    end: 9.0,
-                    text: 'Neural networks form the foundation of modern AI.',
-                    originalText:
-                        'Neural networks form the foundation of modern AI.',
-                },
-                {
-                    id: 6,
-                    start: 9.0,
-                    end: 14.5,
-                    text: 'Training data quality directly impacts model performance.',
-                    originalText:
-                        'Training data quality directly impacts model performance.',
-                },
-            ],
-        },
-        editedTranscript: {
-            id: 202,
-            raw_transcript_id: 102,
-            transcript_segments: [
-                {
-                    id: 4,
-                    start: 0.0,
-                    end: 4.0,
-                    text: 'Today we will discuss machine learning.',
-                    originalText:
-                        'Today we will discuss machine learning.',
-                },
-                {
-                    id: 5,
-                    start: 4.0,
-                    end: 9.0,
-                    text: 'Neural networks form the foundation of modern AI.',
-                    originalText:
-                        'Neural networks form the foundation of modern AI.',
-                },
-                {
-                    id: 6,
-                    start: 9.0,
-                    end: 14.5,
-                    text: 'Training data quality directly impacts model performance.',
-                    originalText:
-                        'Training data quality directly impacts model performance.',
-                },
-            ],
-        },
-        transcriptSegments: [
-            {
-                id: 4,
-                start: 0.0,
-                end: 4.0,
-                text: 'Today we will discuss machine learning.',
-                originalText:
-                    'Today we will discuss machine learning.',
-            },
-            {
-                id: 5,
-                start: 4.0,
-                end: 9.0,
-                text: 'Neural networks form the foundation of modern AI.',
-                originalText:
-                    'Neural networks form the foundation of modern AI.',
-            },
-            {
-                id: 6,
-                start: 9.0,
-                end: 14.5,
-                text: 'Training data quality directly impacts model performance.',
-                originalText:
-                    'Training data quality directly impacts model performance.',
-            },
-        ],
-    },
-];
 
 // Simple auth guard for mock API calls
 function requireAuth() {
@@ -257,8 +82,40 @@ function requireAuth() {
 }
 
 /*********************************
+ * USER PROFILE
+ *********************************/
+
+export async function fetchUserProfile() {
+    requireAuth();
+    const currentUser = getCurrentUser();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    return MOCK_USER_PROFILES[currentUser?.id] || MOCK_USER_PROFILES.u1;
+}
+
+/*********************************
  * FILE API FUNCTIONS
  *********************************/
+
+// Fetch processing jobs
+export async function fetchProcessingJobs() {
+    requireAuth();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_PROCESSING_JOBS;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8001/processing-jobs/');
+        if (!response.ok) {
+            throw new Error(`Failed to fetch processing jobs: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching processing jobs:', error);
+        return [];
+    }
+}
 
 // Upload audio file
 export async function uploadAudio(file) {
@@ -283,8 +140,11 @@ export async function uploadAudio(file) {
                 originalText: 'This is a placeholder transcript.',
             },
         ];
+        const currentUser = getCurrentUser();
         const newFile = {
             id: newId,
+            ownerId: currentUser?.id || 'u1',
+            ownerName: currentUser?.email || 'Unknown',
             name: file.name,
             audioUrl: URL.createObjectURL(file),
             uploaded_at: new Date().toISOString(),
@@ -348,13 +208,25 @@ export async function fetchSubmittedFiles() {
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return MOCK_FILE_STORE.map(
-            ({ id, name, audioUrl, uploaded_at }) => ({
-                id,
-                name,
-                audioUrl,
-                uploaded_at,
-                transcriptSegments: [],
-            }),
+            ({ id, name, audioUrl, uploaded_at, transcriptSegments, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance }) => {
+                const fullText = (transcriptSegments || []).map((s) => s.text).join(' ');
+                const words = fullText.split(/\s+/).filter(Boolean);
+                return {
+                    id,
+                    name,
+                    audioUrl,
+                    uploaded_at,
+                    transcriptSegments: [],
+                    transcriptHeader: words.length > 0 ? words.slice(0, 50).join(' ') : '',
+                    duration: duration || null,
+                    wer: wer ?? null,
+                    absoluteWordErrorRate: absoluteWordErrorRate ?? null,
+                    totalNumberOfWords: totalNumberOfWords ?? null,
+                    speakerDetection: speakerDetection ?? null,
+                    detectedLanguage: detectedLanguage || null,
+                    compliance: compliance || null,
+                };
+            },
         );
     }
 
@@ -371,18 +243,50 @@ export async function fetchSubmittedFiles() {
 
         // Map the backend AudioFile array to the structure the UI expects
         return audioFiles.map((audioFile) => ({
-            id: String(audioFile.id), // Ensure ID is a string for frontend consistency
+            id: String(audioFile.id),
             name: audioFile.file_name,
-            // audioUrl will need to be configured based on where your audio files are served
-            // For now, assuming a similar structure as before but targeting port 8000
             audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`,
-            transcriptSegments: [], // Summary view, full segments fetched in detail
+            transcriptSegments: [],
             uploaded_at: audioFile.uploaded_at,
+            transcriptHeader: audioFile.transcript_header || '',
         }));
     } catch (error) {
         console.error('Error fetching submitted files:', error);
         return [];
     }
+}
+
+// Fetch all files with metadata only (for engineers viewing others' files)
+export async function fetchAllFilesMetadata() {
+    requireAuth();
+    const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_FILE_STORE.map((f) => {
+            const fullText = (f.transcriptSegments || []).map((s) => s.text).join(' ');
+            const words = fullText.split(/\s+/).filter(Boolean);
+            return {
+                id: f.id,
+                name: f.name,
+                uploaded_at: f.uploaded_at,
+                ownerId: f.ownerId,
+                ownerName: f.ownerName,
+                isOwned: f.ownerId === currentUser?.id,
+                transcriptHeader: words.length > 0 ? words.slice(0, 50).join(' ') : '',
+                duration: f.duration || null,
+                wer: f.wer ?? null,
+                absoluteWordErrorRate: f.absoluteWordErrorRate ?? null,
+                totalNumberOfWords: f.totalNumberOfWords ?? null,
+                speakerDetection: f.speakerDetection ?? null,
+                detectedLanguage: f.detectedLanguage || null,
+                compliance: f.compliance || null,
+            };
+        });
+    }
+
+    // For real API, this would call a different endpoint
+    return [];
 }
 
 // Fetch one file by ID

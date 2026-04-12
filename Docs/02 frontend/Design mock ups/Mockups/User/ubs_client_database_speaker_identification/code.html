@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-on-surface": "#9c9d9d",
+                        "surface-tint": "#5e5e5e",
+                        "on-secondary-container": "#a80100",
+                        "error-dim": "#4f0116",
+                        "surface-bright": "#f9f9f9",
+                        "error-container": "#ff8b9a",
+                        "surface-container-high": "#e4e9ea",
+                        "on-secondary-fixed": "#850100",
+                        "surface-container-highest": "#dde4e5",
+                        "on-error": "#fff7f7",
+                        "tertiary-fixed": "#f6f3f2",
+                        "on-tertiary": "#fbf8f8",
+                        "on-surface-variant": "#5a6061",
+                        "on-primary": "#f8f8f8",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#dde4e5",
+                        "secondary": "#c20000",
+                        "primary-container": "#e2e2e2",
+                        "on-surface": "#2d3435",
+                        "on-secondary": "#fff7f6",
+                        "on-primary-fixed": "#3f3f3f",
+                        "tertiary-container": "#f6f3f2",
+                        "tertiary-fixed-dim": "#e7e5e4",
+                        "tertiary-dim": "#535353",
+                        "on-secondary-fixed-variant": "#bb0100",
+                        "surface-dim": "#d4dbdd",
+                        "on-error-container": "#782232",
+                        "secondary-container": "#ffdad4",
+                        "surface-container": "#ebeeef",
+                        "surface-container-low": "#f2f4f4",
+                        "secondary-fixed-dim": "#ffc7be",
+                        "outline": "#757c7d",
+                        "on-primary-fixed-variant": "#5b5b5b",
+                        "primary-dim": "#525252",
+                        "outline-variant": "#adb3b4",
+                        "on-tertiary-fixed-variant": "#676666",
+                        "primary-fixed": "#e2e2e2",
+                        "secondary-dim": "#ab0100",
+                        "tertiary": "#5f5f5f",
+                        "primary-fixed-dim": "#d4d4d4",
+                        "background": "#f9f9f9",
+                        "on-background": "#2d3435",
+                        "error": "#9e3f4e",
+                        "on-tertiary-container": "#5c5b5b",
+                        "on-primary-container": "#525252",
+                        "secondary-fixed": "#ffdad4",
+                        "primary": "#5e5e5e",
+                        "inverse-primary": "#ffffff",
+                        "on-tertiary-fixed": "#4a4949",
+                        "surface": "#f9f9f9",
+                        "inverse-surface": "#0c0f0f"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 border-none bg-white dark:bg-black flex justify-between items-center px-8 h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="text-xl font-black tracking-tighter text-black dark:text-white font-['Manrope'] uppercase">CLFT TRANSCRIPTION</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex items-center gap-8 font-['Manrope'] tracking-tight font-bold uppercase text-xs">
+<a class="text-black dark:text-white opacity-60 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors duration-150 p-2" href="#">Dashboard</a>
+<a class="text-red-700 dark:text-red-600 border-b-2 border-red-700 p-2" href="#">Speaker Profiles</a>
+<a class="text-black dark:text-white opacity-60 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors duration-150 p-2" href="#">Analytics</a>
+</div>
+<div class="flex items-center gap-4 text-primary">
+<span class="material-symbols-outlined cursor-pointer hover:text-secondary transition-colors" data-icon="account_balance">account_balance</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-secondary transition-colors" data-icon="settings">settings</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-secondary transition-colors" data-icon="help_outline">help_outline</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-64 border-none bg-neutral-50 dark:bg-neutral-950 flex flex-col py-6 px-0 gap-2 overflow-y-auto hidden md:flex">
+<div class="px-6 mb-8">
+<h3 class="font-['Inter'] text-xs font-semibold tracking-widest uppercase text-neutral-500">Institutional Access</h3>
+<p class="text-[10px] text-neutral-400">Terminal ID: 8829-X</p>
+</div>
+<nav class="flex-1">
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-4 px-6 py-3 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-all font-['Inter'] text-xs font-semibold tracking-widest uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="folder_shared">folder_shared</span>
+<span>Clients</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 bg-white dark:bg-black text-red-700 dark:text-red-600 border-l-4 border-red-700 font-['Inter'] text-xs font-semibold tracking-widest uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="record_voice_over">record_voice_over</span>
+<span>Speaker Profiles</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-all font-['Inter'] text-xs font-semibold tracking-widest uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="swap_horiz">swap_horiz</span>
+<span>Mappings</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-all font-['Inter'] text-xs font-semibold tracking-widest uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="insert_chart">insert_chart</span>
+<span>Analytics</span>
+</a>
+</div>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full bg-black text-white py-4 font-['Manrope'] font-bold uppercase tracking-widest text-[10px] hover:bg-secondary transition-colors mb-8">
+                New Transcription
+            </button>
+<div class="flex flex-col gap-2 border-t border-neutral-200 dark:border-neutral-800 pt-6">
+<a class="flex items-center gap-3 text-neutral-400 hover:text-black dark:hover:text-white text-[10px] uppercase font-bold tracking-tighter" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="support_agent">support_agent</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 text-neutral-400 hover:text-black dark:hover:text-white text-[10px] uppercase font-bold tracking-tighter" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="history">history</span>
+                    Logs
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-16 h-screen flex flex-col bg-surface">
+<!-- Action Header -->
+<div class="h-20 bg-white border-b border-surface-container flex items-center justify-between px-8">
+<div>
+<h1 class="text-2xl font-extrabold tracking-tighter uppercase">Speaker Identification</h1>
+<p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1 flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary animate-pulse"></span> 
+                    Recording ID: SEC-99128-B // 48:12 duration
+                </p>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2 border border-black font-['Manrope'] font-bold text-xs uppercase tracking-widest hover:bg-black hover:text-white transition-all">
+                    Export Audit Trail
+                </button>
+<button class="px-6 py-2 bg-secondary text-white font-['Manrope'] font-bold text-xs uppercase tracking-widest hover:bg-secondary-dim transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    Verify All Identities
+                </button>
+</div>
+</div>
+<!-- Split View Layout -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Detected Speakers & Segments -->
+<section class="w-1/2 overflow-y-auto p-8 bg-surface-container-low no-scrollbar">
+<div class="mb-6 flex items-center justify-between">
+<h2 class="text-sm font-bold uppercase tracking-widest text-neutral-600">Detected Segments</h2>
+<span class="text-[10px] bg-white px-2 py-1 font-bold border border-neutral-200">5 SPEAKERS IDENTIFIED</span>
+</div>
+<div class="space-y-4">
+<!-- Segment Card: Active -->
+<div class="bg-white p-6 border-l-8 border-secondary shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-secondary text-white text-[9px] px-2 py-0.5 font-bold uppercase tracking-widest">Speaker 1</span>
+<p class="text-[10px] text-neutral-400 mt-1 uppercase font-semibold">00:04 - 01:15</p>
+</div>
+<div class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-sm" data-icon="warning">warning</span>
+<span class="text-[9px] font-bold uppercase">Unverified</span>
+</div>
+</div>
+<p class="text-sm leading-relaxed text-on-surface font-medium italic">"The Q3 projections for the APAC region indicate a significant softening of the currency hedge strategy. We need to finalize the allocation by end of day..."</p>
+<div class="mt-6 pt-4 border-t border-neutral-100 flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase text-neutral-400">Match Confidence:</span>
+<div class="flex-1 h-1 bg-neutral-100">
+<div class="w-[88%] h-full bg-secondary"></div>
+</div>
+<span class="text-[10px] font-bold text-secondary">88%</span>
+</div>
+</div>
+<!-- Segment Card: Tagged -->
+<div class="bg-surface-container-lowest p-6 opacity-80 border-l-8 border-black">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-black text-white text-[9px] px-2 py-0.5 font-bold uppercase tracking-widest">Speaker 2</span>
+<p class="text-[10px] text-neutral-400 mt-1 uppercase font-semibold">01:16 - 01:45</p>
+</div>
+<div class="flex items-center gap-1 text-black">
+<span class="material-symbols-outlined text-sm" data-icon="verified_user">verified_user</span>
+<span class="text-[9px] font-bold uppercase">Verified: Marcus Thorne</span>
+</div>
+</div>
+<p class="text-sm leading-relaxed text-on-surface">"Agreed. Marcus here. I've sent the updated spreadsheet to the compliance desk already."</p>
+</div>
+<!-- Segment Card -->
+<div class="bg-white p-6 border-l-8 border-neutral-300">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-neutral-300 text-neutral-700 text-[9px] px-2 py-0.5 font-bold uppercase tracking-widest">Speaker 3</span>
+<p class="text-[10px] text-neutral-400 mt-1 uppercase font-semibold">01:46 - 02:10</p>
+</div>
+<div class="flex items-center gap-1 text-neutral-400">
+<span class="material-symbols-outlined text-sm" data-icon="person_search">person_search</span>
+<span class="text-[9px] font-bold uppercase">Pending Lookup</span>
+</div>
+</div>
+<p class="text-sm leading-relaxed text-on-surface opacity-60">"Could you confirm the swap rates used for the calculation?"</p>
+</div>
+<!-- Segment Card -->
+<div class="bg-white p-6 border-l-8 border-neutral-300">
+<div class="flex justify-between items-start mb-4">
+<div>
+<span class="bg-neutral-300 text-neutral-700 text-[9px] px-2 py-0.5 font-bold uppercase tracking-widest">Speaker 1</span>
+<p class="text-[10px] text-neutral-400 mt-1 uppercase font-semibold">02:11 - 03:05</p>
+</div>
+</div>
+<p class="text-sm leading-relaxed text-on-surface opacity-60">"The standard interbank rate was 4.25% as of 9:00 AM EST."</p>
+</div>
+</div>
+</section>
+<!-- Right Panel: Client Directory & Identity Verification -->
+<section class="w-1/2 border-l border-surface-container flex flex-col bg-white">
+<!-- Search & Filters -->
+<div class="p-8 pb-4">
+<h2 class="text-sm font-bold uppercase tracking-widest text-neutral-600 mb-6">Client Directory</h2>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-neutral-400" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container border-none text-[11px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-black" placeholder="SEARCH BY NAME, ORGANIZATION, OR TERMINAL ID..." type="text"/>
+</div>
+<div class="flex gap-2 mt-4">
+<span class="px-3 py-1 bg-black text-white text-[9px] font-bold uppercase tracking-widest cursor-pointer">All Profiles</span>
+<span class="px-3 py-1 bg-surface-container text-neutral-600 text-[9px] font-bold uppercase tracking-widest cursor-pointer hover:bg-neutral-200">High Net Worth</span>
+<span class="px-3 py-1 bg-surface-container text-neutral-600 text-[9px] font-bold uppercase tracking-widest cursor-pointer hover:bg-neutral-200">Institutional</span>
+</div>
+</div>
+<!-- Directory List -->
+<div class="flex-1 overflow-y-auto p-8 pt-4 space-y-1 no-scrollbar">
+<!-- Client Item: Suggested Match -->
+<div class="group flex items-center justify-between p-4 bg-red-50/50 border border-secondary transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-secondary flex items-center justify-center text-white font-black text-lg">
+                                JD
+                            </div>
+<div>
+<h4 class="text-xs font-bold uppercase tracking-tight">Jameson Daltry</h4>
+<p class="text-[10px] text-secondary font-bold uppercase">Goldman Sachs • APAC Trading</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-[8px] font-bold uppercase text-secondary">Biometric Voice Match (88%)</span>
+</div>
+</div>
+</div>
+<button class="bg-black text-white px-4 py-2 text-[9px] font-bold uppercase tracking-widest hover:bg-secondary">Assign Identity</button>
+</div>
+<!-- Client Item -->
+<div class="group flex items-center justify-between p-4 hover:bg-neutral-50 border border-transparent hover:border-neutral-200 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-neutral-200 flex items-center justify-center text-neutral-600 font-black text-lg">
+                                LH
+                            </div>
+<div>
+<h4 class="text-xs font-bold uppercase tracking-tight">Linda Halloway</h4>
+<p class="text-[10px] text-neutral-400 font-bold uppercase">Morgan Stanley • Wealth Mgmt</p>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 border border-black px-4 py-2 text-[9px] font-bold uppercase tracking-widest hover:bg-black hover:text-white">Assign</button>
+</div>
+<!-- Client Item -->
+<div class="group flex items-center justify-between p-4 hover:bg-neutral-50 border border-transparent hover:border-neutral-200 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-neutral-200 flex items-center justify-center text-neutral-600 font-black text-lg">
+                                RS
+                            </div>
+<div>
+<h4 class="text-xs font-bold uppercase tracking-tight">Robert Sterling</h4>
+<p class="text-[10px] text-neutral-400 font-bold uppercase">UBS • Head of Commodities</p>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 border border-black px-4 py-2 text-[9px] font-bold uppercase tracking-widest hover:bg-black hover:text-white">Assign</button>
+</div>
+<!-- Client Item -->
+<div class="group flex items-center justify-between p-4 hover:bg-neutral-50 border border-transparent hover:border-neutral-200 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-neutral-200 flex items-center justify-center text-neutral-600 font-black text-lg">
+                                EM
+                            </div>
+<div>
+<h4 class="text-xs font-bold uppercase tracking-tight">Elena Moretti</h4>
+<p class="text-[10px] text-neutral-400 font-bold uppercase">BlackRock • Risk Compliance</p>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 border border-black px-4 py-2 text-[9px] font-bold uppercase tracking-widest hover:bg-black hover:text-white">Assign</button>
+</div>
+<!-- Client Item -->
+<div class="group flex items-center justify-between p-4 hover:bg-neutral-50 border border-transparent hover:border-neutral-200 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-neutral-200 flex items-center justify-center text-neutral-600 font-black text-lg">
+                                KF
+                            </div>
+<div>
+<h4 class="text-xs font-bold uppercase tracking-tight">Kevin Faulk</h4>
+<p class="text-[10px] text-neutral-400 font-bold uppercase">Citigroup • FX Desk</p>
+</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 border border-black px-4 py-2 text-[9px] font-bold uppercase tracking-widest hover:bg-black hover:text-white">Assign</button>
+</div>
+</div>
+<!-- Identity Verification Footer (Bento Style) -->
+<div class="bg-black text-white p-8">
+<div class="flex justify-between items-end">
+<div class="max-w-[60%]">
+<h3 class="text-xl font-extrabold uppercase tracking-tighter mb-2">Biometric Verification Protocol</h3>
+<p class="text-[10px] text-neutral-400 font-medium uppercase leading-relaxed tracking-widest">Cross-referencing voice prints against the Global Institutional Database. Verification ensures compliance with Directive 2024-X-9.</p>
+</div>
+<div class="text-right">
+<span class="text-[40px] font-black leading-none block">128</span>
+<span class="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">Profiles Scanned</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Data Ticker Overlay -->
+<div class="fixed bottom-0 left-0 md:left-64 right-0 h-6 bg-surface-container flex items-center px-4 overflow-hidden border-t border-surface-container-highest">
+<div class="flex gap-8 whitespace-nowrap text-[8px] font-black uppercase tracking-widest text-neutral-500 animate-marquee">
+<span>SEC COMPLIANCE: OK</span>
+<span class="text-secondary">AUDIT LOGGING: ACTIVE</span>
+<span>ENCRYPTION: AES-256</span>
+<span>SERVER: US-EAST-TERM-1</span>
+<span class="text-secondary">SYSTEM LATENCY: 12ms</span>
+<span>SEC COMPLIANCE: OK</span>
+<span class="text-secondary">AUDIT LOGGING: ACTIVE</span>
+<span>ENCRYPTION: AES-256</span>
+</div>
+</div>
+<style>
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            animation: marquee 30s linear infinite;
+        }
+    </style>
+</body></html>

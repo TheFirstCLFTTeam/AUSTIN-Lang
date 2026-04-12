@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AUSTIN-Lang | UBS Transcript Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#000000",
+                        "primary-dim": "#1a1a1a",
+                        "ubs-red": "#E60000",
+                        "ubs-black": "#000000",
+                        "surface": "#ffffff",
+                        "surface-container": "#f4f4f4",
+                        "surface-container-low": "#fafafa",
+                        "surface-container-high": "#ebebeb",
+                        "on-surface": "#000000",
+                        "on-surface-variant": "#666666",
+                        "outline": "#d1d1d1",
+                        "outline-variant": "#e5e5e5",
+                        "error": "#E60000",
+                        "error-container": "#fff1f1",
+                        "on-error-container": "#E60000",
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "0px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .waveform-bar {
+            transition: height 0.2s ease;
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #000000; }
+        
+        /* Institutional Sharp Style */
+        * { border-radius: 0 !important; }
+        button, a { transition: all 150ms ease-in-out; }
+
+        /* Custom Transition for the Sidebar */
+        #speaker-sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-ubs-red selection:text-white">
+<div class="flex h-screen overflow-hidden">
+<!-- Side Navigation Bar -->
+<aside class="hidden md:flex flex-col h-screen w-64 border-r border-outline-variant bg-gray-50 fixed left-0 top-0 z-40">
+<div class="px-8 py-8">
+<div class="flex items-center gap-2 mb-1">
+<svg class="w-8 h-8 text-black fill-current" viewbox="0 0 100 100">
+<path d="M50 10C27.9 10 10 27.9 10 50s17.9 40 40 40 40-17.9 40-40-17.9-40-40-40zm0 72c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"></path>
+<rect height="30" width="8" x="46" y="35"></rect>
+<rect height="16" width="6" x="34" y="42"></rect>
+<rect height="16" width="6" x="60" y="42"></rect>
+</svg>
+<h1 class="text-lg font-black tracking-tighter text-black uppercase font-headline">AUSTIN-Lang</h1>
+</div>
+<p class="font-['Inter'] text-[10px] uppercase tracking-widest font-semibold text-on-surface-variant">Institutional Precision</p>
+</div>
+<div class="px-5 mb-6">
+<button class="w-full py-3 px-4 bg-ubs-black text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-ubs-red active:opacity-80 transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Transcription
+            </button>
+</div>
+<nav class="flex-1 overflow-y-auto">
+<a class="flex items-center gap-3 text-red-600 border-l-4 border-red-600 pl-4 py-3 bg-white font-bold text-xs uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span> My Transcripts
+            </a>
+<a class="flex items-center gap-3 text-gray-600 pl-5 py-3 hover:text-black hover:bg-gray-100 transition-all text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span> Shared
+            </a>
+<a class="flex items-center gap-3 text-gray-600 pl-5 py-3 hover:text-black hover:bg-gray-100 transition-all text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]">star</span> Starred
+            </a>
+<a class="flex items-center gap-3 text-gray-600 pl-5 py-3 hover:text-black hover:bg-gray-100 transition-all text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span> Recent
+            </a>
+<div class="my-4 border-t border-outline-variant mx-5"></div>
+<a class="flex items-center gap-3 text-gray-600 pl-5 py-3 hover:text-black hover:bg-gray-100 transition-all text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]">database</span> Client Database
+            </a>
+<a class="flex items-center gap-3 text-gray-600 pl-5 py-3 hover:text-black hover:bg-gray-100 transition-all text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span> Metrics Dashboard
+            </a>
+<a class="flex items-center gap-3 text-gray-600 pl-5 py-3 hover:text-black hover:bg-gray-100 transition-all text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]">policy</span> Privacy Flags
+            </a>
+</nav>
+<div class="p-5 mt-auto bg-white border-t border-outline-variant">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-black text-white flex items-center justify-center font-bold text-xs">JD</div>
+<div class="overflow-hidden">
+<p class="font-bold text-[11px] uppercase tracking-tight">John Doe</p>
+<p class="text-[9px] text-on-surface-variant uppercase tracking-widest">Compliance Lead</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface ml-64">
+<!-- Top App Bar -->
+<header class="flex justify-between items-center w-full px-8 h-16 bg-white border-b border-outline-variant sticky top-0 z-50">
+<div class="flex items-center gap-6">
+<button class="text-black hover:text-ubs-red">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<div class="flex items-center gap-3">
+<h2 class="font-headline text-sm font-black tracking-tight text-black uppercase">Q4_Earnings_Call_Draft_v2.wav</h2>
+<span class="px-2 py-0.5 border border-black text-[10px] font-bold tracking-widest uppercase bg-white">In Review</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-4 py-2 text-ubs-red text-[11px] font-bold uppercase tracking-widest border border-transparent hover:border-ubs-red transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">policy</span> Flag Privacy
+                </button>
+<button class="px-4 py-2 border border-black text-black text-[11px] font-bold uppercase tracking-widest hover:bg-gray-100">
+                    Save Edits
+                </button>
+<button class="px-6 py-2 bg-ubs-red text-white text-[11px] font-bold uppercase tracking-widest hover:bg-red-800 transition-all active:scale-[0.99]">
+                    Approve Transcript
+                </button>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400 hover:text-black cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-gray-400 hover:text-black cursor-pointer">settings</span>
+<span class="material-symbols-outlined text-gray-400 hover:text-black cursor-pointer">account_circle</span>
+</div>
+</div>
+</header>
+<div class="flex-1 overflow-hidden flex flex-col">
+<!-- Audio Section -->
+<section class="px-8 py-6 bg-surface-container-low border-b border-outline-variant">
+<div class="max-w-6xl mx-auto bg-white border border-outline-variant p-6">
+<div class="flex items-center gap-8 mb-4">
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-black">
+<span class="material-symbols-outlined">replay_10</span>
+</button>
+<button class="w-12 h-12 bg-black text-white flex items-center justify-center hover:bg-ubs-red transition-colors">
+<span class="material-symbols-outlined text-3xl">play_arrow</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-black">
+<span class="material-symbols-outlined">forward_10</span>
+</button>
+</div>
+<!-- Waveform -->
+<div class="flex-1 h-12 flex items-end gap-[2px]">
+<div class="w-1 bg-black/10 h-4 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-6 waveform-bar"></div>
+<div class="w-1 bg-black/20 h-8 waveform-bar"></div>
+<div class="w-1 bg-black/40 h-10 waveform-bar"></div>
+<div class="w-1 bg-ubs-red h-5 waveform-bar"></div>
+<div class="w-1 bg-ubs-red h-12 waveform-bar"></div>
+<div class="w-1 bg-ubs-red h-9 waveform-bar"></div>
+<div class="w-1 bg-ubs-red h-11 waveform-bar"></div>
+<div class="w-1 bg-black/40 h-6 waveform-bar"></div>
+<div class="w-1 bg-black/20 h-10 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-7 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-4 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-8 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-3 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-5 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-10 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-12 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-8 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-6 waveform-bar"></div>
+<div class="w-1 bg-black/10 h-4 waveform-bar"></div>
+<div class="w-1 bg-black/5 h-3 waveform-bar"></div>
+<div class="w-1 bg-black/5 h-7 waveform-bar"></div>
+<div class="w-1 bg-black/5 h-5 waveform-bar"></div>
+<div class="w-1 bg-black/5 h-9 waveform-bar"></div>
+</div>
+<div class="flex items-center gap-4 border-l border-outline-variant pl-6">
+<div class="flex flex-col items-center">
+<span class="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest mb-1">Playback Speed</span>
+<select class="bg-transparent border-none text-[11px] font-black text-black focus:ring-0 cursor-pointer uppercase">
+<option>1.0x</option>
+<option>1.25x</option>
+<option>1.5x</option>
+</select>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-black">
+<span class="material-symbols-outlined">volume_up</span>
+</button>
+</div>
+</div>
+<div class="flex justify-between text-[10px] font-bold text-black font-label tracking-widest">
+<span>01:42</span>
+<div class="h-1 flex-1 mx-4 bg-gray-100 self-center">
+<div class="h-full bg-ubs-red w-[38%] relative">
+<div class="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-4 bg-black"></div>
+</div>
+</div>
+<span>04:55</span>
+</div>
+</div>
+</section>
+<!-- Editor Two-Pane Layout -->
+<div class="flex-1 flex overflow-hidden relative">
+<!-- Left: Segmented Transcript -->
+<div class="flex-1 overflow-y-auto px-12 py-10 space-y-12 bg-white">
+<div class="max-w-3xl mx-auto">
+<!-- Segment 1 -->
+<div class="flex gap-10 group/segment">
+<div class="w-32 shrink-0 border-t-2 border-black pt-2">
+<p class="text-[10px] font-black text-black tracking-widest uppercase mb-1">00:00:00</p>
+<div class="flex items-center gap-2">
+<p class="text-[10px] font-bold text-on-surface-variant tracking-widest uppercase">AGENT</p>
+<button class="opacity-0 group-hover/segment:opacity-100 flex items-center text-[9px] font-black text-ubs-red uppercase tracking-tight hover:underline" onclick="document.getElementById('speaker-sidebar').classList.remove('translate-x-full')">
+<span class="material-symbols-outlined text-[12px] mr-1">person_add</span> Identify
+                                    </button>
+</div>
+</div>
+<div class="flex-1">
+<div class="p-4 border-l border-outline-variant hover:border-black transition-colors cursor-text focus-within:bg-gray-50">
+<p class="text-[14px] leading-relaxed text-on-surface outline-none font-medium" contenteditable="true">
+                                        Good morning, everyone. Welcome to the Austin Lang fourth-quarter earnings call. My name is Marcus, and I'll be your moderator for today. Before we begin, I'd like to remind everyone that some statements made during this call may be forward-looking.
+                                    </p>
+</div>
+</div>
+</div>
+<!-- Segment 2 (Active) -->
+<div class="flex gap-10 mt-12 group/segment">
+<div class="w-32 shrink-0 border-t-2 border-ubs-red pt-2">
+<p class="text-[10px] font-black text-ubs-red tracking-widest uppercase mb-1">00:01:42</p>
+<div class="flex items-center gap-2">
+<p class="text-[10px] font-bold text-ubs-red tracking-widest uppercase">CEO</p>
+<button class="opacity-0 group-hover/segment:opacity-100 flex items-center text-[9px] font-black text-ubs-red uppercase tracking-tight hover:underline" onclick="document.getElementById('speaker-sidebar').classList.remove('translate-x-full')">
+<span class="material-symbols-outlined text-[12px] mr-1">person_add</span> Identify
+                                    </button>
+</div>
+</div>
+<div class="flex-1">
+<div class="p-5 bg-gray-50 border border-outline-variant border-l-4 border-l-ubs-red cursor-text">
+<p class="text-[14px] leading-relaxed text-on-surface font-semibold outline-none" contenteditable="true">
+                                        Thank you, Marcus. We've had an exceptional year at Austin Lang. Our expansion into the EMEA market has yielded 24% higher margins than initially projected. However, there are certain <span class="bg-ubs-red text-white px-1">liabilities</span> in our short-term debt cycle that we are addressing this quarter.
+                                    </p>
+<div class="mt-4 flex items-center justify-between border-t border-outline-variant pt-3">
+<span class="text-[9px] text-black font-black tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">auto_fix</span> AI ACCURACY: 98.4%
+                                        </span>
+<div class="flex gap-3">
+<button class="text-on-surface-variant hover:text-black">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+</button>
+<button class="text-on-surface-variant hover:text-ubs-red">
+<span class="material-symbols-outlined text-sm">flag</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Segment 3 -->
+<div class="flex gap-10 mt-12 group/segment">
+<div class="w-32 shrink-0 border-t border-outline-variant pt-2">
+<p class="text-[10px] font-black text-on-surface-variant/40 tracking-widest uppercase mb-1">00:02:15</p>
+<div class="flex items-center gap-2">
+<p class="text-[10px] font-bold text-on-surface-variant/40 tracking-widest uppercase">AGENT</p>
+<button class="opacity-0 group-hover/segment:opacity-100 flex items-center text-[9px] font-black text-ubs-red uppercase tracking-tight hover:underline" onclick="document.getElementById('speaker-sidebar').classList.remove('translate-x-full')">
+<span class="material-symbols-outlined text-[12px] mr-1">person_add</span> Identify
+                                    </button>
+</div>
+</div>
+<div class="flex-1">
+<div class="p-4 border-l border-outline-variant hover:border-black transition-colors opacity-50">
+<p class="text-[14px] leading-relaxed text-on-surface outline-none" contenteditable="true">
+                                        We will now open the floor for questions from the analysts. Please state your name and firm before asking your question.
+                                    </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Audit & Compliance Side Panel -->
+<aside class="w-96 shrink-0 bg-gray-50 border-l border-outline-variant flex flex-col overflow-y-auto">
+<div class="p-8 space-y-8">
+<!-- WER Card -->
+<div class="bg-white p-6 border border-outline-variant">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Word Error Rate</h3>
+<span class="text-[9px] bg-black text-white px-2 py-0.5 font-bold tracking-widest">REAL-TIME</span>
+</div>
+<div class="flex items-end gap-3 mb-4">
+<span class="text-4xl font-black tracking-tighter text-black">0.82%</span>
+<span class="text-[10px] font-black text-green-700 mb-1 flex items-center">
+<span class="material-symbols-outlined text-xs">arrow_downward</span> 0.05%
+                                </span>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-relaxed font-medium">
+                                Institutional threshold met. Accuracy improved by 12pts in last session.
+                            </p>
+</div>
+<!-- Compliance Checklist -->
+<div>
+<h3 class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-4 px-1">Compliance Protocol (FR-A01)</h3>
+<div class="space-y-3">
+<div class="flex items-start gap-3 p-4 bg-white border border-outline-variant">
+<div class="mt-0.5 w-4 h-4 bg-black text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+<div>
+<p class="text-[11px] font-black text-black uppercase tracking-tight">PII Redacted</p>
+<p class="text-[10px] text-on-surface-variant mt-1">Institutional privacy rules applied.</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-4 bg-white border border-outline-variant">
+<div class="mt-0.5 w-4 h-4 bg-black text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+<div>
+<p class="text-[11px] font-black text-black uppercase tracking-tight">Legal Disclaimers</p>
+<p class="text-[10px] text-on-surface-variant mt-1">Verified at 00:00:15 timestamp.</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-4 bg-white border border-ubs-red">
+<div class="mt-0.5 w-4 h-4 bg-ubs-red text-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'wght' 700;">priority_high</span>
+</div>
+<div class="flex-1">
+<p class="text-[11px] font-black text-ubs-red uppercase tracking-tight">Sensitivity Alert</p>
+<p class="text-[10px] text-on-surface-variant mt-1">Non-public debt ratio disclosure detected.</p>
+<button class="mt-3 text-[9px] font-black text-black uppercase tracking-widest border-b border-black hover:text-ubs-red hover:border-ubs-red">Review Alert →</button>
+</div>
+</div>
+</div>
+</div>
+<!-- File Details -->
+<div>
+<h3 class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-4 px-1">Institutional Audit</h3>
+<div class="bg-white border border-outline-variant p-4 space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Duration</span>
+<span class="text-[11px] font-black text-black">14:22.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Asset Quality</span>
+<span class="text-[11px] font-black text-black flex items-center gap-2">
+                                        HIGH <div class="w-2 h-2 bg-green-600"></div>
+</span>
+</div>
+<div class="pt-4 border-t border-outline-variant">
+<span class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest block mb-3">Detected Entities</span>
+<div class="flex gap-1">
+<div class="w-6 h-6 bg-black text-white flex items-center justify-center text-[9px] font-bold">M</div>
+<div class="w-6 h-6 bg-ubs-red text-white flex items-center justify-center text-[9px] font-bold">C</div>
+<div class="w-6 h-6 bg-gray-400 text-white flex items-center justify-center text-[9px] font-bold">A</div>
+<button class="w-6 h-6 border border-black flex items-center justify-center text-[9px] font-bold text-black hover:bg-black hover:text-white transition-colors" onclick="document.getElementById('speaker-sidebar').classList.remove('translate-x-full')">
+                                            +2
+                                        </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Mini Map -->
+<div class="mt-auto p-8 bg-white border-t border-outline-variant">
+<h3 class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-3">Transcription Coverage Map</h3>
+<div class="h-1 w-full bg-gray-100 flex">
+<div class="h-full bg-black w-[15%]"></div>
+<div class="h-full bg-ubs-red w-[30%]"></div>
+<div class="h-full bg-black w-[10%]"></div>
+<div class="h-full bg-gray-400 w-[45%]"></div>
+</div>
+<div class="mt-2 flex justify-between">
+<span class="text-[9px] font-black text-black uppercase tracking-widest">00:00</span>
+<span class="text-[9px] font-black text-black uppercase tracking-widest">14:22</span>
+</div>
+</div>
+</aside>
+<!-- SLIDING PANEL: CLIENT DATABASE / SPEAKER TAGGING -->
+<div class="absolute inset-y-0 right-0 w-96 bg-white border-l-4 border-ubs-black shadow-2xl z-[60] translate-x-full flex flex-col" id="speaker-sidebar">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center bg-gray-50">
+<div>
+<h3 class="text-xs font-black uppercase tracking-[0.2em] text-black">Identify Speaker</h3>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">Verify Client Identity</p>
+</div>
+<button class="p-2 hover:bg-black hover:text-white transition-colors" onclick="document.getElementById('speaker-sidebar').classList.add('translate-x-full')">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-6">
+<div class="mb-8">
+<label class="block text-[10px] font-black uppercase tracking-widest text-on-surface-variant mb-2">Tagging Current Label:</label>
+<div class="flex items-center gap-3 bg-gray-100 p-4 border-l-4 border-ubs-red">
+<div class="w-8 h-8 bg-ubs-red text-white flex items-center justify-center font-black text-xs">C</div>
+<span class="font-headline text-sm font-black uppercase tracking-tighter">CEO</span>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-4">
+<label class="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Verified Client Database</label>
+<span class="text-[9px] font-bold text-ubs-red">Institutional Match Required</span>
+</div>
+<div class="relative mb-4">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant">search</span>
+<input class="w-full pl-9 pr-4 py-2 border border-outline-variant text-[11px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-ubs-red focus:outline-none placeholder:text-outline" placeholder="SEARCH CLIENT NAME OR ID..." type="text"/>
+</div>
+<div class="space-y-2 max-h-[400px] overflow-y-auto">
+<!-- Client Entry -->
+<button class="w-full flex items-center gap-4 p-4 border border-outline-variant hover:border-ubs-red hover:bg-gray-50 group text-left transition-all">
+<div class="w-10 h-10 bg-black text-white flex items-center justify-center text-xs font-black">SL</div>
+<div class="flex-1">
+<p class="text-[11px] font-black text-black uppercase tracking-tight">Sergio Leone</p>
+<p class="text-[9px] text-on-surface-variant uppercase tracking-widest">Managing Director | EMEA</p>
+</div>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 text-ubs-red">check_circle</span>
+</button>
+<!-- Client Entry -->
+<button class="w-full flex items-center gap-4 p-4 border border-outline-variant hover:border-ubs-red hover:bg-gray-50 group text-left transition-all">
+<div class="w-10 h-10 bg-gray-200 text-black flex items-center justify-center text-xs font-black">RK</div>
+<div class="flex-1">
+<p class="text-[11px] font-black text-black uppercase tracking-tight">Rhea Kapoor</p>
+<p class="text-[9px] text-on-surface-variant uppercase tracking-widest">Global Head | Equities</p>
+</div>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 text-ubs-red">check_circle</span>
+</button>
+<!-- Client Entry -->
+<button class="w-full flex items-center gap-4 p-4 border border-outline-variant hover:border-ubs-red hover:bg-gray-50 group text-left transition-all">
+<div class="w-10 h-10 bg-gray-200 text-black flex items-center justify-center text-xs font-black">AM</div>
+<div class="flex-1">
+<p class="text-[11px] font-black text-black uppercase tracking-tight">Arthur Miller</p>
+<p class="text-[9px] text-on-surface-variant uppercase tracking-widest">Chief Strategy Officer</p>
+</div>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 text-ubs-red">check_circle</span>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-auto p-6 bg-gray-50 border-t border-outline-variant">
+<div class="flex items-center gap-3 mb-4">
+<input checked="" class="w-4 h-4 border-black text-black focus:ring-0" type="checkbox"/>
+<label class="text-[10px] font-black uppercase tracking-widest text-black">Apply globally to all 'CEO' tags</label>
+</div>
+<button class="w-full py-4 bg-ubs-black text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-ubs-red transition-colors">
+                            Associate &amp; Verify Identity
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

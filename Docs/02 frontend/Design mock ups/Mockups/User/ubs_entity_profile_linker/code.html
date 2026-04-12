@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CLFT Institutional - Entity Profile Linker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&amp;family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary-fixed-variant": "#676666",
+                        "on-background": "#2d3435",
+                        "on-surface-variant": "#5a6061",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#c20000",
+                        "tertiary-container": "#f6f3f2",
+                        "primary": "#5e5e5e",
+                        "on-primary-fixed": "#3f3f3f",
+                        "on-tertiary": "#fbf8f8",
+                        "surface-variant": "#dde4e5",
+                        "surface": "#f9f9f9",
+                        "outline": "#757c7d",
+                        "tertiary-dim": "#535353",
+                        "inverse-surface": "#0c0f0f",
+                        "secondary-dim": "#ab0100",
+                        "on-secondary-fixed-variant": "#bb0100",
+                        "tertiary-fixed": "#f6f3f2",
+                        "on-secondary-container": "#a80100",
+                        "error-dim": "#4f0116",
+                        "on-tertiary-fixed": "#4a4949",
+                        "primary-fixed-dim": "#d4d4d4",
+                        "tertiary": "#5f5f5f",
+                        "surface-container": "#ebeeef",
+                        "on-primary-container": "#525252",
+                        "surface-container-low": "#f2f4f4",
+                        "surface-bright": "#f9f9f9",
+                        "on-primary": "#f8f8f8",
+                        "on-error": "#fff7f7",
+                        "on-secondary-fixed": "#850100",
+                        "tertiary-fixed-dim": "#e7e5e4",
+                        "error": "#9e3f4e",
+                        "secondary-fixed-dim": "#ffc7be",
+                        "primary-fixed": "#e2e2e2",
+                        "inverse-primary": "#ffffff",
+                        "on-surface": "#2d3435",
+                        "error-container": "#ff8b9a",
+                        "surface-dim": "#d4dbdd",
+                        "primary-dim": "#525252",
+                        "on-error-container": "#782232",
+                        "surface-tint": "#5e5e5e",
+                        "surface-container-high": "#e4e9ea",
+                        "outline-variant": "#adb3b4",
+                        "inverse-on-surface": "#9c9d9d",
+                        "on-tertiary-container": "#5c5b5b",
+                        "surface-container-highest": "#dde4e5",
+                        "on-secondary": "#fff7f6",
+                        "secondary-fixed": "#ffdad4",
+                        "primary-container": "#e2e2e2",
+                        "on-primary-fixed-variant": "#5b5b5b",
+                        "background": "#f9f9f9",
+                        "secondary-container": "#ffdad4"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+        }
+        .sidebar-active {
+            background-color: #ffffff;
+            color: #c20000;
+            border-right: 4px solid #c20000;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen text-on-surface">
+<!-- SIDE NAV BAR -->
+<aside class="fixed left-0 top-0 h-full w-64 flex flex-col py-6 bg-slate-100 border-r-0 z-50">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3">
+<img alt="CLFT Logo" class="h-8 w-8 object-contain" data-alt="Official high-contrast black logo of a major Swiss financial institution on a clean white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDW0yJb4MOzTp0SLWkfoCUwJ7HRwUen89k3tGF1lrx_lkOpHX_sLM5ox2weOqH7PyVKKkuVryX1w7tvNj9M2VxY4DCAIer7ZHUtPwh5eNC9CuDdKQGW-gsyiRUrdzLos30FDTyQk7eGx8yZt6JY0dwIj8FJF_93AbWWJ14xhLlE6-LCmUYYF2vBx32HBlk4fLeWpxY7mtIDYtjdRfgMVTqZKAfjtqi4oOg1RH89vsALNjOvIXuGWqAa4aeVjYCDPWw5jmTH7_YX09q1"/>
+<div>
+<h1 class="text-lg font-black text-black leading-none tracking-tighter">CLFT</h1>
+<p class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest text-zinc-500">Institutional</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 font-['Inter'] text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 font-['Inter'] text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span>Transcripts</span>
+</a>
+<a class="bg-white text-red-600 border-r-4 border-red-600 px-4 py-3 flex items-center gap-3 font-['Inter'] text-xs font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="fingerprint">fingerprint</span>
+<span>Entities</span>
+</a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 font-['Inter'] text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span>Compliance</span>
+</a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 font-['Inter'] text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>Audit Log</span>
+</a>
+</nav>
+<div class="mt-auto px-4 space-y-1">
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 font-['Inter'] text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span>Support</span>
+</a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 font-['Inter'] text-xs font-semibold uppercase tracking-widest hover:bg-slate-200 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- MAIN CONTENT WRAPPER -->
+<div class="flex-1 ml-64 flex flex-col">
+<!-- TOP APP BAR -->
+<header class="flex justify-between items-center w-full px-8 py-4 bg-slate-50 sticky top-0 z-40">
+<div>
+<h2 class="font-['Manrope'] tracking-tight font-bold text-sm text-zinc-500 uppercase">Privacy &amp; Pseudonymisation Center</h2>
+<div class="flex items-center gap-2">
+<span class="text-xl font-black tracking-tighter text-black uppercase">Entity Profile Linker</span>
+<span class="bg-secondary text-white text-[10px] px-2 py-0.5 font-bold">INTERNAL ONLY</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="absolute inset-y-0 left-3 flex items-center text-zinc-400">
+<span class="material-symbols-outlined text-sm" data-icon="search">search</span>
+</span>
+<input class="bg-white border-none text-xs w-64 pl-10 pr-4 py-2 focus:ring-1 focus:ring-secondary text-on-surface" placeholder="Global Search..." type="text"/>
+</div>
+<div class="flex items-center gap-4 text-zinc-500">
+<button class="hover:bg-zinc-100 p-2 transition-colors duration-150">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="hover:bg-zinc-100 p-2 transition-colors duration-150">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="h-8 w-8 bg-zinc-800 flex items-center justify-center text-white font-bold text-xs">
+                        JD
+                    </div>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="p-8 grid grid-cols-12 gap-8 flex-1">
+<!-- LEFT COLUMN: DETECTED ENTITIES -->
+<section class="col-span-4 flex flex-col space-y-4">
+<div class="flex justify-between items-end mb-2">
+<h3 class="font-headline text-2xl font-extrabold tracking-tighter">Detected Entities</h3>
+<span class="font-label text-[10px] font-black uppercase tracking-widest text-secondary">8 Total</span>
+</div>
+<div class="flex flex-col gap-px bg-surface-container">
+<!-- Entity Item (Active) -->
+<div class="bg-white p-5 border-l-4 border-secondary flex flex-col gap-3 group">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">Entity ID: ENT-9921</p>
+<h4 class="font-headline text-lg font-bold">Jonathan V. Sterling</h4>
+</div>
+<span class="bg-zinc-100 text-zinc-500 text-[10px] px-2 py-1 font-black tracking-wider">UNLINKED</span>
+</div>
+<div class="flex gap-4">
+<div class="text-[11px] text-zinc-500">
+<span class="font-bold">Source:</span> Transcript_A12.txt
+                            </div>
+<div class="text-[11px] text-zinc-500">
+<span class="font-bold">Confidence:</span> 94%
+                            </div>
+</div>
+</div>
+<!-- Entity Item -->
+<div class="bg-surface-container-low p-5 flex flex-col gap-3 hover:bg-white transition-colors cursor-pointer group">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">Entity ID: ENT-9924</p>
+<h4 class="font-headline text-lg font-bold">Elena Kostic</h4>
+</div>
+<span class="bg-green-100 text-green-700 text-[10px] px-2 py-1 font-black tracking-wider">LINKED</span>
+</div>
+<div class="flex gap-4">
+<div class="text-[11px] text-zinc-500">
+<span class="font-bold">Source:</span> Transcript_A12.txt
+                            </div>
+<div class="text-[11px] text-zinc-500">
+<span class="font-bold">Linked to:</span> ID 88201
+                            </div>
+</div>
+</div>
+<!-- Entity Item -->
+<div class="bg-surface-container-low p-5 flex flex-col gap-3 hover:bg-white transition-colors cursor-pointer">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">Entity ID: ENT-9928</p>
+<h4 class="font-headline text-lg font-bold">Marcus Thorne</h4>
+</div>
+<span class="bg-zinc-100 text-zinc-500 text-[10px] px-2 py-1 font-black tracking-wider">UNLINKED</span>
+</div>
+<div class="flex gap-4 text-[11px] text-zinc-500">
+<span class="font-bold">Source:</span> Internal_Memo_Q3.pdf
+                        </div>
+</div>
+<!-- Entity Item -->
+<div class="bg-surface-container-low p-5 flex flex-col gap-3 hover:bg-white transition-colors cursor-pointer">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mb-1">Entity ID: ENT-9931</p>
+<h4 class="font-headline text-lg font-bold">Sarah Jenkins</h4>
+</div>
+<span class="bg-zinc-100 text-zinc-500 text-[10px] px-2 py-1 font-black tracking-wider">UNLINKED</span>
+</div>
+<div class="flex gap-4 text-[11px] text-zinc-500">
+<span class="font-bold">Source:</span> Transcript_A12.txt
+                        </div>
+</div>
+</div>
+</section>
+<!-- RIGHT COLUMN: PROFILE MATCHING INTERFACE -->
+<section class="col-span-8 flex flex-col space-y-6">
+<!-- Matching Header -->
+<div class="bg-white p-8 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<p class="font-label text-xs font-bold uppercase tracking-widest text-zinc-400 mb-1">Target Resolution</p>
+<h2 class="font-headline text-4xl font-black tracking-tighter">Jonathan V. Sterling</h2>
+</div>
+<div class="text-right">
+<button class="bg-black text-white px-6 py-3 font-bold text-sm tracking-tight hover:bg-secondary transition-colors uppercase">
+                                Manual Override
+                            </button>
+</div>
+</div>
+<!-- Search / Results Section -->
+<div class="border-t-2 border-surface-container pt-8">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-label text-xs font-black uppercase tracking-widest">Internal Database Matches</h4>
+<div class="text-xs text-zinc-400 italic">Showing 3 most relevant results from UBS Staff Registry</div>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<!-- Match Card 1 (Selected) -->
+<div class="bg-surface-container p-6 border-2 border-black relative">
+<div class="absolute -top-3 -right-3 bg-black text-white p-1">
+<span class="material-symbols-outlined text-sm" data-icon="check" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="flex gap-4">
+<img alt="Profile Photo" class="w-16 h-20 object-cover bg-zinc-300" data-alt="Professional studio headshot of a middle-aged male executive in a sharp charcoal suit and white shirt, neutral background, cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-c0rB7D520NyaDFzj0_TFGi71Kzvbb6EXRq7nAWWFhyEMIs6v9d2vLxcAgs-wIVTWGBoPteDKvoGQDToJyW-cjxKUn-uCM02-aNBFqWTJ6lFXuUVJ5voes4sA6T26E-WhAS_Ykqleon2icMuh04EWj9G4FV7ayGZERYlpXTek0iGPuEdgc3KkOYAKWRm0m-PNPOlJJO5lofgA2_wszQ9xtIIALkValGycU2Xh1hmHrihJcxjGwjLNWz5z58f7XquZbs-kkJ0omEM_"/>
+<div class="flex-1">
+<h5 class="font-headline text-lg font-bold leading-tight mb-1">Jonathan Sterling</h5>
+<p class="text-xs text-zinc-500 font-medium mb-3">Senior Portfolio Manager</p>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-[10px] uppercase font-bold text-zinc-400">
+<span>Employee ID</span>
+<span class="text-on-surface">UBS-77291</span>
+</div>
+<div class="flex justify-between text-[10px] uppercase font-bold text-zinc-400">
+<span>Location</span>
+<span class="text-on-surface">Zürich, Paradeplatz</span>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 bg-secondary text-white py-3 font-black text-xs uppercase tracking-widest">
+                                    Link Selected Profile
+                                </button>
+</div>
+<!-- Match Card 2 -->
+<div class="bg-white border-2 border-surface-container p-6 hover:border-zinc-400 transition-all cursor-pointer">
+<div class="flex gap-4">
+<img alt="Profile Photo" class="w-16 h-20 object-cover bg-zinc-300 opacity-80" data-alt="Corporate headshot of a younger male professional in business attire, clean grey background, bright even lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjgeNURvq0w1sRms4NLmyFkrHpffnpwDNs8aOqyGKcG2IgooFGS_X1o8TxNm-jMoEQsYt75KckuEB_Y-2HWVvnnuCMd6gLWRZQ5App_qpPo0q6d77fjRAJB-c93witPv2-d0dz3y3x-A1glkZihtsoNikbUGae6pG9aEqddaLA1vQ4slqHWXeleiESYhWFlq0v3h1ORh1mQAWqks9zESHox2KLtp7Aq_BzJbX2VqCMZ2-vcrbTu50Gro2XL2GDaaiAk-k1uOySr4cs"/>
+<div class="flex-1">
+<h5 class="font-headline text-lg font-bold leading-tight mb-1">J. Sterling-Vance</h5>
+<p class="text-xs text-zinc-500 font-medium mb-3">Junior Risk Analyst</p>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-[10px] uppercase font-bold text-zinc-400">
+<span>Employee ID</span>
+<span class="text-on-surface">UBS-11029</span>
+</div>
+<div class="flex justify-between text-[10px] uppercase font-bold text-zinc-400">
+<span>Location</span>
+<span class="text-on-surface">London, Broadgate</span>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-6 border border-zinc-200 text-zinc-400 py-3 font-black text-xs uppercase tracking-widest hover:text-black hover:border-black transition-colors">
+                                    Select Profile
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- PROFILE PREVIEW & AUDIT -->
+<div class="bg-slate-50 p-8 border border-surface-container">
+<div class="grid grid-cols-12 gap-10">
+<div class="col-span-8">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary" data-icon="verified">verified</span>
+<h4 class="font-label text-xs font-black uppercase tracking-widest">Metadata Verification</h4>
+</div>
+<div class="grid grid-cols-2 gap-y-4 gap-x-12">
+<div>
+<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Full Legal Name</p>
+<p class="font-body text-sm font-semibold">Jonathan Victor Sterling</p>
+</div>
+<div>
+<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Department</p>
+<p class="font-body text-sm font-semibold">Global Wealth Management</p>
+</div>
+<div>
+<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Clearance Level</p>
+<p class="font-body text-sm font-semibold">L3 Executive Privilege</p>
+</div>
+<div>
+<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">System Handle</p>
+<p class="font-body text-sm font-semibold text-secondary">STERLING_J_ZRH</p>
+</div>
+</div>
+</div>
+<div class="col-span-4 border-l border-surface-container pl-10 flex flex-col justify-center">
+<p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">Link Confirmation</p>
+<button class="bg-black text-white px-6 py-4 font-black text-sm uppercase tracking-widest hover:bg-secondary transition-all mb-3">
+                                Confirm &amp; Link
+                            </button>
+<p class="text-[9px] text-zinc-400 italic text-center">Action will be logged in compliance audit trail.</p>
+</div>
+</div>
+</div>
+<!-- DATA TICKER / FOOTER METADATA -->
+<div class="flex justify-between items-center py-4 px-2">
+<div class="flex gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-green-500"></span>
+<span class="font-label text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">System: ACTIVE</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">Latency: 42ms</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">DB Sync: 100%</span>
+</div>
+</div>
+<div class="text-[10px] font-mono text-zinc-400">
+                        SESSION_UID: 0x8A2291-B33-PF
+                    </div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

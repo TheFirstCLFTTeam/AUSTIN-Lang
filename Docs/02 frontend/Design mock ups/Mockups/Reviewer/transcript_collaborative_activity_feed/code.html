@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CLFT TRANSCRIPTION | Collaborative Activity Feed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#d4dbdd",
+              "secondary-dim": "#ab0100",
+              "primary-container": "#e2e2e2",
+              "outline-variant": "#adb3b4",
+              "tertiary": "#5f5f5f",
+              "surface-bright": "#f9f9f9",
+              "secondary-fixed-dim": "#ffc7be",
+              "on-primary-fixed": "#3f3f3f",
+              "on-tertiary-fixed-variant": "#676666",
+              "surface-container-low": "#f2f4f4",
+              "secondary-container": "#ffdad4",
+              "background": "#f9f9f9",
+              "on-surface": "#2d3435",
+              "tertiary-dim": "#535353",
+              "surface": "#f9f9f9",
+              "on-secondary": "#fff7f6",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary-fixed": "#4a4949",
+              "primary-fixed-dim": "#d4d4d4",
+              "inverse-on-surface": "#9c9d9d",
+              "on-tertiary-container": "#5c5b5b",
+              "primary-dim": "#525252",
+              "tertiary-fixed": "#f6f3f2",
+              "primary": "#5e5e5e",
+              "on-surface-variant": "#5a6061",
+              "inverse-primary": "#ffffff",
+              "error": "#9e3f4e",
+              "surface-container-high": "#e4e9ea",
+              "on-secondary-container": "#a80100",
+              "tertiary-fixed-dim": "#e7e5e4",
+              "on-secondary-fixed-variant": "#bb0100",
+              "error-dim": "#4f0116",
+              "on-primary-fixed-variant": "#5b5b5b",
+              "on-primary": "#f8f8f8",
+              "surface-container-highest": "#dde4e5",
+              "primary-fixed": "#e2e2e2",
+              "surface-container": "#ebeeef",
+              "surface-tint": "#5e5e5e",
+              "on-secondary-fixed": "#850100",
+              "outline": "#757c7d",
+              "on-error": "#fff7f7",
+              "secondary-fixed": "#ffdad4",
+              "on-tertiary": "#fbf8f8",
+              "on-background": "#2d3435",
+              "on-error-container": "#782232",
+              "inverse-surface": "#0c0f0f",
+              "on-primary-container": "#525252",
+              "secondary": "#c20000",
+              "surface-variant": "#dde4e5",
+              "tertiary-container": "#f6f3f2",
+              "error-container": "#ff8b9a"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .text-institutional { letter-spacing: 0.1em; text-transform: uppercase; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface overflow-hidden">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 h-16 bg-white dark:bg-black border-b-0 fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black tracking-tighter text-black dark:text-white uppercase">CLFT TRANSCRIPTION</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white font-['Manrope'] tracking-tight font-bold uppercase transition-colors duration-150" href="#">Dashboard</a>
+<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white font-['Manrope'] tracking-tight font-bold uppercase transition-colors duration-150" href="#">Analytics</a>
+<a class="text-red-600 dark:text-red-500 border-b-2 border-red-600 font-bold font-['Manrope'] tracking-tight uppercase" href="#">History</a>
+<a class="text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white font-['Manrope'] tracking-tight font-bold uppercase transition-colors duration-150" href="#">Team</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 bg-zinc-200">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional headshot of a senior analyst in a minimalist office setting, clean lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsYnklyGhIEqpW-X-_Ar1aiTC6g57rJR8blHpz65MZEmaTm5tIbLsnX-la5S0TMko-ZrVx1al5FRcfAW_13wS6fwc8JkOO768GuTYRdygb8fMsrLkmnzrllr7abq1oXP9ybNxn11RP9JbRdkYcepzsB-YTlW8olfwVPrpGur0_X2FSsDs_PEBECR8zN7GzCKukDSEvbZ2SUl-s9eoaRo8JQtqkqJzC0tHC37GOZE_aBpFWXo0rYbHsxFZV_fGkL8eKSs-_net28Nu8"/>
+</div>
+</div>
+</header>
+<div class="flex pt-16 h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-full w-64 bg-zinc-50 dark:bg-zinc-950 border-r-0 py-8 shrink-0">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-6 h-6 bg-black flex items-center justify-center">
+<span class="text-[10px] text-white font-bold">INS</span>
+</div>
+<span class="font-['Inter'] text-xs font-bold uppercase tracking-widest text-on-surface">INSTITUTIONAL</span>
+</div>
+<p class="text-[10px] text-zinc-500 uppercase tracking-widest">Precision Suite</p>
+</div>
+<div class="px-4 mb-6">
+<button class="w-full py-3 bg-black text-white font-['Inter'] text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:opacity-80">
+                    New Transcription
+                </button>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-black dark:bg-white text-white dark:text-black font-['Inter'] text-xs font-bold uppercase tracking-widest transition-all" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="history">history</span>
+                    History
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 font-['Inter'] text-xs font-bold uppercase tracking-widest transition-all hover:text-red-600" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="bar_chart">bar_chart</span>
+                    Analytics
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 font-['Inter'] text-xs font-bold uppercase tracking-widest transition-all hover:text-red-600" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="group">group</span>
+                    Collaborators
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 font-['Inter'] text-xs font-bold uppercase tracking-widest transition-all hover:text-red-600" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="list_alt">list_alt</span>
+                    Activity
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 font-['Inter'] text-xs font-bold uppercase tracking-widest transition-all hover:text-red-600" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                    Export
+                </a>
+</nav>
+<div class="px-4 mt-auto pt-8 border-t border-zinc-200 dark:border-zinc-800">
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 font-['Inter'] text-xs font-bold uppercase tracking-widest transition-all" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 font-['Inter'] text-xs font-bold uppercase tracking-widest transition-all" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="archive">archive</span>
+                    Archive
+                </a>
+</div>
+</aside>
+<!-- Main Content Area: Transcript -->
+<main class="flex-1 bg-surface-container overflow-y-auto no-scrollbar relative">
+<!-- Header Section -->
+<div class="p-8 bg-surface-container-lowest">
+<div class="flex justify-between items-end mb-8">
+<div>
+<span class="text-[10px] font-bold text-secondary tracking-[0.2em] uppercase mb-2 block">Recording: Session #8492-B</span>
+<h1 class="text-4xl font-extrabold font-headline tracking-tighter text-on-surface">AUSTIN-Lang Strategic Briefing</h1>
+</div>
+<div class="flex gap-4">
+<button class="px-4 py-2 bg-surface text-on-surface text-[10px] font-bold uppercase tracking-widest hover:bg-surface-dim transition-colors">Play Audio</button>
+<button class="px-4 py-2 bg-secondary text-white text-[10px] font-bold uppercase tracking-widest hover:bg-secondary-dim transition-colors">Verify All</button>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-8">
+<div class="col-span-12 lg:col-span-10 space-y-12 pb-24">
+<!-- Transcript Segment -->
+<div class="group relative">
+<div class="flex gap-6 items-start">
+<span class="text-[10px] font-bold text-zinc-400 tracking-widest font-mono mt-1 w-16">00:01:12</span>
+<div class="flex-1">
+<h3 class="text-[10px] font-bold text-on-surface uppercase tracking-widest mb-2">Speaker: Arthur Vance</h3>
+<p class="text-xl leading-relaxed font-body text-zinc-800 border-l-4 border-transparent group-hover:border-secondary pl-6 transition-all duration-300">
+                                        The preliminary findings for the <span class="bg-secondary-container px-1 text-on-secondary-container">AUSTIN-Lang</span> initiative suggest a 24% increase in processing efficiency. We need to finalize these numbers by the quarterly audit.
+                                    </p>
+</div>
+</div>
+</div>
+<!-- Transcript Segment: Active/Edited -->
+<div class="group relative bg-white p-6 -mx-6 ring-1 ring-zinc-100">
+<div class="flex gap-6 items-start">
+<span class="text-[10px] font-bold text-secondary tracking-widest font-mono mt-1 w-16">00:01:42</span>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-2">
+<h3 class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Speaker: Marcus Sterling</h3>
+<span class="bg-zinc-100 text-[9px] px-2 py-0.5 font-bold text-zinc-500 uppercase">Corrected by Marcus</span>
+</div>
+<p class="text-xl leading-relaxed font-body text-zinc-800 border-l-4 border-secondary pl-6">
+                                        Regarding the segment mentioned by Arthur, the correct figure is actually <span class="font-bold text-secondary underline decoration-2 underline-offset-4">26.5%</span>, not 24%. The delta is attributed to the low-latency buffer optimization.
+                                    </p>
+<div class="mt-4 flex gap-2">
+<button class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest hover:text-on-surface transition-colors">Add Note</button>
+<button class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest hover:text-on-surface transition-colors">Translate</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Transcript Segment -->
+<div class="group relative">
+<div class="flex gap-6 items-start">
+<span class="text-[10px] font-bold text-zinc-400 tracking-widest font-mono mt-1 w-16">00:02:15</span>
+<div class="flex-1">
+<h3 class="text-[10px] font-bold text-on-surface uppercase tracking-widest mb-2">Speaker: Sarah Jenkins</h3>
+<p class="text-xl leading-relaxed font-body text-zinc-800 border-l-4 border-transparent group-hover:border-secondary pl-6 transition-all duration-300">
+                                        Understood. I will update the master spreadsheet and the institutional audit trail immediately to reflect the 26.5% benchmark.
+                                    </p>
+</div>
+</div>
+</div>
+<!-- Transcript Segment -->
+<div class="group relative">
+<div class="flex gap-6 items-start">
+<span class="text-[10px] font-bold text-zinc-400 tracking-widest font-mono mt-1 w-16">00:02:48</span>
+<div class="flex-1">
+<h3 class="text-[10px] font-bold text-on-surface uppercase tracking-widest mb-2">Speaker: Arthur Vance</h3>
+<p class="text-xl leading-relaxed font-body text-zinc-800 border-l-4 border-transparent group-hover:border-secondary pl-6 transition-all duration-300">
+                                        Excellent. Let's move on to the deployment schedule for the northern region clusters.
+                                    </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Right Activity Sidebar -->
+<aside class="w-80 bg-white border-l-0 h-full flex flex-col shrink-0">
+<div class="p-6 border-b border-zinc-100">
+<div class="flex items-center justify-between mb-1">
+<h2 class="text-[12px] font-black font-headline tracking-widest uppercase text-black">Activity Feed</h2>
+<span class="bg-secondary text-white text-[9px] px-2 py-0.5 font-bold uppercase">Live</span>
+</div>
+<p class="text-[10px] text-zinc-500 uppercase tracking-widest">Recent Edits &amp; Updates</p>
+</div>
+<div class="flex-1 overflow-y-auto no-scrollbar p-2">
+<!-- Activity Entry -->
+<button class="w-full text-left p-4 hover:bg-zinc-50 transition-colors group">
+<div class="flex gap-3">
+<img alt="Marcus Sterling" class="w-8 h-8 object-cover" data-alt="portrait of a man with short dark hair in a professional white shirt, soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDd4fdykB7E87y5m_rotgTFrZvq60Q7r6FQHV8_uVwB1UpWXiGV_gP9uO3phPldp2-n5Kc3fCWUlz22V21G_XQMs3gJ9eNer2BWDi-VXNDvCH5VGcBamydGQyw9FwMFh-qFvZ63jparwpUK_xHrfRQ_lcDGFeJ4abhkWbzhFZ6w69f34qHNOkbKrGuNAxFhErkjYoFOKy8AX9EBHaVmfhy7Zy6Np41nXOCw6qogs0qz8CHSn5GOe94Nc2R_NqGY7uI3Ib3NUM0198Ea"/>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[11px] font-bold text-black uppercase tracking-tight">Marcus Sterling</span>
+<span class="text-[9px] text-zinc-400 font-medium">2m ago</span>
+</div>
+<p class="text-[11px] text-zinc-600 leading-snug mb-2 italic">Corrected segment <span class="font-bold text-secondary">00:01:42</span></p>
+<div class="text-[10px] bg-zinc-100 p-2 text-zinc-500 uppercase font-bold tracking-tighter">
+                                24% → 26.5%
+                            </div>
+</div>
+</div>
+</button>
+<!-- Activity Entry -->
+<button class="w-full text-left p-4 hover:bg-zinc-50 transition-colors group">
+<div class="flex gap-3">
+<img alt="Sarah Jenkins" class="w-8 h-8 object-cover" data-alt="professional portrait of a woman with glasses in a modern minimalist space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu-QuTSBLyYtqpzGYwX_xwYADlPljSi5rEKOjY-UqSvuVnLmpNuQKv6eI8Tj7B6GlagbPGAV_9DR_qCvtLyQjdzZRQMaYxgjdFAJ3KY7UjYiNLZc47CxWiq_EWW78c0YGPbeqmtgNpNu7puh69-tadi1FcUsL5zb1k2a97ckhj27jzJ6Fg96WqPVAmwOoKfetzRguycBqCwZCZmM8TDHOOAMZYcl2brYvW2MZrf1x75ee_ciQjeaB4WF2nUdAhZNSlOZMkVyRQQ7Pw"/>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[11px] font-bold text-black uppercase tracking-tight">Sarah Jenkins</span>
+<span class="text-[9px] text-zinc-400 font-medium">14m ago</span>
+</div>
+<p class="text-[11px] text-zinc-600 leading-snug mb-1 italic">Flagged segment <span class="font-bold">00:02:15</span></p>
+<span class="text-[9px] text-zinc-400 uppercase font-bold tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="flag">flag</span> Priority: High
+                            </span>
+</div>
+</div>
+</button>
+<!-- Activity Entry -->
+<button class="w-full text-left p-4 hover:bg-zinc-50 transition-colors group">
+<div class="flex gap-3">
+<img alt="Arthur Vance" class="w-8 h-8 object-cover" data-alt="portrait of a businessman in a dark suit against a grey studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaP81_ZF0MMCGdeTbb2Y1RZDIcIQqlrxWmYXlTvJESEO7LhKZxydjd0A_ezr1SAfHrH0K703VWr5srW6Qx_RNK5L4EpJmk2BLQG8GCB-LUdbOIaxLiQRPQocIKfFl9JMKkVTj7BxJJOvM41JsgBdw7Y7PhMJQdBbiqVbfnDPNMIChV1WsLLfCFaw5LPeIZg1K1XXt1V-w7D-zxovGjvEDuCd_JdJIFEeTCnkM92pyJsXYaqGQIrUmNhnEtH7h24Lq-JV0gkBwcd-3W"/>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[11px] font-bold text-black uppercase tracking-tight">Arthur Vance</span>
+<span class="text-[9px] text-zinc-400 font-medium">1h ago</span>
+</div>
+<p class="text-[11px] text-zinc-600 leading-snug italic">Approved transcription for export</p>
+</div>
+</div>
+</button>
+<!-- Activity Entry -->
+<button class="w-full text-left p-4 hover:bg-zinc-50 transition-colors group opacity-60">
+<div class="flex gap-3">
+<div class="w-8 h-8 bg-black flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" data-icon="robot">robot</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="text-[11px] font-bold text-black uppercase tracking-tight">System Bot</span>
+<span class="text-[9px] text-zinc-400 font-medium">2h ago</span>
+</div>
+<p class="text-[11px] text-zinc-600 leading-snug italic">Initial AI transcription pass complete</p>
+</div>
+</div>
+</button>
+</div>
+<div class="p-6 bg-zinc-50 border-t border-zinc-100">
+<div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">
+<span>Active Users</span>
+<span class="text-green-600">3 Online</span>
+</div>
+<div class="flex -space-x-2">
+<img alt="Marcus" class="w-8 h-8 ring-2 ring-white" data-alt="user avatar marcus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl5IJ93RF4oJPxHKZLKhKsiHvoEEuT_WlXrZmovWRqD1IYBsuW9VriV2Bj8R_BGIHx1ZDxv9S0JIe7pjk5ag99OwCgukKpnkiAitch01SHX3KuNMTEnI2Dpk6qXqMVVJpwYAmT7VxEaX7IDnGkaPaByZg71w18Q6TCQ0lUU_EkNGozgSpd6qSozDDyHqREAkWPw-FgqHBdyX41OWFvpHKVLUTbz3n5xmA3fYxl8_o19qpSoBZg0GgW4_2Hn3DdOV6HxrhCUIXvYeAM"/>
+<img alt="Sarah" class="w-8 h-8 ring-2 ring-white" data-alt="user avatar sarah" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0ndLXmRb8p-c1uH8kKIXYKGTRWGHnZ-tNDii1wwdfmH9N_tGtSmEigrippwRSEeXRZRBAiWtYGxEFmO9_5YNA3d9FkuGPS6HQB5buVC-K1K9tBL3DuZYfywmcHcwNJ_piSk0jB9T9C0286Hure9RR5kYnMPcsPnepyWTo1s6yZjpybn3MnWb39EAfkQvLzrSYQAXk42-Jltkd2PkhbsOEroRIvyJUc7-CzuvITPluJsOdy6Uq_nQ2XIc0U-8ErWlWxWfiYkRp7dSH"/>
+<img alt="Arthur" class="w-8 h-8 ring-2 ring-white" data-alt="user avatar arthur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD8VbRXSu23mLJ1ZWxkDlzr1V6vRjFKHFMjdhoyzgZzldFS9GkskiG-X7rsOsZRvQ2X5cM9CF0QSzXMo2Igvx5-BefNwOLAvKHHRH3NcIry7St_yXHKmvpZfBNrGKlDkO_vPxytlRJ9A1tDG3efvfYz8rffbWqWHVil79XbdeK3ZEujHUxh2UgNu2TNolGgzHKji4rUrIDfIonyuWyuPhNfGCthqNWJg71NAx3ExXLrQx6lLDfhg5k6DbDV-2SQknNO2Jy1ezqKqOX"/>
+<div class="w-8 h-8 bg-zinc-200 ring-2 ring-white flex items-center justify-center text-[10px] font-bold text-zinc-500">+12</div>
+</div>
+</div>
+</aside>
+</div>
+<!-- Contextual FAB - Only for main transcription view -->
+<button class="fixed bottom-8 right-88 w-14 h-14 bg-black text-white flex items-center justify-center shadow-2xl hover:bg-secondary transition-all transform active:scale-95 group z-[100] md:right-96">
+<span class="material-symbols-outlined text-2xl" data-icon="add">add</span>
+<span class="absolute right-full mr-4 bg-black text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Add Highlight</span>
+</button>
+</body></html>

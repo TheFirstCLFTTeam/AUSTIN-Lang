@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:wandb.ai)",
+      "WebFetch(domain:docs.wandb.ai)",
+      "WebFetch(domain:mlflow.org)",
+      "WebSearch",
+      "WebFetch(domain:neptune.ai)",
+      "WebFetch(domain:www.montecarlodata.com)"
+    ]
+  }
+}

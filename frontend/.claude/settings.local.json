@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp /tmp/login_mockup/screen.png C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/screen_mockup_tmp.png)",
+      "Bash(cp /tmp/login_mockup/DESIGN.md C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/design_mockup_tmp.md)",
+      "Bash(grep -r \"jest\\\\|vitest\" C:UsersChunChunMaruDesktopReposAUSTIN-Langfrontend --include=*.json --include=*.js --include=*.ts ! -path */node_modules/*)",
+      "Bash(npm install:*)",
+      "Bash(npx vitest:*)",
+      "Bash(for d:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/**)",
+      "Bash(done)",
+      "Bash(npx next:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/active_training_jobs_dashboard/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_train.png)",
+      "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/ubs_privacy_pseudonymisation_center/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_priv.png)",
+      "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/transcript_collaborative_activity_feed/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_collab.png)",
+      "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/admin_user_management_updated_style/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_admin.png)",
+      "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/user_group_metrics_management_1/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_groups.png)",
+      "Bash(node -e \"console.log\\(require\\('tailwindcss/package.json'\\).version\\)\")",
+      "Bash(xargs grep:*)"
+    ]
+  },
+  "prefersReducedMotion": true
+}
