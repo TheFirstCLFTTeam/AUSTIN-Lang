@@ -1,13 +1,46 @@
-backend/server/cache/*
-backend/server/.venv/
-backend/server/pretrained_weights/
-*.pyc
-.coverage
-backend/retraining-pipeline/data
-.pnpm-store/
-
-# Environment variables - never commit real secrets
+# Environment variables
 .env
 .env.*
 !.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
 node_modules
+
+# Python
+*.pyc
+__pycache__/
+backend/server/.venv/
+.coverage
+
+# Backend
+backend/server/cache/*
+backend/server/pretrained_weights/
+backend/retraining-pipeline/data
+
+# Data collection
+data_collection/*/
+data_collection/sampled_datasets/*
+!data_collection/*
+data_collection/.env*
+
+# Build & Testing
+/build
+/coverage
+frontend/build/
+frontend/coverage/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+.pnpm-store/
