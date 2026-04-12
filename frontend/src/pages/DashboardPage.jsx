@@ -47,8 +47,13 @@ export default function DashboardPage() {
         <StatCard title="Files with Edits" value={stats.totalSegments} />
 
         <StatCard
-          title="Word Accuracy"
+          title="Avg. Word Accuracy"
           value={`${stats.estimatedAccuracy}%`}
+        />
+
+        <StatCard 
+            title="Latest Record Accuracy" 
+            value={stats.latestWER !== null ? `${(100 - stats.latestWER).toFixed(1)}%` : "N/A"} 
         />
 
         <StatCard 
@@ -60,13 +65,13 @@ export default function DashboardPage() {
             title="Transcription Time" 
             value={stats.average_transcription_time !== null ? `${stats.average_transcription_time.toFixed(1)}s` : "N/A"} 
         />
-
-        {stats.totalWordsEdited > 0 && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative flex items-center justify-center font-bold">
-            ⚠️ HIGH ERROR RATE DETECTED
-          </div>
-        )}
       </div>
+
+      {stats.totalWordsEdited > 0 && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-4 rounded-xl mb-8 flex items-center justify-center font-bold text-center animate-pulse">
+          ⚠️ HIGH ERROR RATE ON LATEST RECORD: {stats.latestWER}% WER
+        </div>
+      )}
 
       <ErrorChart accuracy={stats.estimatedAccuracy} />
     </div>

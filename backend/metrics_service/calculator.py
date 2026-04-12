@@ -43,6 +43,7 @@ def aggregate_metrics(data: List[Dict]) -> Dict:
     """
     Calculates aggregated metrics from bulk context data.
     - Average WER (only for is_user_edited=1)
+    - Latest WER (for the most recently edited file)
     - Average Queue Latency (transcription_started_at - uploaded_at)
     - Average Transcription Time (transcription_ended_at - transcription_started_at)
     """
@@ -50,6 +51,7 @@ def aggregate_metrics(data: List[Dict]) -> Dict:
     if total_files == 0:
         return {
             "average_wer": None,
+            "latest_wer": None,
             "average_queue_latency": None,
             "average_transcription_time": None,
             "total_files": 0,
@@ -60,6 +62,10 @@ def aggregate_metrics(data: List[Dict]) -> Dict:
     queue_latencies = []
     transcription_times = []
     files_with_edits = 0
+    
+    # Track the latest edited file to report its WER
+    latest_edit_time = None
+    latest_wer = None
 
     for item in data:
         # 1. WER Calculation
@@ -67,7 +73,15 @@ def aggregate_metrics(data: List[Dict]) -> Dict:
             files_with_edits += 1
             raw = item.get("raw_text") or ""
             edited = item.get("edited_text") or ""
-            wer_scores.append(calculate_wer(edited, raw)) # Reference is the edited (ground truth)
+            current_wer = calculate_wer(edited, raw)
+            wer_scores.append(current_wer) # Reference is the edited (ground truth)
+            
+            # Update latest WER based on uploaded_at (as a proxy for record recency)
+            # You could also use updated_at if available in the item context
+            upload_dt = parse_iso(item.get("uploaded_at"))
+            if upload_dt and (latest_edit_time is None or upload_dt > latest_edit_time):
+                latest_edit_time = upload_dt
+                latest_wer = current_wer
 
         # 2. Timing Calculations
         uploaded_at = parse_iso(item.get("uploaded_at"))
@@ -82,6 +96,7 @@ def aggregate_metrics(data: List[Dict]) -> Dict:
 
     return {
         "average_wer": sum(wer_scores) / len(wer_scores) if wer_scores else None,
+        "latest_wer": latest_wer,
         "average_queue_latency": sum(queue_latencies) / len(queue_latencies) if queue_latencies else None,
         "average_transcription_time": sum(transcription_times) / len(transcription_times) if transcription_times else None,
         "total_files": total_files,

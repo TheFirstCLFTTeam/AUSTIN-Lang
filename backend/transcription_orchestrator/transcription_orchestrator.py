@@ -53,7 +53,7 @@ async def get_adapters():
         return {"adapters": ["base"]}
 
 @app.post("/transcribe/")
-async def transcribe(file: UploadFile = File(...), domain: str = Form(None)):
+async def transcribe(file: UploadFile = File(...), domain: str = Form(None), language: str = Form(None)):
     """
     Orchestrates the full transcription workflow:
     1. Uploads the file to the audio submission service.
@@ -128,6 +128,8 @@ async def transcribe(file: UploadFile = File(...), domain: str = Form(None)):
         transcription_data = {}
         if domain:
             transcription_data["domain"] = domain
+        if language:
+            transcription_data["language"] = language
             
         try:
             transcription_response = requests.post(transcription_url, files=transcription_files, data=transcription_data)

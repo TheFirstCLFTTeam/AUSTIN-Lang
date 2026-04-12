@@ -42,9 +42,9 @@ async def get_dashboard():
         data = await fetch_bulk_context()
         metrics = aggregate_metrics(data)
         
-        # Add a flag if WER is high (Spec rule)
-        if metrics["average_wer"] is not None:
-            metrics["needs_attention"] = metrics["average_wer"] > 0.20
+        # Add a flag if latest WER is high (Spec rule: check only the latest record)
+        if metrics["latest_wer"] is not None:
+            metrics["needs_attention"] = metrics["latest_wer"] > 0.20
         else:
             metrics["needs_attention"] = False
 

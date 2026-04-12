@@ -31,7 +31,7 @@ if not hasattr(torch.nn.Module, "set_submodule"):
 # ---------------------------------------------
 
 # 1. Configuration
-MODEL_ID = "openai/whisper-tiny"#os.getenv("MODEL_ID") 
+MODEL_ID = "openai/whisper-large-v3-turbo"#os.getenv("MODEL_ID") 
 ADAPTER_NAME = "fypaudio"#os.getenv("ADAPTER_NAME")
 MANIFEST_PATH = os.path.join("data", f"{ADAPTER_NAME}_manifest.jsonl") #os.getenv("MANIFEST_PATH", "data/meralion_manifest.jsonl")
 OUTPUT_DIR = os.path.join("adapters", ADAPTER_NAME) #os.getenv("OUTPUT_DIR", "adapters/meralion_v1")

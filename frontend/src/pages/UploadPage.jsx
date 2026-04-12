@@ -8,6 +8,13 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(false);
   const [adapters, setAdapters] = useState(["base"]);
   const [selectedAdapter, setSelectedAdapter] = useState("base");
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
+
+  const languages = [
+    { label: "English", value: "en" },
+    { label: "Mandarin Chinese", value: "zh" },
+    { label: "Cantonese", value: "yue" },
+  ];
 
   useEffect(() => {
     async function loadAdapters() {
@@ -30,7 +37,7 @@ export default function UploadPage() {
     setUploaded(false);
 
     try {
-      await uploadAudio(file, selectedAdapter);
+      await uploadAudio(file, selectedAdapter, selectedLanguage);
       setUploaded(true);
       setTimeout(() => setUploaded(false), 5000);
     } catch (error) {
@@ -87,6 +94,26 @@ export default function UploadPage() {
             {adapters.map((adapter) => (
               <option key={adapter} value={adapter}>
                 {adapter === "base" ? "Base Model (Default)" : adapter}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Language Selection */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="language-select" className="text-sm font-medium text-gray-700">
+            Select Audio Language:
+          </label>
+          <select
+            id="language-select"
+            value={selectedLanguage}
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            disabled={loading}
+            className="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+          >
+            {languages.map((lang) => (
+              <option key={lang.value} value={lang.value}>
+                {lang.label}
               </option>
             ))}
           </select>

@@ -29,6 +29,9 @@ export async function getDashboardStats() {
       totalFiles: metrics.total_files,
       totalSegments: metrics.files_with_edits, // Reuse this field to show progress
       totalWordsEdited: metrics.needs_attention ? 1 : 0, // Flag for high WER
+      latestWER: metrics.latest_wer !== null 
+        ? (metrics.latest_wer * 100).toFixed(1) 
+        : null,
       estimatedAccuracy: metrics.average_wer !== null 
         ? ((1 - metrics.average_wer) * 100).toFixed(1) 
         : "100.0",

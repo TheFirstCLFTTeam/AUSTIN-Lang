@@ -90,7 +90,7 @@ export async function fetchAdapters() {
 }
 
 // Upload audio file
-export async function uploadAudio(file, domain = null) {
+export async function uploadAudio(file, domain = null, language = null) {
   requireAuth();
 
   try {
@@ -99,6 +99,9 @@ export async function uploadAudio(file, domain = null) {
     formData.append("file", file);
     if (domain && domain !== "base") {
       formData.append("domain", domain);
+    }
+    if (language) {
+      formData.append("language", language);
     }
 
     const response = await fetch("http://localhost:8001/transcribe/", {
