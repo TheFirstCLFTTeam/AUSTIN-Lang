@@ -21,4 +21,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-/data_collection
+
+# Ignore data_collection subfolders but not scripts that are direct children
+data_collection/*/
+!data_collection/*
