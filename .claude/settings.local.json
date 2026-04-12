@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:lottiefiles.com)",
+      "WebFetch(domain:lottie.host)",
+      "mcp__magic__21st_magic_component_builder",
+      "mcp__magic__21st_magic_component_inspiration",
+      "mcp__magic__21st_magic_component_refiner",
+      "Bash(npm install:*)"
+    ]
+  }
+}

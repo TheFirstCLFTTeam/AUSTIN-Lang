@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AUSTIN-Lang | UBS Institutional ML Performance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#000000",
+              "primary-dim": "#1a1a1a",
+              "on-primary": "#ffffff",
+              "secondary": "#E60000",
+              "error": "#E60000",
+              "background": "#ffffff",
+              "surface": "#ffffff",
+              "surface-container": "#f4f4f4",
+              "surface-container-low": "#f9f9f9",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#ebebeb",
+              "surface-container-highest": "#e0e0e0",
+              "outline": "#d1d1d1",
+              "outline-variant": "#e5e5e5",
+              "on-surface": "#000000",
+              "on-surface-variant": "#666666"
+            },
+            fontFamily: {
+              "headline": ["Manrope", "sans-serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0px",
+              "lg": "0px",
+              "xl": "0px",
+              "full": "0px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .asymmetric-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+      }
+      @media (max-width: 1024px) {
+        .asymmetric-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      /* Custom UBS Sharp Focus */
+      .ubs-border-active {
+        border-left: 4px solid #E60000;
+      }
+      .ubs-logo-svg {
+        filter: grayscale(1) brightness(0);
+      }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface flex min-h-screen">
+<!-- SideNavBar Component (UBS Style) -->
+<aside class="flex flex-col h-screen w-64 bg-gray-50 border-r border-gray-200 fixed left-0 top-0 z-40">
+<div class="px-8 py-8 mb-4">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-8 h-8 flex items-center justify-center">
+<!-- Scaled down version of {{DATA:IMAGE:IMAGE_2}} styling -->
+<svg class="w-full h-full ubs-logo-svg" viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<path d="M50,10 C27.9,10 10,27.9 10,50 C10,72.1 27.9,90 50,90 L50,90 C56.6,90 62.8,88.4 68.3,85.6 L78,90 L78,80.3 C85.4,72.9 90,62.8 90,50 C90,27.9 72.1,10 50,10 Z" fill="none" stroke="currentColor" stroke-width="8"></path>
+<rect fill="currentColor" height="40" width="8" x="46" y="30"></rect>
+<rect fill="currentColor" height="20" width="8" x="30" y="40"></rect>
+<rect fill="currentColor" height="20" width="8" x="62" y="40"></rect>
+</svg>
+</div>
+<h1 class="font-headline text-lg font-black text-black tracking-tighter uppercase">AUSTIN-Lang</h1>
+</div>
+<p class="font-['Inter'] text-[10px] uppercase tracking-widest font-bold text-gray-500">Institutional Precision</p>
+</div>
+<nav class="flex-1 overflow-y-auto">
+<div class="space-y-0.5">
+<a class="flex items-center text-gray-600 pl-5 py-3 hover:bg-gray-100 hover:text-black transition-all duration-200 font-['Inter'] text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined mr-4 text-lg">description</span> My Transcripts
+            </a>
+<a class="flex items-center text-gray-600 pl-5 py-3 hover:bg-gray-100 hover:text-black transition-all duration-200 font-['Inter'] text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined mr-4 text-lg">group</span> Shared
+            </a>
+<a class="flex items-center text-gray-600 pl-5 py-3 hover:bg-gray-100 hover:text-black transition-all duration-200 font-['Inter'] text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined mr-4 text-lg">star</span> Starred
+            </a>
+<a class="flex items-center text-gray-600 pl-5 py-3 hover:bg-gray-100 hover:text-black transition-all duration-200 font-['Inter'] text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined mr-4 text-lg">history</span> Recent
+            </a>
+<a class="flex items-center text-gray-600 pl-5 py-3 hover:bg-gray-100 hover:text-black transition-all duration-200 font-['Inter'] text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined mr-4 text-lg">delete</span> Trash
+            </a>
+<div class="mt-6 pt-4 border-t border-gray-200">
+<a class="flex items-center text-red-600 border-l-4 border-red-600 bg-white pl-4 py-3 font-['Inter'] text-xs uppercase tracking-widest font-bold" href="#">
+<span class="material-symbols-outlined mr-4 text-lg" style="font-variation-settings: 'FILL' 1;">analytics</span> Metrics Dashboard
+                </a>
+<a class="flex items-center text-gray-600 pl-5 py-3 hover:bg-gray-100 hover:text-black transition-all duration-200 font-['Inter'] text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined mr-4 text-lg">model_training</span> Training Jobs
+                </a>
+<a class="flex items-center text-gray-600 pl-5 py-3 hover:bg-gray-100 hover:text-black transition-all duration-200 font-['Inter'] text-xs uppercase tracking-widest font-semibold" href="#">
+<span class="material-symbols-outlined mr-4 text-lg">policy</span> Privacy Flags
+                </a>
+</div>
+</div>
+</nav>
+<div class="p-6 mt-auto">
+<button class="w-full py-4 bg-black text-white font-bold text-xs uppercase tracking-widest hover:bg-gray-900 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">add</span>
+            New Transcription
+        </button>
+</div>
+</aside>
+<main class="flex-1 flex flex-col ml-64 min-w-0 overflow-hidden">
+<!-- TopAppBar Component (UBS Style) -->
+<header class="flex justify-between items-center w-full px-8 h-16 bg-white border-b border-gray-100 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="md:hidden">
+<span class="material-symbols-outlined text-black">menu</span>
+</div>
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+<input class="bg-transparent border-b border-gray-200 rounded-none pl-8 pr-4 py-1 text-sm w-64 focus:ring-0 focus:border-black transition-all outline-none font-body" placeholder="SEARCH MODELS, EXPERIMENTS..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors">Help</button>
+<div class="flex items-center gap-4 border-l border-gray-100 pl-6">
+<button class="p-1 text-gray-500 hover:text-black transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-600 rounded-full"></span>
+</button>
+<button class="p-1 text-gray-500 hover:text-black transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-none overflow-hidden ml-2 grayscale">
+<img alt="UBS Institutional User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmNyNjCBmQrqP-4zwM1g4clIEDXyHUPYHn5jsjngR3sYz7TvdMXyIYWPduZQdpaGH7L25WRm8X9e3sDzI766ncQK6WOvS54CLnIU4cLQ8lcHhEBfXYhIOHjI59B-aOx4Fku-cEEDc-A9OqXaC3qoRqbutpwpUlohpf4dPWuoeUJGXJtLhVganOgSPykk1xEkxLFsJUFBDR1t656FZt92UtquyPlMibLLTGhlnKvzxgiV5NLXvLPMqkMZNjU2dwwt1cA4WV836Fs4xw"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="flex-1 overflow-y-auto px-10 py-12">
+<!-- Editorial Header -->
+<div class="mb-12 flex justify-between items-end border-b border-black pb-8">
+<div>
+<h2 class="font-headline text-5xl font-black text-black tracking-tighter uppercase leading-none mb-4">Model Performance</h2>
+<p class="text-gray-500 font-body uppercase text-xs tracking-widest font-bold">Retraining Run #842 | Dataset: Compliance-Fin-2024-Q3</p>
+</div>
+<div class="flex gap-4">
+<button class="flex items-center gap-2 px-8 py-3 bg-white text-black font-bold uppercase text-[11px] tracking-widest hover:bg-gray-100 transition-colors border border-black">
+<span class="material-symbols-outlined text-sm">science</span>
+                    Define Experiment
+                </button>
+<button class="flex items-center gap-2 px-8 py-3 bg-red-600 text-white font-bold uppercase text-[11px] tracking-widest hover:bg-red-700 transition-all active:scale-95 shadow-none">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">refresh</span>
+                    Retrain
+                </button>
+</div>
+</div>
+<!-- Summary Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-0 border border-gray-200 mb-12">
+<div class="bg-white p-8 border-r border-gray-200">
+<p class="font-label text-[10px] uppercase tracking-widest text-gray-500 font-black mb-6">Overall WER</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-black text-black tracking-tighter">4.2%</span>
+<span class="text-xs font-black text-red-600 flex items-center">
+<span class="material-symbols-outlined text-xs">trending_up</span> 0.2%
+                    </span>
+</div>
+<div class="mt-6 w-full bg-gray-100 h-0.5 overflow-hidden">
+<div class="bg-black h-full w-[96%]"></div>
+</div>
+</div>
+<div class="bg-white p-8 border-r border-gray-200">
+<p class="font-label text-[10px] uppercase tracking-widest text-gray-500 font-black mb-6">English WER</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-black text-black tracking-tighter">2.8%</span>
+<span class="text-xs font-black text-black flex items-center">
+<span class="material-symbols-outlined text-xs">trending_down</span> 0.5%
+                    </span>
+</div>
+<div class="mt-6 w-full bg-gray-100 h-0.5 overflow-hidden">
+<div class="bg-black h-full w-[98%]"></div>
+</div>
+</div>
+<div class="bg-white p-8 border-r border-gray-200">
+<p class="font-label text-[10px] uppercase tracking-widest text-gray-500 font-black mb-6">Mandarin WER</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-black text-black tracking-tighter">6.1%</span>
+<span class="text-xs font-black text-red-600 flex items-center">
+<span class="material-symbols-outlined text-xs">trending_up</span> 1.1%
+                    </span>
+</div>
+<div class="mt-6 w-full bg-gray-100 h-0.5 overflow-hidden">
+<div class="bg-red-600 h-full w-[94%]"></div>
+</div>
+</div>
+<div class="bg-white p-8">
+<p class="font-label text-[10px] uppercase tracking-widest text-gray-500 font-black mb-6">Financial Term Accuracy</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-4xl font-black text-red-600 tracking-tighter">98.4%</span>
+<span class="text-xs font-black text-red-600 flex items-center">
+<span class="material-symbols-outlined text-xs">check_circle</span>
+</span>
+</div>
+<div class="mt-6 w-full bg-gray-100 h-0.5 overflow-hidden">
+<div class="bg-red-600 h-full w-[98.4%]"></div>
+</div>
+</div>
+</div>
+<!-- Main Interactive Analytics -->
+<div class="asymmetric-grid mb-12">
+<!-- WER Trends Chart Simulation -->
+<div class="bg-white p-8 border border-gray-200">
+<div class="flex justify-between items-start mb-10">
+<div>
+<h3 class="font-headline text-xl font-black text-black uppercase tracking-tight">WER Trends Over Time</h3>
+<p class="text-gray-500 text-[10px] uppercase font-bold tracking-widest mt-1">Retraining run comparison: Last 30 cycles</p>
+</div>
+<div class="flex items-center gap-0 border border-black">
+<button class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-black text-white">All Runs</button>
+<button class="px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-black hover:bg-gray-50 transition-colors">Retained Only</button>
+</div>
+</div>
+<div class="h-64 flex items-end justify-between gap-1.5">
+<div class="bg-black/5 w-full h-[40%]" title="Run 812: 5.2%"></div>
+<div class="bg-black/5 w-full h-[45%]" title="Run 813: 5.1%"></div>
+<div class="bg-black/5 w-full h-[42%]" title="Run 814: 5.0%"></div>
+<div class="bg-red-600/30 w-full h-[50%]" title="Run 815: 4.8%"></div>
+<div class="bg-black/5 w-full h-[38%]" title="Run 816: 4.7%"></div>
+<div class="bg-black/5 w-full h-[35%]" title="Run 817: 4.6%"></div>
+<div class="bg-black/5 w-full h-[32%]" title="Run 818: 4.5%"></div>
+<div class="bg-red-600/50 w-full h-[60%]" title="Run 819: 4.4%"></div>
+<div class="bg-black/5 w-full h-[28%]" title="Run 820: 4.3%"></div>
+<div class="bg-black/80 w-full h-[25%]" title="Run 821: 4.2%"></div>
+<div class="bg-black w-full h-[22%]" title="Run 822: 4.1%"></div>
+<div class="bg-black/20 w-full h-[48%]"></div>
+<div class="bg-black/20 w-full h-[46%]"></div>
+<div class="bg-black/20 w-full h-[44%]"></div>
+<div class="bg-black/20 w-full h-[42%]"></div>
+<div class="bg-black/20 w-full h-[40%]"></div>
+</div>
+<div class="flex justify-between mt-6 text-[10px] uppercase font-black text-black tracking-widest border-t border-gray-100 pt-4">
+<span>Run 812</span>
+<span>Current (842)</span>
+</div>
+</div>
+<!-- Real-time Status Panel -->
+<div class="bg-gray-50 p-8 flex flex-col gap-8 border border-gray-200">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="w-3 h-3 bg-red-600"></span>
+<h3 class="font-headline text-lg font-black text-black uppercase tracking-tight">Real-time Metrics</h3>
+</div>
+<p class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Epoch 142/500 Performance</p>
+</div>
+<div class="space-y-6">
+<div class="bg-white p-6 border border-gray-200">
+<p class="font-label text-[9px] uppercase font-black text-gray-500 mb-4 tracking-widest">Training Loss</p>
+<div class="h-20 overflow-hidden relative">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 40">
+<path class="text-black" d="M0,35 Q20,32 40,25 T80,10 L100,5" fill="none" stroke="currentColor" stroke-width="2"></path>
+</svg>
+<div class="absolute right-0 top-0 text-3xl font-black text-black tracking-tighter">0.024</div>
+</div>
+</div>
+<div class="bg-white p-6 border border-gray-200">
+<p class="font-label text-[9px] uppercase font-black text-gray-500 mb-4 tracking-widest">GPU T-Eff</p>
+<div class="flex items-center justify-between">
+<div class="text-3xl font-black text-black tracking-tighter">94.2%</div>
+<div class="flex gap-1.5">
+<div class="w-2 h-8 bg-black"></div>
+<div class="w-2 h-8 bg-black"></div>
+<div class="w-2 h-8 bg-black"></div>
+<div class="w-2 h-8 bg-gray-200"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-auto py-3.5 bg-white text-black text-[11px] font-black uppercase tracking-widest border border-black flex items-center justify-center gap-2 hover:bg-black hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">settings_input_component</span>
+                    Model Registry
+                </button>
+</div>
+</div>
+<!-- Active Training Jobs Table -->
+<div class="bg-white border border-black overflow-hidden shadow-none">
+<div class="px-8 py-6 border-b border-black bg-gray-50 flex justify-between items-center">
+<h3 class="font-headline text-xl font-black text-black uppercase tracking-tight">Active Training Jobs</h3>
+<div class="text-[10px] font-black uppercase tracking-widest text-red-600 px-3 py-1 bg-red-50 border border-red-600">3 Active</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-white border-b border-gray-200">
+<th class="px-8 py-5 font-label text-[10px] uppercase tracking-widest text-black font-black">Job Name</th>
+<th class="px-8 py-5 font-label text-[10px] uppercase tracking-widest text-black font-black">Status</th>
+<th class="px-8 py-5 font-label text-[10px] uppercase tracking-widest text-black font-black">Progress</th>
+<th class="px-8 py-5 font-label text-[10px] uppercase tracking-widest text-black font-black">GPU Usage</th>
+<th class="px-8 py-5 font-label text-[10px] uppercase tracking-widest text-black font-black">Start Time</th>
+<th class="px-8 py-5"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100">
+<tr class="hover:bg-gray-50 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="p-2 bg-black text-white">
+<span class="material-symbols-outlined text-sm">psychology</span>
+</div>
+<span class="font-bold text-xs uppercase tracking-wider">TRANS-Large-v3-Fin</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 text-[9px] font-black tracking-widest bg-black text-white flex items-center w-fit gap-2">
+<span class="w-1.5 h-1.5 bg-red-600"></span>
+                                    RUNNING
+                                </span>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-4 min-w-[140px]">
+<div class="flex-1 bg-gray-100 h-1 overflow-hidden">
+<div class="bg-black h-full w-[68%]"></div>
+</div>
+<span class="text-[10px] font-black text-black">68%</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-2">
+<span class="text-xs font-black">82%</span>
+<div class="flex gap-1">
+<div class="w-1.5 h-4 bg-black"></div>
+<div class="w-1.5 h-4 bg-black"></div>
+<div class="w-1.5 h-4 bg-black"></div>
+<div class="w-1.5 h-4 bg-gray-100"></div>
+</div>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">2h 14m ago</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-gray-400 hover:text-red-600 transition-colors">
+<span class="material-symbols-outlined">cancel</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="p-2 bg-gray-200 text-black">
+<span class="material-symbols-outlined text-sm">language</span>
+</div>
+<span class="font-bold text-xs uppercase tracking-wider">MAND-Retrain-A2</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 text-[9px] font-black tracking-widest border border-black text-black flex items-center w-fit gap-1">
+                                    QUEUED
+                                </span>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-4 min-w-[140px]">
+<div class="flex-1 bg-gray-100 h-1 overflow-hidden">
+<div class="bg-black h-full w-[0%]"></div>
+</div>
+<span class="text-[10px] font-black text-gray-400">0%</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest italic">Allocating...</span>
+</td>
+<td class="px-8 py-6">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">5m ago</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-gray-400 hover:text-red-600 transition-colors">
+<span class="material-symbols-outlined">cancel</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 transition-colors">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<div class="p-2 bg-black text-white">
+<span class="material-symbols-outlined text-sm">settings_input_antenna</span>
+</div>
+<span class="font-bold text-xs uppercase tracking-wider">SPEECH-Core-Legacy</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="px-3 py-1 text-[9px] font-black tracking-widest bg-black text-white flex items-center w-fit gap-2">
+<span class="w-1.5 h-1.5 bg-red-600"></span>
+                                    RUNNING
+                                </span>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-4 min-w-[140px]">
+<div class="flex-1 bg-gray-100 h-1 overflow-hidden">
+<div class="bg-black h-full w-[12%]"></div>
+</div>
+<span class="text-[10px] font-black text-black">12%</span>
+</div>
+</td>
+<td class="px-8 py-6">
+<div class="flex items-center gap-2">
+<span class="text-xs font-black">14%</span>
+<div class="flex gap-1">
+<div class="w-1.5 h-4 bg-black"></div>
+<div class="w-1.5 h-4 bg-gray-100"></div>
+<div class="w-1.5 h-4 bg-gray-100"></div>
+<div class="w-1.5 h-4 bg-gray-100"></div>
+</div>
+</div>
+</td>
+<td class="px-8 py-6">
+<span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">15m ago</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-gray-400 hover:text-red-600 transition-colors">
+<span class="material-symbols-outlined">cancel</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual FAB (UBS Style - Sharp) -->
+<div class="fixed bottom-10 right-10">
+<button class="w-16 h-16 bg-red-600 text-white shadow-none flex items-center justify-center hover:bg-red-700 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+</body></html>

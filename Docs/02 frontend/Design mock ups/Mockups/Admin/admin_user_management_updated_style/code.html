@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AUSTIN-Lang Control - User Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800;900&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary": "#fbf8f8",
+                        "on-secondary-container": "#a80100",
+                        "primary-fixed-dim": "#d4d4d4",
+                        "tertiary-dim": "#535353",
+                        "surface-dim": "#d4dbdd",
+                        "surface-container-low": "#f2f4f4",
+                        "on-tertiary-fixed-variant": "#676666",
+                        "tertiary-fixed-dim": "#e7e5e4",
+                        "secondary-fixed": "#ffdad4",
+                        "primary-container": "#e2e2e2",
+                        "on-background": "#2d3435",
+                        "surface-container-highest": "#dde4e5",
+                        "surface-container": "#ebeeef",
+                        "on-tertiary-container": "#5c5b5b",
+                        "on-error": "#fff7f7",
+                        "primary-fixed": "#e2e2e2",
+                        "outline-variant": "#adb3b4",
+                        "on-secondary-fixed": "#850100",
+                        "secondary-container": "#ffdad4",
+                        "error-container": "#ff8b9a",
+                        "on-surface-variant": "#5a6061",
+                        "inverse-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#782232",
+                        "error": "#9e3f4e",
+                        "secondary": "#c20000",
+                        "secondary-fixed-dim": "#ffc7be",
+                        "tertiary-fixed": "#f6f3f2",
+                        "on-primary-container": "#525252",
+                        "on-primary": "#f8f8f8",
+                        "surface-variant": "#dde4e5",
+                        "primary-dim": "#525252",
+                        "inverse-surface": "#0c0f0f",
+                        "surface-bright": "#f9f9f9",
+                        "on-secondary": "#fff7f6",
+                        "tertiary-container": "#f6f3f2",
+                        "surface": "#f9f9f9",
+                        "inverse-on-surface": "#9c9d9d",
+                        "outline": "#757c7d",
+                        "tertiary": "#5f5f5f",
+                        "on-primary-fixed-variant": "#5b5b5b",
+                        "background": "#f9f9f9",
+                        "on-secondary-fixed-variant": "#bb0100",
+                        "surface-tint": "#5e5e5e",
+                        "on-tertiary-fixed": "#4a4949",
+                        "on-primary-fixed": "#3f3f3f",
+                        "on-surface": "#2d3435",
+                        "primary": "#5e5e5e",
+                        "surface-container-high": "#e4e9ea",
+                        "error-dim": "#4f0116",
+                        "secondary-dim": "#ab0100"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-screen flex flex-col border-r-0 bg-slate-50 w-64 z-50">
+<div class="p-8 pb-10">
+<div class="flex items-center gap-3 mb-8">
+<img alt="AUSTIN-Lang Institutional Logo" class="h-8 w-8 object-contain" data-alt="high-contrast geometric logo icon representing institutional precision and architectural stability in black and white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBajq_ryjYi74UTAqyfAPs_HaglcGhVDD_yxs8v84X7QnJto4Fi-JfuaX2fmBdQA4n1L0hjoLy0GfQzRH4SQdUA5ZIMCx41bQ_UNFK_0MNi9Of4fmHJYbtkLkDCEcI4CN1InSk0uI35BfixeECCIz7yW9T0F9MRvhGKOrkQmB1dHRuR9prWmFP57_xr65O5KOVwXsTBdU7S8fKWoc3h9WExDKiOVluA_9-fU1PGZydFqxMT4XOziioJqttgJkNJEb47HgjKVyroPulR"/>
+<div class="flex flex-col">
+<span class="text-xl font-black tracking-tighter text-black uppercase">AUSTIN-Lang</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold text-zinc-500">Institutional Admin</span>
+</div>
+</div>
+<nav class="space-y-1">
+<!-- User Management - ACTIVE -->
+<a class="flex items-center gap-3 px-4 py-3 text-white bg-red-700 font-bold transition-all duration-100 opacity-90" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">User Management</span>
+</a><a class="flex items-center gap-3 px-4 py-3 text-zinc-500 hover:bg-slate-200 transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="group_work">group_work</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">Group Management</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-500 hover:bg-slate-200 transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">Compliance Review</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-500 hover:bg-slate-200 transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">Statistics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-zinc-500 hover:bg-slate-200 transition-colors duration-150 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="flag">flag</span>
+<span class="font-manrope uppercase tracking-widest text-[10px] font-bold">Privacy Flags</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-8 border-t border-slate-200">
+<div class="mb-6">
+<button class="w-full bg-black text-white py-3 font-manrope uppercase tracking-widest text-[10px] font-black hover:bg-red-700 transition-colors">
+                    System Audit
+                </button>
+</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-zinc-500 hover:bg-slate-200 text-[11px] font-bold uppercase tracking-wider" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-zinc-500 hover:bg-slate-200 text-[11px] font-bold uppercase tracking-wider" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Support</span>
+</a>
+</div>
+<div class="mt-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-zinc-200 flex items-center justify-center">
+<span class="material-symbols-outlined text-zinc-600" data-icon="person">person</span>
+</div>
+<div class="overflow-hidden">
+<p class="text-xs font-bold truncate">Admin User Profile</p>
+<p class="text-[10px] text-zinc-500 truncate">admin@austin-lang.com</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopAppBar Shell -->
+<header class="flex justify-between items-center px-8 h-20 w-[calc(100%-16rem)] ml-64 bg-white fixed top-0 z-40">
+<div class="flex items-center gap-8">
+<h1 class="font-manrope font-extrabold text-2xl tracking-tight text-red-700">AUSTIN-Lang Control</h1>
+<nav class="flex gap-6">
+<a class="font-manrope font-bold text-sm text-zinc-600 hover:text-black transition-colors" href="#">Directory</a>
+<a class="font-manrope font-bold text-sm text-red-700 border-b-2 border-red-700 pb-1" href="#">Permissions</a>
+<a class="font-manrope font-bold text-sm text-zinc-600 hover:text-black transition-colors" href="#">Logs</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-zinc-400 text-sm" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-2 bg-slate-50 border-none focus:ring-1 focus:ring-red-700 text-sm w-64 font-body" placeholder="Search parameters..." type="text"/>
+</div>
+<div class="flex gap-4">
+<button class="material-symbols-outlined text-zinc-500 hover:text-red-700" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-zinc-500 hover:text-red-700" data-icon="history">history</button>
+</div>
+<button class="bg-black text-white px-6 py-2 font-manrope font-bold text-xs uppercase tracking-widest hover:bg-secondary transition-colors">
+                Export Data
+            </button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-20 p-8 min-h-screen bg-surface">
+<!-- Summary Dashboard: Tonal Layering -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-0 mb-12">
+<div class="bg-white p-8 border-r border-slate-100 flex flex-col justify-between">
+<span class="font-label uppercase tracking-widest text-[10px] font-bold text-zinc-400 mb-4">Total Users</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-headline font-black tracking-tighter">1,284</span>
+<span class="text-red-700 text-xs font-bold">+12%</span>
+</div>
+</div>
+<div class="bg-white p-8 border-r border-slate-100 flex flex-col justify-between">
+<span class="font-label uppercase tracking-widest text-[10px] font-bold text-zinc-400 mb-4">Pending Verifications</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-headline font-black tracking-tighter">42</span>
+<span class="material-symbols-outlined text-red-700" data-icon="priority_high">priority_high</span>
+</div>
+</div>
+<div class="bg-white p-8 border-r border-slate-100 flex flex-col justify-between">
+<span class="font-label uppercase tracking-widest text-[10px] font-bold text-zinc-400 mb-4">Admins</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-headline font-black tracking-tighter">18</span>
+<span class="text-xs font-bold text-zinc-400">Institutional</span>
+</div>
+</div>
+<div class="bg-white p-8 flex flex-col justify-between">
+<span class="font-label uppercase tracking-widest text-[10px] font-bold text-zinc-400 mb-4">ML Engineers</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-headline font-black tracking-tighter">156</span>
+<span class="text-xs font-bold text-zinc-400">Pipeline Ops</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- User Table Section -->
+<div class="lg:w-2/3">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="text-3xl font-headline font-black tracking-tighter uppercase mb-1">User Directory</h2>
+<p class="text-sm text-zinc-500 font-body">Institutional access control and registry management.</p>
+</div>
+<button class="bg-red-700 text-white px-8 py-3 font-manrope font-bold text-xs uppercase tracking-widest hover:bg-black transition-colors">
+                        Invite New User
+                    </button>
+</div>
+<div class="bg-white overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 border-b border-slate-100">
+<th class="px-6 py-4 font-manrope uppercase tracking-widest text-[10px] font-black text-zinc-500">Name</th>
+<th class="px-6 py-4 font-manrope uppercase tracking-widest text-[10px] font-black text-zinc-500">Role</th>
+<th class="px-6 py-4 font-manrope uppercase tracking-widest text-[10px] font-black text-zinc-500">Access</th>
+<th class="px-6 py-4 font-manrope uppercase tracking-widest text-[10px] font-black text-zinc-500">Status</th>
+<th class="px-6 py-4 font-manrope uppercase tracking-widest text-[10px] font-black text-zinc-500 text-right">Last Active</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<!-- Table Row 1 -->
+<tr class="hover:bg-slate-50 transition-colors group cursor-pointer bg-slate-100/30">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-900 text-white flex items-center justify-center text-[10px] font-bold">EK</div>
+<span class="text-sm font-bold">Elena Kostic</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<select class="bg-transparent border-none p-0 text-xs font-bold focus:ring-0 cursor-pointer text-red-700">
+<option>Senior Analyst</option>
+<option>Lead Engineer</option>
+<option>Risk Manager</option>
+</select>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-black text-white text-[9px] font-black uppercase tracking-tighter">Premium</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-green-600"></span>
+<span class="text-[11px] font-bold uppercase tracking-wide">Active</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<span class="text-xs text-zinc-400 font-body">2 mins ago</span>
+</td>
+</tr>
+<!-- Table Row 2 -->
+<tr class="hover:bg-slate-50 transition-colors group cursor-pointer">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 text-zinc-600 flex items-center justify-center text-[10px] font-bold">MT</div>
+<span class="text-sm font-bold text-zinc-700">Marcus Thorne</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<select class="bg-transparent border-none p-0 text-xs font-bold focus:ring-0 cursor-pointer text-zinc-500">
+<option>Data Scientist</option>
+<option>ML Engineer</option>
+</select>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-zinc-200 text-zinc-600 text-[9px] font-black uppercase tracking-tighter">Standard</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-green-600"></span>
+<span class="text-[11px] font-bold uppercase tracking-wide">Active</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<span class="text-xs text-zinc-400 font-body">14 hrs ago</span>
+</td>
+</tr>
+<!-- Table Row 3 -->
+<tr class="hover:bg-slate-50 transition-colors group cursor-pointer">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-zinc-200 text-zinc-600 flex items-center justify-center text-[10px] font-bold">AL</div>
+<span class="text-sm font-bold text-zinc-700">Arthur Lang</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<select class="bg-transparent border-none p-0 text-xs font-bold focus:ring-0 cursor-pointer text-zinc-500">
+<option>System Admin</option>
+<option>Compliance</option>
+</select>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-black text-white text-[9px] font-black uppercase tracking-tighter">Premium</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-amber-500"></span>
+<span class="text-[11px] font-bold uppercase tracking-wide">Idle</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<span class="text-xs text-zinc-400 font-body">2 days ago</span>
+</td>
+</tr>
+<!-- Table Row 4 -->
+<tr class="hover:bg-slate-50 transition-colors group cursor-pointer">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-red-50 text-red-600 flex items-center justify-center text-[10px] font-bold">JW</div>
+<span class="text-sm font-bold text-zinc-700">Jane Wu</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<select class="bg-transparent border-none p-0 text-xs font-bold focus:ring-0 cursor-pointer text-zinc-500">
+<option>Reviewer</option>
+<option>Auditor</option>
+</select>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-slate-100 text-zinc-400 text-[9px] font-black uppercase tracking-tighter">Basic</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-zinc-300"></span>
+<span class="text-[11px] font-bold uppercase tracking-wide text-zinc-400">Offline</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<span class="text-xs text-zinc-400 font-body">5 days ago</span>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="bg-slate-50 px-6 py-4 flex justify-between items-center">
+<span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Showing 4 of 1,284 entries</span>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-zinc-400 hover:text-black"><span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center bg-black text-white text-[10px] font-black">1</button>
+<button class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-zinc-600 hover:bg-slate-100 text-[10px] font-black">2</button>
+<button class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-zinc-400 hover:text-black"><span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Detailed Permissions Panel -->
+<div class="lg:w-1/3">
+<div class="bg-white text-black p-8 sticky top-28 border border-black rounded-xl">
+<div class="flex items-start justify-between mb-8">
+<div>
+<span class="font-label uppercase tracking-widest text-[9px] font-bold text-red-500 block mb-2">Subject Selected</span>
+<h3 class="text-2xl font-headline font-black tracking-tighter uppercase leading-none text-black">Elena Kostic</h3>
+<p class="text-zinc-600 text-xs mt-2 font-body">Senior Analyst • ID: AUTH-9921-X</p>
+</div>
+<div class="w-12 h-12 bg-zinc-100 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-red-600" data-icon="shield">shield</span>
+</div>
+</div>
+<div class="space-y-8">
+<div>
+<h4 class="font-label uppercase tracking-widest text-[10px] font-black text-black mb-6 border-b border-zinc-100 pb-2">Institutional Permissions</h4>
+<div class="space-y-6">
+<!-- Permission Item -->
+<div class="flex items-center justify-between group">
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-black">Read-only</p>
+<p class="text-[10px] text-zinc-500">View global ledgers &amp; statistics</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600 bg-zinc-200"></div>
+</label>
+</div>
+<div class="flex items-center justify-between group">
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-black">Review &amp; Edit</p>
+<p class="text-[10px] text-zinc-500">Modify compliance flags &amp; labels</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600 bg-zinc-200"></div>
+</label>
+</div>
+<div class="flex items-center justify-between group">
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-black">Admin Controls</p>
+<p class="text-[10px] text-zinc-500">Manage user groups &amp; system nodes</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600 bg-zinc-200"></div>
+</label>
+</div>
+<div class="flex items-center justify-between group">
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-red-500">ML Pipeline Access</p>
+<p class="text-[10px] text-zinc-500">Execute model training &amp; deployment</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600 bg-zinc-200"></div>
+</label>
+</div>
+</div>
+</div>
+<div class="pt-6 border-t border-zinc-100">
+<button class="w-full bg-black text-white py-4 font-manrope font-black uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all rounded-lg">
+                                Update Authorization
+                            </button>
+<button class="w-full mt-3 bg-zinc-100 text-black py-4 font-manrope font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 transition-all rounded-lg">
+                                Revoke Session
+                            </button>
+</div>
+<div class="pt-6 border-t border-zinc-100">
+<p class="text-[9px] font-bold text-zinc-600 uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="history_edu">history_edu</span>
+                                Last Audit: Oct 24, 2023 by System-Root
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Actions Section -->
+<div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="bg-surface-container p-10 flex flex-col justify-between">
+<div>
+<h4 class="text-xl font-headline font-black tracking-tighter uppercase mb-2">Institutional Logs</h4>
+<p class="text-sm text-zinc-500 mb-6 font-body">Complete immutable history of permission changes and access requests across the entire ecosystem.</p>
+</div>
+<button class="flex items-center justify-center gap-3 bg-white border border-zinc-200 py-4 font-manrope font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+                    Export Permissions Log
+                </button>
+</div>
+<div class="bg-red-50/50 p-10 flex flex-col justify-between border border-red-100">
+<div>
+<h4 class="text-xl font-headline font-black tracking-tighter uppercase mb-2 text-red-800">Mass Authorization</h4>
+<p class="text-sm text-red-700/60 mb-6 font-body">Update access levels for entire departments or engineering clusters in a single cryptographic operation.</p>
+</div>
+<button class="flex items-center justify-center gap-3 bg-red-700 text-white py-4 font-manrope font-bold text-xs uppercase tracking-widest hover:bg-black transition-colors">
+<span class="material-symbols-outlined" data-icon="rule">rule</span>
+                    Batch Review Access
+                </button>
+</div>
+</div>
+</main>
+</body></html>

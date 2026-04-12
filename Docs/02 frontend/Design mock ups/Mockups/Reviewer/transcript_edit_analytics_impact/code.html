@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#d4dbdd",
+              "secondary-dim": "#ab0100",
+              "primary-container": "#e2e2e2",
+              "outline-variant": "#adb3b4",
+              "tertiary": "#5f5f5f",
+              "surface-bright": "#f9f9f9",
+              "secondary-fixed-dim": "#ffc7be",
+              "on-primary-fixed": "#3f3f3f",
+              "on-tertiary-fixed-variant": "#676666",
+              "surface-container-low": "#f2f4f4",
+              "secondary-container": "#ffdad4",
+              "background": "#f9f9f9",
+              "on-surface": "#2d3435",
+              "tertiary-dim": "#535353",
+              "surface": "#f9f9f9",
+              "on-secondary": "#fff7f6",
+              "surface-container-lowest": "#ffffff",
+              "on-tertiary-fixed": "#4a4949",
+              "primary-fixed-dim": "#d4d4d4",
+              "inverse-on-surface": "#9c9d9d",
+              "on-tertiary-container": "#5c5b5b",
+              "primary-dim": "#525252",
+              "tertiary-fixed": "#f6f3f2",
+              "primary": "#5e5e5e",
+              "on-surface-variant": "#5a6061",
+              "inverse-primary": "#ffffff",
+              "error": "#9e3f4e",
+              "surface-container-high": "#e4e9ea",
+              "on-secondary-container": "#a80100",
+              "tertiary-fixed-dim": "#e7e5e4",
+              "on-secondary-fixed-variant": "#bb0100",
+              "error-dim": "#4f0116",
+              "on-primary-fixed-variant": "#5b5b5b",
+              "on-primary": "#f8f8f8",
+              "surface-container-highest": "#dde4e5",
+              "primary-fixed": "#e2e2e2",
+              "surface-container": "#ebeeef",
+              "surface-tint": "#5e5e5e",
+              "on-secondary-fixed": "#850100",
+              "outline": "#757c7d",
+              "on-error": "#fff7f7",
+              "secondary-fixed": "#ffdad4",
+              "on-tertiary": "#fbf8f8",
+              "on-background": "#2d3435",
+              "on-error-container": "#782232",
+              "inverse-surface": "#0c0f0f",
+              "on-primary-container": "#525252",
+              "secondary": "#c20000",
+              "surface-variant": "#dde4e5",
+              "tertiary-container": "#f6f3f2",
+              "error-container": "#ff8b9a"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen">
+<!-- SideNavBar (Shared Component) -->
+<aside class="hidden md:flex flex-col h-screen w-64 border-r-0 bg-zinc-50 dark:bg-zinc-950 flex-none fixed top-0 left-0 z-50">
+<div class="flex flex-col h-full py-8">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-8 h-8 bg-black dark:bg-white flex items-center justify-center">
+<span class="material-symbols-outlined text-white dark:text-black text-sm">precision_manufacturing</span>
+</div>
+<span class="font-headline font-black tracking-tighter text-black dark:text-white uppercase">INSTITUTIONAL</span>
+</div>
+<p class="font-label text-xs font-bold uppercase tracking-widest text-zinc-500">Precision Suite</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-red-600" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>History</span>
+</a>
+<!-- Active Item: Analytics -->
+<a class="flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 bg-black dark:bg-white text-white dark:text-black" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-red-600" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Collaborators</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-red-600" href="#">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span>Activity</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-red-600" href="#">
+<span class="material-symbols-outlined" data-icon="download">download</span>
+<span>Export</span>
+</a>
+</nav>
+<div class="px-4 mb-8">
+<button class="w-full bg-secondary text-white font-label text-xs font-bold uppercase tracking-widest py-4 hover:bg-secondary-dim transition-colors active:opacity-80">
+                    New Transcription
+                </button>
+</div>
+<div class="px-4 space-y-1 border-t border-zinc-200 dark:border-zinc-800 pt-6">
+<a class="flex items-center gap-3 px-4 py-2 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 text-zinc-600 dark:text-zinc-400 hover:text-red-600" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 text-zinc-600 dark:text-zinc-400 hover:text-red-600" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="archive">archive</span>
+<span>Archive</span>
+</a>
+</div>
+</div>
+</aside>
+<main class="flex-1 md:ml-64 min-h-screen flex flex-col">
+<!-- TopAppBar (Shared Component) -->
+<header class="h-16 flex justify-between items-center w-full px-6 bg-white dark:bg-black border-b-0 sticky top-0 z-40">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black tracking-tighter text-black dark:text-white uppercase font-headline">CLFT TRANSCRIPTION</span>
+<nav class="hidden lg:flex items-center gap-6 h-16">
+<a class="h-full flex items-center px-1 text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white font-['Manrope'] tracking-tight uppercase transition-colors duration-150" href="#">Dashboard</a>
+<a class="h-full flex items-center px-1 text-red-600 dark:text-red-500 border-b-2 border-red-600 font-bold font-['Manrope'] tracking-tight uppercase" href="#">Analytics</a>
+<a class="h-full flex items-center px-1 text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white font-['Manrope'] tracking-tight uppercase transition-colors duration-150" href="#">History</a>
+<a class="h-full flex items-center px-1 text-zinc-500 dark:text-zinc-400 font-medium hover:text-black dark:hover:text-white font-['Manrope'] tracking-tight uppercase transition-colors duration-150" href="#">Team</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-sm">search</span>
+<input class="bg-zinc-100 dark:bg-zinc-900 border-none text-[10px] font-bold tracking-widest uppercase pl-10 pr-4 py-2 w-64 focus:ring-1 focus:ring-red-600" placeholder="SEARCH SYSTEM..." type="text"/>
+</div>
+<button class="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 scale-95 transition-transform duration-75">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 scale-95 transition-transform duration-75">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional portrait of a financial analyst in a clean corporate environment with neutral lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9-Zi2T7jflCaeWvDNnNWGamn4xz4y_kM-wqMjh8BFWfG7ZNHH8SV28PM2PiyvdZ1xZ_fzjY8LOOZ29dGWvirqwsNcSJrGLA2vdU887FsYLBXrmwgI7EbuewZEsxYrP8nP6sMahGlfekvkDcpgN_-EC31eTb0QtnSlQq2QZ3bUYooDQKZ-kj1vjYAUC4_TtQS7OEdLqTA3_TKHBE14OyAk6j7YcdlpmjyqDBK6_APR56-5LPH9OsRw8Btsj5U9W__GR-Zm2T_El56s"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-8 space-y-8 max-w-7xl mx-auto w-full">
+<!-- Page Title Area -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<div class="text-xs font-bold uppercase tracking-[0.2em] text-secondary mb-2">Institutional Intelligence</div>
+<h1 class="text-5xl font-extrabold tracking-tighter text-on-surface uppercase leading-none">Edit Analytics <span class="text-outline-variant">&amp;</span> Impact</h1>
+</div>
+<div class="flex items-center gap-2">
+<div class="text-right hidden sm:block">
+<div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">System Status</div>
+<div class="text-xs font-bold text-on-surface">OPTIMIZED / MODEL V4.2</div>
+</div>
+<div class="w-2 h-2 bg-green-500 animate-pulse"></div>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Main Chart: WER Over Time -->
+<div class="lg:col-span-8 bg-surface-container-lowest p-8 flex flex-col">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h2 class="text-xl font-bold uppercase tracking-tight mb-1">Word Error Rate (WER) Over Time</h2>
+<p class="text-xs text-on-surface-variant uppercase tracking-wider">Historical performance metrics across all models</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-secondary"></span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Base Model</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-on-surface"></span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Fine-tuned</span>
+</div>
+</div>
+</div>
+<!-- SVG Chart Mock -->
+<div class="relative h-64 w-full bg-zinc-50 dark:bg-zinc-900 overflow-hidden">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 200">
+<path d="M0,180 L100,160 L200,170 L300,140 L400,120 L500,130 L600,90 L700,70 L800,40" fill="none" stroke="#c20000" stroke-width="3"></path>
+<path d="M0,190 L100,185 L200,182 L300,175 L400,170 L500,168 L600,165 L700,160 L800,158" fill="none" stroke="#2d3435" stroke-dasharray="4" stroke-width="3"></path>
+<!-- Grid Lines -->
+<line stroke="#ebeeef" stroke-width="1" x1="0" x2="800" y1="50" y2="50"></line>
+<line stroke="#ebeeef" stroke-width="1" x1="0" x2="800" y1="100" y2="100"></line>
+<line stroke="#ebeeef" stroke-width="1" x1="0" x2="800" y1="150" y2="150"></line>
+</svg>
+<div class="absolute bottom-2 left-2 text-[8px] font-mono text-zinc-400">TIMESTAMP_SEQUENCE_001_844</div>
+</div>
+<div class="mt-6 flex justify-between">
+<div class="grid grid-cols-4 gap-12">
+<div>
+<div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Current WER</div>
+<div class="text-2xl font-black">4.2%</div>
+</div>
+<div>
+<div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Target</div>
+<div class="text-2xl font-black">2.5%</div>
+</div>
+<div>
+<div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Improvement</div>
+<div class="text-2xl font-black text-secondary">+18.4%</div>
+</div>
+</div>
+<button class="self-end border border-on-surface px-6 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-on-surface hover:text-white transition-colors">
+                            Full Report
+                        </button>
+</div>
+</div>
+<!-- Secondary Column -->
+<div class="lg:col-span-4 space-y-8">
+<!-- Summary Card: Total Human Corrections -->
+<div class="bg-black text-white p-8">
+<div class="flex justify-between items-start mb-12">
+<span class="material-symbols-outlined text-secondary text-3xl">fingerprint</span>
+<div class="bg-secondary-dim px-2 py-1 text-[8px] font-bold tracking-[0.2em] uppercase">High Fidelity</div>
+</div>
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Total Human Corrections</h3>
+<div class="text-6xl font-black tracking-tighter mb-4">12,842</div>
+<div class="w-full bg-zinc-800 h-1">
+<div class="bg-secondary w-3/4 h-full"></div>
+</div>
+<p class="mt-4 text-[10px] leading-relaxed text-zinc-400 uppercase tracking-wider">Manual interventions validated by the Institutional Integrity Board. Accuracy confidence: 99.8%.</p>
+</div>
+<!-- Bar Chart: Commonly Misidentified Terms -->
+<div class="bg-surface-container-high p-8">
+<h3 class="text-sm font-bold uppercase tracking-widest mb-6">Critical Term Failures</h3>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-1">
+<span>Amortization</span>
+<span>412 Edits</span>
+</div>
+<div class="w-full bg-zinc-300 h-2">
+<div class="bg-secondary w-[85%] h-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-1">
+<span>Liquidity Trap</span>
+<span>288 Edits</span>
+</div>
+<div class="w-full bg-zinc-300 h-2">
+<div class="bg-secondary w-[60%] h-full"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-bold uppercase tracking-widest mb-1">
+<span>Fiduciary Duty</span>
+<span>194 Edits</span>
+</div>
+<div class="w-full bg-zinc-300 h-2">
+<div class="bg-secondary w-[40%] h-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Improvements List -->
+<div class="bg-surface-container p-8">
+<div class="flex justify-between items-center mb-8">
+<h2 class="text-2xl font-black uppercase tracking-tight">Recent Improvement Logs</h2>
+<div class="text-[10px] font-bold uppercase tracking-widest border-b border-on-surface pb-1">Filter: High Impact Only</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
+<!-- Log Item 1 -->
+<div class="bg-surface-container-lowest p-6 hover:bg-zinc-50 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-zinc-100 px-2 py-1 text-[8px] font-bold uppercase tracking-widest">TRX-9482-B</div>
+<span class="material-symbols-outlined text-secondary text-sm opacity-0 group-hover:opacity-100 transition-opacity">north_east</span>
+</div>
+<h4 class="font-bold text-sm uppercase mb-1">Q3 Earnings Boardroom</h4>
+<p class="text-[10px] text-zinc-500 uppercase tracking-wider mb-4">Duration: 42m 12s | Editor: J. Chen</p>
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<span class="text-[8px] font-bold text-zinc-400 uppercase">Initial</span>
+<span class="text-sm font-bold">12.4%</span>
+</div>
+<span class="material-symbols-outlined text-zinc-300">arrow_forward</span>
+<div class="flex flex-col">
+<span class="text-[8px] font-bold text-secondary uppercase">Revised</span>
+<span class="text-sm font-bold text-secondary">1.2%</span>
+</div>
+</div>
+</div>
+<!-- Log Item 2 -->
+<div class="bg-surface-container-lowest p-6 hover:bg-zinc-50 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-zinc-100 px-2 py-1 text-[8px] font-bold uppercase tracking-widest">TRX-7710-A</div>
+<span class="material-symbols-outlined text-secondary text-sm opacity-0 group-hover:opacity-100 transition-opacity">north_east</span>
+</div>
+<h4 class="font-bold text-sm uppercase mb-1">Risk Assessment Alpha</h4>
+<p class="text-[10px] text-zinc-500 uppercase tracking-wider mb-4">Duration: 18m 05s | Editor: M. Rossi</p>
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<span class="text-[8px] font-bold text-zinc-400 uppercase">Initial</span>
+<span class="text-sm font-bold">8.9%</span>
+</div>
+<span class="material-symbols-outlined text-zinc-300">arrow_forward</span>
+<div class="flex flex-col">
+<span class="text-[8px] font-bold text-secondary uppercase">Revised</span>
+<span class="text-sm font-bold text-secondary">0.8%</span>
+</div>
+</div>
+</div>
+<!-- Log Item 3 -->
+<div class="bg-surface-container-lowest p-6 hover:bg-zinc-50 transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-zinc-100 px-2 py-1 text-[8px] font-bold uppercase tracking-widest">TRX-1022-C</div>
+<span class="material-symbols-outlined text-secondary text-sm opacity-0 group-hover:opacity-100 transition-opacity">north_east</span>
+</div>
+<h4 class="font-bold text-sm uppercase mb-1">Compliance Policy Update</h4>
+<p class="text-[10px] text-zinc-500 uppercase tracking-wider mb-4">Duration: 64m 44s | Editor: S. Kim</p>
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<span class="text-[8px] font-bold text-zinc-400 uppercase">Initial</span>
+<span class="text-sm font-bold">15.1%</span>
+</div>
+<span class="material-symbols-outlined text-zinc-300">arrow_forward</span>
+<div class="flex flex-col">
+<span class="text-[8px] font-bold text-secondary uppercase">Revised</span>
+<span class="text-sm font-bold text-secondary">2.4%</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-zinc-200 flex justify-between items-center">
+<div class="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Displaying 3 of 442 improvements detected in past 24h</div>
+<nav class="flex gap-4">
+<button class="text-[10px] font-bold uppercase tracking-widest text-on-surface hover:text-secondary">Previous</button>
+<button class="text-[10px] font-bold uppercase tracking-widest text-on-surface hover:text-secondary">Next Page</button>
+</nav>
+</div>
+</div>
+<!-- Footer Meta -->
+<footer class="flex justify-between items-center py-12">
+<div class="flex items-center gap-4">
+<span class="text-xs font-bold uppercase tracking-widest">AUSTIN-Lang Engine</span>
+<span class="text-zinc-300">|</span>
+<span class="text-[10px] uppercase font-bold text-zinc-400">Institutional Access Grade AA+</span>
+</div>
+<div class="text-[8px] font-mono text-zinc-400">© 2024 INSTITUTIONAL SUITE. DATA PROTECTED UNDER SEC-811 COMPLIANCE.</div>
+</footer>
+</div>
+</main>
+</body></html>

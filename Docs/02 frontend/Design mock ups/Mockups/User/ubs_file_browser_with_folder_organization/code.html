@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#E60000", // UBS Red
+              "on-primary": "#ffffff",
+              "secondary": "#000000", // UBS Black
+              "on-secondary": "#ffffff",
+              "background": "#ffffff",
+              "surface": "#ffffff",
+              "surface-container": "#f4f4f4",
+              "surface-container-low": "#fafafa",
+              "surface-container-highest": "#e5e5e5",
+              "outline": "#d1d1d1",
+              "on-surface": "#000000",
+              "on-surface-variant": "#666666"
+            },
+            fontFamily: {
+              "headline": ["Manrope", "sans-serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+                "DEFAULT": "0px", 
+                "lg": "0px", 
+                "xl": "0px", 
+                "full": "0px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #000000; }
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .institutional-border { border-color: #e5e5e5; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+<!-- SideNavBar Component -->
+<aside class="flex flex-col h-screen fixed left-0 top-0 z-40 w-64 bg-gray-50 dark:bg-zinc-950 border-r border-gray-200 dark:border-zinc-800">
+<div class="px-8 py-6 mb-2">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-8 h-8 flex items-center justify-center">
+<svg class="w-full h-full text-black fill-current" viewbox="0 0 100 100">
+<path d="M50 10C27.9 10 10 27.9 10 50s17.9 40 40 40 40-17.9 40-40-17.9-40-40-40zm0 72c-17.7 0-32-14.3-32-32s14.3-32 32-32 32 14.3 32 32-14.3 32-32 32z"></path>
+<rect height="40" width="8" x="46" y="30"></rect>
+<rect height="20" width="6" x="34" y="40"></rect>
+<rect height="20" width="6" x="60" y="40"></rect>
+</svg>
+</div>
+<h1 class="font-manrope text-lg font-black text-black dark:text-white uppercase tracking-tighter">AUSTIN-Lang</h1>
+</div>
+<p class="text-[10px] font-['Inter'] font-semibold uppercase tracking-[0.2em] text-gray-500">Institutional Precision</p>
+</div>
+<div class="px-5 mb-6">
+<button class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-colors active:scale-[0.98]">
+<span class="material-symbols-outlined text-[18px]">add</span>
+            New Transcription
+        </button>
+</div>
+<nav class="flex-1 overflow-y-auto font-['Inter'] text-[11px] uppercase tracking-widest font-semibold">
+<a class="flex items-center gap-3 text-red-600 dark:text-red-500 border-l-4 border-red-600 pl-4 py-3 bg-white dark:bg-black transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span>My Transcripts</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-zinc-400 pl-5 py-3 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span>Shared</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-zinc-400 pl-5 py-3 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">star</span>
+<span>Starred</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-zinc-400 pl-5 py-3 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<span>Recent</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-zinc-400 pl-5 py-3 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+<span>Trash</span>
+</a>
+<div class="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">
+<a class="flex items-center gap-3 text-gray-600 dark:text-zinc-400 pl-5 py-3 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span>Metrics Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-zinc-400 pl-5 py-3 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">model_training</span>
+<span>Training Jobs</span>
+</a>
+<a class="flex items-center gap-3 text-gray-600 dark:text-zinc-400 pl-5 py-3 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">policy</span>
+<span>Privacy Flags</span>
+</a>
+</div>
+</nav>
+<div class="p-6 mt-auto">
+<div class="bg-white border border-gray-200 p-4">
+<div class="flex justify-between items-center mb-2">
+<span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">STORAGE</span>
+<span class="text-[10px] font-bold text-black">82%</span>
+</div>
+<div class="w-full bg-gray-100 h-1 overflow-hidden">
+<div class="bg-black h-full w-[82%]"></div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden bg-white ml-64">
+<!-- TopAppBar Component -->
+<header class="flex justify-between items-center w-full px-8 h-16 border-b border-gray-100 bg-white dark:bg-black sticky top-0 z-50">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 text-[18px]">search</span>
+<input class="w-full bg-transparent border-none py-2 pl-7 pr-4 text-xs font-['Inter'] focus:ring-0 outline-none placeholder:text-gray-400" placeholder="Search transcripts..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-gray-500 hover:text-black transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-red-600 rounded-full"></span>
+</button>
+<button class="text-gray-500 hover:text-black transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-gray-200">
+<div class="text-right">
+<p class="text-[11px] font-bold text-black leading-none uppercase tracking-tighter">M. Vontobel</p>
+<p class="text-[9px] text-gray-400 font-medium">Institutional Admin</p>
+</div>
+<div class="h-8 w-8 bg-gray-100 border border-gray-200 overflow-hidden">
+<img alt="UBS Institutional User Profile" class="w-full h-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlI3k55D9TBGKBjaega-C7EkRyZbPjO5nFIl2klCrXyPg9I_3vih5SRlZniYTdn38rHV2sIrc_CqfL7byqMvfb9vsxeephBAClqL7QECPYrPQ_yYFk6hD-sjlsLUh9yRC8RAOViClNOSsCs9ftD-irmM_rftOGTOA3Y18YIgL1bbj5KbQRHmh-F7xM4A4IVtqoWzjelSiHoNP0UMJU-9mYVPAVrqjGwyoselczVJKyS3KGKOfhFyunbIMyx5ajndUJ-EOli2EaWrak"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<!-- Central Section -->
+<section class="flex-1 flex flex-col p-10 overflow-y-auto">
+<!-- Title and Breadcrumbs -->
+<div class="mb-8">
+<h2 class="font-manrope text-4xl font-black text-black tracking-tighter uppercase mb-3">My Transcripts</h2>
+<div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
+<span class="hover:text-black cursor-pointer">Home</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="hover:text-black cursor-pointer">My Transcripts</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="text-black">Q1 Earnings</span>
+</div>
+</div>
+<!-- Folders Section -->
+<div class="mb-10">
+<div class="flex items-center justify-between border-b border-black pb-2 mb-6">
+<h3 class="text-[11px] font-black text-black uppercase tracking-[0.2em]">Folders</h3>
+<button class="text-[10px] font-bold text-gray-400 hover:text-black uppercase tracking-widest">View All</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Folder 1 -->
+<div class="flex items-center gap-4 p-4 border border-gray-200 hover:border-black transition-colors group cursor-pointer bg-white">
+<div class="w-10 h-10 flex items-center justify-center bg-gray-100 text-black group-hover:bg-black group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+</div>
+<div>
+<p class="text-xs font-bold text-black uppercase">Q1 Earnings</p>
+<p class="text-[9px] text-gray-400 uppercase font-semibold">12 Files • 4.2 GB</p>
+</div>
+</div>
+<!-- Folder 2 -->
+<div class="flex items-center gap-4 p-4 border border-gray-200 hover:border-black transition-colors group cursor-pointer bg-white">
+<div class="w-10 h-10 flex items-center justify-center bg-gray-100 text-black group-hover:bg-black group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+</div>
+<div>
+<p class="text-xs font-bold text-black uppercase">Legal Reviews</p>
+<p class="text-[9px] text-gray-400 uppercase font-semibold">8 Files • 1.1 GB</p>
+</div>
+</div>
+<!-- Folder 3 -->
+<div class="flex items-center gap-4 p-4 border border-gray-200 hover:border-black transition-colors group cursor-pointer bg-white">
+<div class="w-10 h-10 flex items-center justify-center bg-gray-100 text-black group-hover:bg-black group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">folder</span>
+</div>
+<div>
+<p class="text-xs font-bold text-black uppercase">Market Prep</p>
+<p class="text-[9px] text-gray-400 uppercase font-semibold">5 Files • 800 MB</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Files Header & Filters -->
+<div class="mb-6 space-y-4">
+<div class="flex items-center justify-between border-b border-black pb-2">
+<h3 class="text-[11px] font-black text-black uppercase tracking-[0.2em]">Files</h3>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 border border-gray-200 px-2 py-1">
+<span class="text-[9px] font-bold text-gray-400 uppercase">Sort by:</span>
+<select class="bg-transparent border-none p-0 text-[10px] font-bold text-black focus:ring-0 uppercase cursor-pointer">
+<option>Recent</option>
+<option>Name</option>
+<option>Size</option>
+<option>WER</option>
+</select>
+</div>
+<div class="flex border border-gray-200 p-0.5">
+<button class="px-2 py-1 bg-black text-white">
+<span class="material-symbols-outlined text-[18px]">view_list</span>
+</button>
+<button class="px-2 py-1 text-gray-400 hover:text-black transition-colors">
+<span class="material-symbols-outlined text-[18px]">grid_view</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Filter Chips -->
+<div class="flex flex-wrap items-center gap-2">
+<button class="px-3 py-1.5 border border-gray-200 hover:border-black text-[9px] font-bold text-black uppercase tracking-widest flex items-center gap-2 transition-colors">
+<span>Date: All Time</span>
+<span class="material-symbols-outlined text-[14px]">expand_more</span>
+</button>
+<button class="px-3 py-1.5 border border-gray-200 hover:border-black text-[9px] font-bold text-black uppercase tracking-widest flex items-center gap-2 transition-colors">
+<span>Language: EN-US</span>
+<span class="material-symbols-outlined text-[14px]">expand_more</span>
+</button>
+<button class="px-3 py-1.5 border border-gray-200 hover:border-black text-[9px] font-bold text-black uppercase tracking-widest flex items-center gap-2 transition-colors">
+<span>Status: Completed</span>
+<span class="material-symbols-outlined text-[14px]">expand_more</span>
+</button>
+<button class="px-3 py-1.5 border border-gray-200 hover:border-black text-[9px] font-bold text-black uppercase tracking-widest flex items-center gap-2 transition-colors">
+<span>WER: &lt; 2%</span>
+<span class="material-symbols-outlined text-[14px]">expand_more</span>
+</button>
+<button class="text-[9px] font-bold text-red-600 uppercase tracking-widest ml-2 hover:underline">Clear All</button>
+</div>
+</div>
+<!-- Table Header -->
+<div class="grid grid-cols-[1fr_120px_140px_100px_100px_80px_48px] px-2 py-3 text-[10px] font-black text-gray-400 font-label tracking-[0.2em] uppercase border-b border-gray-100 mb-2">
+<div>NAME / STATUS</div>
+<div>STATUS</div>
+<div>DATE UPLOADED</div>
+<div>DURATION</div>
+<div>LANGUAGE</div>
+<div>WER</div>
+<div></div>
+</div>
+<!-- File List -->
+<div class="space-y-px">
+<!-- File Row 1 -->
+<div class="grid grid-cols-[1fr_120px_140px_100px_100px_80px_48px] items-center px-2 py-4 hover:bg-gray-50 transition-colors group cursor-pointer border-b border-gray-100">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 bg-gray-100 flex items-center justify-center text-black border border-gray-200">
+<span class="material-symbols-outlined text-[18px]">description</span>
+</div>
+<div>
+<p class="text-xs font-bold text-black uppercase">Q3_Earnings_Call_2023.mp4</p>
+<p class="text-[9px] text-gray-400 uppercase font-semibold">Uploaded by Marcus V.</p>
+</div>
+</div>
+<div>
+<span class="px-2 py-0.5 border border-black text-black text-[9px] font-black uppercase tracking-widest">Completed</span>
+</div>
+<div class="text-[11px] font-medium text-gray-500">24 OCT 2023</div>
+<div class="text-[11px] font-medium text-gray-500">42:15</div>
+<div class="text-[11px] font-medium text-gray-500 uppercase">EN-US</div>
+<div class="text-[11px] font-bold text-black">1.2%</div>
+<div class="opacity-0 group-hover:opacity-100">
+<button class="p-1 hover:bg-gray-200">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- File Row 2 (Selected State) -->
+<div class="grid grid-cols-[1fr_120px_140px_100px_100px_80px_48px] items-center px-2 py-4 bg-gray-100 border-l-4 border-red-600 group cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 bg-black flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[18px]">description</span>
+</div>
+<div>
+<p class="text-xs font-bold text-black uppercase">Board_Meeting_Confidential.wav</p>
+<p class="text-[9px] text-red-600 uppercase font-bold">Uploaded by Sarah L.</p>
+</div>
+</div>
+<div>
+<span class="px-2 py-0.5 bg-black text-white text-[9px] font-black uppercase tracking-widest">In Review</span>
+</div>
+<div class="text-[11px] font-bold text-black">26 OCT 2023</div>
+<div class="text-[11px] font-bold text-black">18:04</div>
+<div class="text-[11px] font-bold text-black uppercase">EN-UK</div>
+<div class="text-[11px] font-extrabold text-red-600">0.8%</div>
+<div>
+<button class="p-1 hover:bg-white text-black">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- File Row 3 -->
+<div class="grid grid-cols-[1fr_120px_140px_100px_100px_80px_48px] items-center px-2 py-4 hover:bg-gray-50 transition-colors group cursor-pointer border-b border-gray-100">
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200">
+<span class="material-symbols-outlined text-[18px]">pending</span>
+</div>
+<div>
+<p class="text-xs font-bold text-black uppercase">M&amp;A_Discovery_Session_Part1.mp3</p>
+<p class="text-[9px] text-gray-400 uppercase font-semibold">Uploaded by Marcus V.</p>
+</div>
+</div>
+<div>
+<span class="px-2 py-0.5 border border-gray-300 text-gray-400 text-[9px] font-bold uppercase tracking-widest">Transcribing</span>
+</div>
+<div class="text-[11px] font-medium text-gray-500">27 OCT 2023</div>
+<div class="text-[11px] font-medium text-gray-400">--:--</div>
+<div class="text-[11px] font-medium text-gray-500 uppercase">DE</div>
+<div class="text-[11px] font-medium text-gray-400">--</div>
+<div class="opacity-0 group-hover:opacity-100">
+<button class="p-1 hover:bg-gray-200">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Info Panel -->
+<aside class="w-80 bg-gray-50 border-l border-gray-200 flex flex-col hide-scrollbar overflow-y-auto">
+<div class="p-8">
+<div class="w-full aspect-video bg-black mb-8 relative group overflow-hidden border border-black">
+<img alt="Audio waveform visualization" class="w-full h-full object-cover opacity-40 grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVIdtDFsGTZb7jk5NouDdVwSuVYN-FbHLkliWfAOeVui1czwh0Wv-YJEwWOH_Y1xIs2moYJkKbWlXCD2FssnMm6s1Y90skFngXQxxWD6zmq8SXYaJ5fxxgsryenIMvuV710yyLWyAHQHF8LnSXBseQWUEzHKPAHTcxWNA3TafwZLNvMIuUhd157i8gGdKRjyI7Tm89VS90FNRx9s7ncT0pXoIcBK78a5ildRhV5anqBHQshnMQYWRGYdY1rKNtj_hblFJN13wxwIxY"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<button class="w-14 h-14 bg-red-600 flex items-center justify-center text-white hover:bg-red-700 transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[32px]">play_arrow</span>
+</button>
+</div>
+</div>
+<h3 class="font-manrope text-xl font-black text-black mb-1 uppercase tracking-tighter">Board_Meeting_Confidential.wav</h3>
+<p class="text-[10px] font-bold text-gray-500 mb-10 uppercase tracking-widest">Institutional Access: 12 Recipients</p>
+<div class="space-y-8">
+<div>
+<p class="text-[9px] font-black text-black uppercase tracking-[0.3em] mb-4 border-b border-gray-200 pb-1">METADATA DETAILS</p>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-[11px]">
+<span class="text-gray-500 font-medium">DURATION</span>
+<span class="font-bold text-black">18:04</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="text-gray-500 font-medium">WORD ERROR RATE (WER)</span>
+<span class="font-black text-red-600">0.8%</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="text-gray-500 font-medium">SPEAKER DETECTION</span>
+<span class="font-bold text-black">4 SPEAKERS</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="text-gray-500 font-medium">DETECTED LANGUAGE</span>
+<span class="font-bold text-black uppercase">ENGLISH (UK)</span>
+</div>
+<div class="flex justify-between items-center text-[11px]">
+<span class="text-gray-500 font-medium">CID COMPLIANCE</span>
+<span class="text-black font-black flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-black">verified</span> PASSED
+                                </span>
+</div>
+</div>
+</div>
+<div>
+<p class="text-[9px] font-black text-black uppercase tracking-[0.3em] mb-4 border-b border-gray-200 pb-1">SYSTEM TAGS</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-black text-white text-[9px] font-bold uppercase tracking-widest">#EXECUTIVE</span>
+<span class="px-2 py-1 bg-gray-200 text-black text-[9px] font-bold uppercase tracking-widest">#FISCAL_Y24</span>
+<span class="px-2 py-1 bg-gray-200 text-black text-[9px] font-bold uppercase tracking-widest">#LEGAL_HOLD</span>
+</div>
+</div>
+</div>
+<div class="mt-10 pt-8 border-t border-gray-200 space-y-3">
+<button class="w-full py-3 bg-black hover:bg-zinc-800 text-white text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">history</span> Audit Trail
+                    </button>
+<button class="w-full py-3 border border-black hover:bg-white text-black text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">share</span> Manage Access
+                    </button>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</body></html>
