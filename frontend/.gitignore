@@ -24,4 +24,5 @@ yarn-error.log*
 
 # Ignore data_collection subfolders but not scripts that are direct children
 data_collection/*/
+data_collection/sampled_datasets/*
 !data_collection/*
