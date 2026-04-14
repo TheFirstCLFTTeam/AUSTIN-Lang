@@ -208,16 +208,19 @@ export async function fetchSubmittedFiles() {
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return MOCK_FILE_STORE.map(
-            ({ id, name, audioUrl, uploaded_at, transcriptSegments, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance }) => {
+            ({ id, name, audioUrl, uploaded_at, transcriptSegments, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset }) => {
                 const fullText = (transcriptSegments || []).map((s) => s.text).join(' ');
                 const words = fullText.split(/\s+/).filter(Boolean);
+                const header = words.length > 1
+                    ? words.slice(0, 50).join(' ')
+                    : fullText.slice(0, 120);
                 return {
                     id,
                     name,
                     audioUrl,
                     uploaded_at,
                     transcriptSegments: [],
-                    transcriptHeader: words.length > 0 ? words.slice(0, 50).join(' ') : '',
+                    transcriptHeader: header,
                     duration: duration || null,
                     wer: wer ?? null,
                     absoluteWordErrorRate: absoluteWordErrorRate ?? null,
@@ -225,6 +228,7 @@ export async function fetchSubmittedFiles() {
                     speakerDetection: speakerDetection ?? null,
                     detectedLanguage: detectedLanguage || null,
                     compliance: compliance || null,
+                    dataset: dataset || null,
                 };
             },
         );
@@ -266,14 +270,18 @@ export async function fetchAllFilesMetadata() {
         return MOCK_FILE_STORE.map((f) => {
             const fullText = (f.transcriptSegments || []).map((s) => s.text).join(' ');
             const words = fullText.split(/\s+/).filter(Boolean);
+            const header = words.length > 1
+                ? words.slice(0, 50).join(' ')
+                : fullText.slice(0, 120);
             return {
                 id: f.id,
                 name: f.name,
+                audioUrl: f.audioUrl || null,
                 uploaded_at: f.uploaded_at,
                 ownerId: f.ownerId,
                 ownerName: f.ownerName,
                 isOwned: f.ownerId === currentUser?.id,
-                transcriptHeader: words.length > 0 ? words.slice(0, 50).join(' ') : '',
+                transcriptHeader: header,
                 duration: f.duration || null,
                 wer: f.wer ?? null,
                 absoluteWordErrorRate: f.absoluteWordErrorRate ?? null,
@@ -281,6 +289,7 @@ export async function fetchAllFilesMetadata() {
                 speakerDetection: f.speakerDetection ?? null,
                 detectedLanguage: f.detectedLanguage || null,
                 compliance: f.compliance || null,
+                dataset: f.dataset || null,
             };
         });
     }

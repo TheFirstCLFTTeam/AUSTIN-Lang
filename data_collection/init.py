@@ -1,8 +1,8 @@
 """Download a random sample of audio files from one or more Hugging Face datasets.
 
 Dataset cards are read, one per line, from a ``.txt`` file in the Source folder
-(``sampled_datasets/Source`` by default). Blank lines and lines starting with
-``#`` are ignored.
+(``Source`` by default, next to this script). Blank lines and lines starting
+with ``#`` are ignored.
 
 Usage:
     python init.py                    # interactive picker over Source folder
@@ -22,7 +22,8 @@ from huggingface_hub import login
 from utils.hf_data_loader import download_random_audio_sample
 
 
-SOURCE_DIR = os.path.join("sampled_datasets", "Source")
+SOURCE_DIR = "Source"
+FAILURE_RUNS_SUBDIR = "failure_runs"
 SPLIT = "train"
 NUM_SAMPLES = 10
 SEED = 42
@@ -122,11 +123,12 @@ def process_dataset(dataset_name: str, output_root: str, datasets_cache: str) ->
 def write_failures_file(
     failures: List[Tuple[str, str]], source_dir: str, cards_path: str
 ) -> str:
-    """Write failed cards to ``Source/dataset_failed_<timestamp>.txt`` so the
-    user can re-run against it (via the picker or ``-f``)."""
-    os.makedirs(source_dir, exist_ok=True)
+    """Write failed cards to ``Source/failure_runs/dataset_failed_<timestamp>.txt``
+    so the user can re-run against it (via the picker or ``-f``)."""
+    failures_dir = os.path.join(source_dir, FAILURE_RUNS_SUBDIR)
+    os.makedirs(failures_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = os.path.join(source_dir, f"dataset_failed_{timestamp}.txt")
+    out_path = os.path.join(failures_dir, f"dataset_failed_{timestamp}.txt")
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(f"# Failed downloads from {cards_path}\n")
@@ -197,7 +199,8 @@ def main():
             print(f"  - {card}: {err}")
         failures_path = write_failures_file(failures, source_dir, cards_path)
         print(f"\nWrote failure list to {failures_path}")
-        print(f"Re-run with: python init.py -f {os.path.basename(failures_path)}")
+        rerun_arg = os.path.relpath(failures_path, source_dir).replace(os.sep, "/")
+        print(f"Re-run with: python init.py -f {rerun_arg}")
 
 
 if __name__ == "__main__":

@@ -18,7 +18,12 @@
       "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/admin_user_management_updated_style/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_admin.png)",
       "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/user_group_metrics_management_1/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_groups.png)",
       "Bash(node -e \"console.log\\(require\\('tailwindcss/package.json'\\).version\\)\")",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\")",
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\AlienKevin-mixed_cantonese_and_english_speech\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\mixed-cantonese-english.json\")",
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\AlienKevin-wordshk_cantonese_speech\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\wordshk-cantonese.json\")",
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\alvanlii-cantonese-youtube\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\alvanlii-youtube.json\")",
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\edmundchan70-Cantonese_fine_tune\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\edmundchan-finetune.json\")"
     ]
   },
   "prefersReducedMotion": true

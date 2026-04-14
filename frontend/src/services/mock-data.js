@@ -1,5 +1,7 @@
 // Shared mock data — imported by both api.js (client) and api-server.js (server)
 
+import { SAMPLED_DATASET_FILES } from './sampled-datasets';
+
 export const users = [
     {
         id: 'u1',
@@ -440,4 +442,5 @@ export const MOCK_FILE_STORE = [
             },
         ],
     },
+    ...SAMPLED_DATASET_FILES,
 ];

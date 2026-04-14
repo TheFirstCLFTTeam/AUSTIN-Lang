@@ -1,0 +1,52 @@
+[
+  {
+    "audio": "audio/0000_audio.wav",
+    "sentence": "\"踢波時，記住positioning tool普通，可能help你防止對方counter attack。\"",
+    "topic": "體育"
+  },
+  {
+    "audio": "audio/0001_audio.wav",
+    "sentence": "\"摊边的炒面，salty and savoury，gives off a distinct aroma that draws people in.\"",
+    "topic": "食物"
+  },
+  {
+    "audio": "audio/0002_audio.wav",
+    "sentence": "\"唔好只著眼喺grade，更加要focus喺學到嘅知識同能力。\"",
+    "topic": "學習"
+  },
+  {
+    "audio": "audio/0003_audio.wav",
+    "sentence": "\"喺Discovery Channel我學到好大堆嘅新知識，真係感到好amazed，每次都有新嘅surprise await裏面！” ",
+    "topic": "娛樂"
+  },
+  {
+    "audio": "audio/0004_audio.wav",
+    "sentence": "\"我嘅weekend plan就係去維園打波，然後喺Coco都要幫我填充一下，話說佢嘅珍珠奶茶最正呀！\"",
+    "topic": "娛樂"
+  },
+  {
+    "audio": "audio/0005_audio.wav",
+    "sentence": "\"天文台警報，可能有大雨，玩電腦可watch out吖，免得短路！\"",
+    "topic": "天氣"
+  },
+  {
+    "audio": "audio/0006_audio.wav",
+    "sentence": "\"進行full body workout唔單可以improve你的血液循環，同时仲可以提高你的metabolism。\" ",
+    "topic": "體育"
+  },
+  {
+    "audio": "audio/0007_audio.wav",
+    "sentence": "\"如果你去New Zealand，非常建議你去嗰個magnificent嘅Milford Sound，欣賞下嗰度嘅natural beauty，真係震撼到人心。\"",
+    "topic": "旅遊"
+  },
+  {
+    "audio": "audio/0008_audio.wav",
+    "sentence": "\"即使你feel difficult或者frustrated，都唔可以放棄，因為from difficulties我哋學到最多嘅就系咁樣。\"",
+    "topic": "學習"
+  },
+  {
+    "audio": "audio/0009_audio.wav",
+    "sentence": "\"本地嘅 youth unemployment rate 上升，政府要為年輕人提供更多 job opportunities。\"",
+    "topic": "本地時事"
+  }
+]

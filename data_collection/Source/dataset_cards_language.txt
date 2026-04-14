@@ -1,0 +1,8 @@
+# One Hugging Face dataset card per line.
+# Blank lines and lines starting with # are ignored.
+
+AlienKevin/mixed_cantonese_and_english_speech
+ziyou-li/cantonese_daily
+AlienKevin/wordshk_cantonese_speech
+alvanlii/cantonese-youtube
+edmundchan70/Cantonese_fine_tune

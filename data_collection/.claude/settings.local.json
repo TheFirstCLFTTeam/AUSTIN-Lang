@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\Source\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\\\\failure_runs\")",
+      "Bash(mv \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\\\\dataset_failed_\"*.txt \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\\\\failure_runs\\\\\" && ls \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\" && echo \"---\" && ls \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\\\\failure_runs\")",
+      "Bash(mv sampled_datasets/Source Source)",
+      "Bash(mkdir -p Source/failure_runs)",
+      "Bash(mv Source/dataset_failed_*.txt Source/failure_runs/)",
+      "Bash(xargs grep *)"
+    ]
+  }
+}

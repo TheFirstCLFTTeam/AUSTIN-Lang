@@ -4,15 +4,12 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { fetchSubmittedFiles, fetchAllFilesMetadata, getCurrentUser } from "../../../services/api";
+import { getTimeFormat, formatDateTime, TIME_FORMAT_EVENT, TIME_FORMAT_KEY } from "../../../lib/timeFormat";
+import { SAMPLED_DATASET_FOLDERS } from "../../../services/sampled-datasets";
 
-/* ── Mock folders (until folder API exists) ── */
-const MOCK_FOLDERS = [
-  { id: "f1", name: "Q1 Earnings", fileCount: 12 },
-  { id: "f2", name: "Legal Reviews", fileCount: 8 },
-  { id: "f3", name: "Market Prep", fileCount: 5 },
-  { id: "f4", name: "Board Meetings", fileCount: 3 },
-  { id: "f5", name: "Compliance", fileCount: 7 },
-];
+/* ── Folders are the sampled-dataset sources ── */
+const FOLDERS = SAMPLED_DATASET_FOLDERS;
+const FOLDER_COLS = 4;
 
 /* ── Helpers ── */
 function StatusBadge({ status }) {
@@ -96,18 +93,30 @@ function FilterChip({ label, active, onClick }) {
 }
 
 /* ── Folder card ── */
-function FolderCard({ folder }) {
+function FolderCard({ folder, isSelected, onClick }) {
+  const baseBg = isSelected ? "#eef0fc" : "#ffffff";
+  const hoverBg = isSelected ? "#eef0fc" : "#f6f3f2";
   return (
     <div
+      onClick={onClick}
       className="group flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors"
-      style={{ backgroundColor: "#ffffff", borderRadius: "8px", border: "1px solid #e8e4e3" }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#ffffff"; }}
+      style={{
+        backgroundColor: baseBg,
+        borderRadius: "8px",
+        border: isSelected ? "1px solid #b20100" : "1px solid #e8e4e3",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBg; }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = baseBg; }}
     >
       <FolderIcon />
-      <span className="flex-1 text-[0.8125rem] font-medium truncate" style={{ color: "#1c1b1b" }}>
-        {folder.name}
-      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[0.8125rem] font-medium truncate" style={{ color: "#1c1b1b" }}>
+          {folder.name}
+        </div>
+        <div className="text-[0.6875rem] truncate" style={{ color: "#7a7574" }}>
+          {folder.fileCount} file{folder.fileCount === 1 ? "" : "s"}
+        </div>
+      </div>
       <ThreeDotMenu />
     </div>
   );
@@ -184,9 +193,61 @@ export default function FilesPage() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("all");
   const [showAllFolders, setShowAllFolders] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [timeFormat, setTimeFormatState] = useState("12h");
+  const audioRef = useRef(null);
   const router = useRouter();
   const user = getCurrentUser();
   const userRole = user?.role || "generic";
+
+  // Sync the time-format preference from localStorage, and react to changes
+  // from the profile page (same-tab custom event) or other tabs (storage event).
+  useEffect(() => {
+    setTimeFormatState(getTimeFormat());
+    const handleCustom = (e) => setTimeFormatState(e.detail ?? getTimeFormat());
+    const handleStorage = (e) => {
+      if (e.key === TIME_FORMAT_KEY) setTimeFormatState(getTimeFormat());
+    };
+    window.addEventListener(TIME_FORMAT_EVENT, handleCustom);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(TIME_FORMAT_EVENT, handleCustom);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
+  // Reset playback when the selected file changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setIsPlaying(false);
+  }, [selected?.id]);
+
+  // When drilling into a folder, pre-select the first file inside it. When
+  // leaving the folder view, clear the selection so the detail pane hides.
+  useEffect(() => {
+    if (!selectedFolder) {
+      setSelected(null);
+      return;
+    }
+    if (!selected || selected.dataset !== selectedFolder) {
+      const first = files.find((f) => f.dataset === selectedFolder);
+      setSelected(first || null);
+    }
+  }, [selectedFolder, files]);
+
+  const togglePlayback = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().catch((err) => console.error("Audio play failed:", err));
+    } else {
+      audio.pause();
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -197,14 +258,26 @@ export default function FilesPage() {
     fetchFn()
       .then((data) => {
         setFiles(data);
-        if (data.length > 0) setSelected(data[0]);
       })
       .catch((error) => console.error("Error fetching files:", error))
       .finally(() => setLoading(false));
   }, [userRole]);
 
   const pageTitle = userRole === "generic" ? "MY TRANSCRIPTS" : "ALL TRANSCRIPTS";
-  const visibleFolders = showAllFolders ? MOCK_FOLDERS : MOCK_FOLDERS.slice(0, 4);
+  const visibleFolders = showAllFolders ? FOLDERS : FOLDERS.slice(0, FOLDER_COLS);
+
+  // Split folders so the overflow row is right-aligned: full rows render normally,
+  // the partial last row is padded with empty cells on the left.
+  const fullRowCount = Math.floor(visibleFolders.length / FOLDER_COLS) * FOLDER_COLS;
+  const fullRowFolders = visibleFolders.slice(0, fullRowCount);
+  const lastRowFolders = visibleFolders.slice(fullRowCount);
+  const lastRowPad = lastRowFolders.length > 0
+    ? FOLDER_COLS - lastRowFolders.length
+    : 0;
+
+  const activeFolder = selectedFolder
+    ? FOLDERS.find((f) => f.id === selectedFolder)
+    : null;
 
   const filters = [
     { key: "all", label: "All" },
@@ -214,7 +287,8 @@ export default function FilesPage() {
   ];
 
   const filteredFiles = files.map((f, i) => ({ ...f, _status: getFileStatus(i) }))
-    .filter((f) => activeFilter === "all" || f._status === activeFilter);
+    .filter((f) => activeFilter === "all" || f._status === activeFilter)
+    .filter((f) => !selectedFolder || f.dataset === selectedFolder);
 
   if (loading) {
     return (
@@ -236,7 +310,22 @@ export default function FilesPage() {
       <div className="flex-1 min-w-0">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-[0.75rem] mb-1" style={{ color: "#7a7574" }}>
-          <span>HOME</span><span>/</span><span style={{ color: "#1c1b1b" }}>{pageTitle}</span>
+          <span>HOME</span><span>/</span>
+          {activeFolder ? (
+            <>
+              <button
+                onClick={() => setSelectedFolder(null)}
+                className="cursor-pointer"
+                style={{ color: "#7a7574", backgroundColor: "transparent", border: "none", padding: 0 }}
+              >
+                {pageTitle}
+              </button>
+              <span>/</span>
+              <span style={{ color: "#1c1b1b" }}>{activeFolder.name.toUpperCase()}</span>
+            </>
+          ) : (
+            <span style={{ color: "#1c1b1b" }}>{pageTitle}</span>
+          )}
         </div>
 
         {/* Header row */}
@@ -284,7 +373,7 @@ export default function FilesPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Folders</h2>
-            {MOCK_FOLDERS.length > 4 && (
+            {FOLDERS.length > FOLDER_COLS && (
               <button
                 onClick={() => setShowAllFolders(!showAllFolders)}
                 className="text-[0.75rem] font-medium cursor-pointer"
@@ -294,17 +383,54 @@ export default function FilesPage() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-4 gap-3">
-            {visibleFolders.map((folder) => (
-              <FolderCard key={folder.id} folder={folder} />
-            ))}
-          </div>
+          {fullRowFolders.length > 0 && (
+            <div className="grid grid-cols-4 gap-3">
+              {fullRowFolders.map((folder) => (
+                <FolderCard
+                  key={folder.id}
+                  folder={folder}
+                  isSelected={selectedFolder === folder.id}
+                  onClick={() => setSelectedFolder(selectedFolder === folder.id ? null : folder.id)}
+                />
+              ))}
+            </div>
+          )}
+          {lastRowFolders.length > 0 && (
+            <div className={`grid grid-cols-4 gap-3 ${fullRowFolders.length > 0 ? "mt-3" : ""}`}>
+              {Array.from({ length: lastRowPad }).map((_, i) => (
+                <div key={`pad-${i}`} />
+              ))}
+              {lastRowFolders.map((folder) => (
+                <FolderCard
+                  key={folder.id}
+                  folder={folder}
+                  isSelected={selectedFolder === folder.id}
+                  onClick={() => setSelectedFolder(selectedFolder === folder.id ? null : folder.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* ── Files ── */}
+        {/* ── Files (only visible when a folder is opened) ── */}
+        {activeFolder && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Files</h2>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSelectedFolder(null)}
+                className="flex items-center gap-1 text-[0.75rem] font-medium cursor-pointer"
+                style={{ color: "#7a7574", backgroundColor: "transparent", border: "none", padding: 0 }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                BACK
+              </button>
+              <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+                Files in {activeFolder.name}
+              </h2>
+            </div>
           </div>
 
           {viewMode === "list" ? (
@@ -423,11 +549,18 @@ export default function FilesPage() {
           {filteredFiles.length === 0 && (
             <div className="px-4 py-12 text-center text-[0.875rem]" style={{ color: "#7a7574" }}>
               {activeFilter !== "all"
-                ? "No transcripts match the selected filter."
-                : "No transcripts yet. Upload an audio file to get started."}
+                ? `No transcripts in "${activeFolder.name}" match the current filter.`
+                : `No transcripts in "${activeFolder.name}" yet.`}
             </div>
           )}
         </div>
+        )}
+
+        {!activeFolder && (
+          <div className="px-4 py-12 text-center text-[0.875rem]" style={{ color: "#7a7574" }}>
+            Select a folder above to view its transcripts.
+          </div>
+        )}
       </div>
 
       {/* ══ Right side: full-height preview panel ══ */}
@@ -438,9 +571,41 @@ export default function FilesPage() {
         >
           {/* Preview thumbnail */}
           {(selected.isOwned || userRole === "admin") ? (
-            <div className="w-full h-40 mb-4 flex items-center justify-center" style={{ backgroundColor: "#1c1b1b", borderRadius: "6px" }}>
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7a7574" strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-            </div>
+            <button
+              type="button"
+              onClick={togglePlayback}
+              disabled={!selected.audioUrl}
+              className="group w-full h-40 mb-4 flex items-center justify-center transition-colors"
+              style={{
+                backgroundColor: "#1c1b1b",
+                borderRadius: "6px",
+                border: "none",
+                cursor: selected.audioUrl ? "pointer" : "not-allowed",
+              }}
+              onMouseEnter={(e) => { if (selected.audioUrl) e.currentTarget.style.backgroundColor = "#2a2827"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#1c1b1b"; }}
+            >
+              {isPlaying ? (
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="#ffffff" stroke="none">
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+              ) : (
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="#ffffff" stroke="none">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              )}
+              {selected.audioUrl && (
+                <audio
+                  ref={audioRef}
+                  src={selected.audioUrl}
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  onEnded={() => setIsPlaying(false)}
+                  preload="none"
+                />
+              )}
+            </button>
           ) : (
             <div className="w-full h-40 mb-4 flex items-center justify-center" style={{ backgroundColor: "#f6f3f2", borderRadius: "6px" }}>
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7a7574" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="0" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
@@ -461,7 +626,7 @@ export default function FilesPage() {
           <div className="mt-4 pt-4 space-y-3" style={{ borderTop: "1px solid #e8e4e3" }}>
             <p className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>METADATA DETAILS</p>
             <DetailRow label="File Name" value={selected.name} />
-            <DetailRow label="Date Uploaded" value={selected.uploaded_at ? new Date(selected.uploaded_at).toLocaleDateString() : "\u2014"} />
+            <DetailRow label="Date Uploaded" value={formatDateTime(selected.uploaded_at, timeFormat)} />
             <DetailRow label="Duration" value={selected.duration || "\u2014"} />
             <DetailRow
               label="Word Error Rate (WER)"

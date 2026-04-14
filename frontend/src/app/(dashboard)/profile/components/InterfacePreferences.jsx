@@ -1,6 +1,42 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import {
+    getTimeFormat,
+    setTimeFormat,
+    TIME_FORMAT_EVENT,
+    TIME_FORMAT_KEY,
+} from '../../../../lib/timeFormat';
+
+const TIME_FORMAT_CHOICES = [
+    { value: '12h', label: '12-HOUR', hint: '3:25 PM' },
+    { value: '24h', label: '24-HOUR', hint: '15:25' },
+];
+
 export default function InterfacePreferences({ preferences }) {
+    const [timeFormat, setTimeFormatLocal] = useState('12h');
+
+    useEffect(() => {
+        setTimeFormatLocal(getTimeFormat());
+        const handleCustom = (e) =>
+            setTimeFormatLocal(e.detail ?? getTimeFormat());
+        const handleStorage = (e) => {
+            if (e.key === TIME_FORMAT_KEY)
+                setTimeFormatLocal(getTimeFormat());
+        };
+        window.addEventListener(TIME_FORMAT_EVENT, handleCustom);
+        window.addEventListener('storage', handleStorage);
+        return () => {
+            window.removeEventListener(TIME_FORMAT_EVENT, handleCustom);
+            window.removeEventListener('storage', handleStorage);
+        };
+    }, []);
+
+    const handleSelect = (value) => {
+        setTimeFormatLocal(value);
+        setTimeFormat(value);
+    };
+
     return (
         <div className="p-5" style={{ backgroundColor: '#ffffff' }}>
             <h3
@@ -93,6 +129,47 @@ export default function InterfacePreferences({ preferences }) {
                             </div>
                         ))}
                     </div>
+                </div>
+                <div>
+                    <p
+                        className="text-[0.625rem] uppercase tracking-wider mb-3"
+                        style={{ color: '#7a7574' }}
+                    >
+                        Time Format
+                    </p>
+                    <div className="flex gap-2">
+                        {TIME_FORMAT_CHOICES.map((choice) => {
+                            const active = timeFormat === choice.value;
+                            return (
+                                <button
+                                    key={choice.value}
+                                    onClick={() => handleSelect(choice.value)}
+                                    className="px-3 py-1.5 text-[0.75rem] font-semibold cursor-pointer"
+                                    style={{
+                                        backgroundColor: active
+                                            ? '#1c1b1b'
+                                            : '#f6f3f2',
+                                        color: active ? '#ffffff' : '#1c1b1b',
+                                        border: 'none',
+                                        borderRadius: '0px',
+                                    }}
+                                >
+                                    {choice.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <p
+                        className="text-[0.6875rem] mt-2"
+                        style={{ color: '#7a7574' }}
+                    >
+                        Example:{' '}
+                        {
+                            TIME_FORMAT_CHOICES.find(
+                                (c) => c.value === timeFormat,
+                            )?.hint
+                        }
+                    </p>
                 </div>
             </div>
         </div>
