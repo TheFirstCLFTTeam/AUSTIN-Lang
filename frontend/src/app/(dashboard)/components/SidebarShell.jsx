@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronsLeft, ChevronsRight } from 'lucide-react';
+import TipCard from './TipCard';
 
 const NAV_ITEMS = [
     { label: 'My Transcripts', path: '/files', icon: 'doc' },
@@ -118,7 +119,7 @@ export default function SidebarShell({ userRole }) {
                         href="/trash"
                         className="flex items-center gap-3 px-3 py-2 mb-0.5 text-[0.8125rem] font-medium no-underline transition-colors"
                         style={{
-                            color: isActive('/trash') ? '#b20100' : '#7a7574',
+                            color: isActive('/trash') ? '#b20100' : '#1c1b1b',
                             backgroundColor: isActive('/trash') ? 'rgba(178, 1, 0, 0.05)' : 'transparent',
                             borderLeft: isActive('/trash') ? '3px solid #b20100' : '3px solid transparent',
                             borderRadius: '0px',
@@ -186,14 +187,7 @@ export default function SidebarShell({ userRole }) {
 
             {/* Bottom */}
             <div>
-                {!collapsed && (
-                    <div className="px-5 pb-5">
-                        <div className="h-1 w-full" style={{ backgroundColor: '#f6f3f2' }}>
-                            <div className="h-1 transition-all" style={{ width: '16%', backgroundColor: '#1c1b1b' }} />
-                        </div>
-                        <p className="text-[0.75rem] mt-1.5" style={{ color: '#7a7574' }}>2.4 GB of 15 GB used</p>
-                    </div>
-                )}
+                <TipCard collapsed={collapsed} />
                 <div className="flex justify-end px-3 pb-3">
                     <button
                         onClick={() => setCollapsed((c) => !c)}

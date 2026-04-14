@@ -1,74 +1,203 @@
+"""Download a random sample of audio files from one or more Hugging Face datasets.
+
+Dataset cards are read, one per line, from a ``.txt`` file in the Source folder
+(``sampled_datasets/Source`` by default). Blank lines and lines starting with
+``#`` are ignored.
+
+Usage:
+    python init.py                    # interactive picker over Source folder
+    python init.py -f my_cards.txt    # file in Source folder
+    python init.py -f path/to/cards.txt   # any path
+"""
+
+import argparse
+import json
 import os
+from datetime import datetime
+from typing import List, Optional, Tuple
+
 from dotenv import load_dotenv
 from huggingface_hub import login
-from utils.hf_data_loader import download_random_sample
 
-# Specify the Hugging Face dataset cards you want to download from
-DATASET_CARDS = [
-    "ziyou-li/cantonese_daily",
-    "AlienKevin/wordshk_cantonese_speech",
-    "alvanlii/cantonese-youtube",
-    "AlienKevin/mixed_cantonese_and_english_speech",
-    "edmundchan70/Cantonese_fine_tune",
-    # "ag_news",
-    # Add more dataset cards here
-]
+from utils.hf_data_loader import download_random_audio_sample
+
+
+SOURCE_DIR = os.path.join("sampled_datasets", "Source")
+SPLIT = "train"
 NUM_SAMPLES = 10
+SEED = 42
+
+
+def read_dataset_cards(path: str) -> List[str]:
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.read().splitlines()
+    return [
+        line.strip()
+        for line in lines
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+
+
+def resolve_cards_file(arg: Optional[str], source_dir: str) -> str:
+    """Resolve ``--file`` argument to an absolute path. Falls back to an
+    interactive picker over ``source_dir`` if no argument is given."""
+    if arg:
+        # Try as given (absolute or relative to cwd), then as name inside source_dir.
+        for candidate in (arg, os.path.join(source_dir, arg)):
+            if os.path.isfile(candidate):
+                return os.path.abspath(candidate)
+        raise FileNotFoundError(f"Could not find cards file: {arg}")
+
+    return pick_cards_file_interactive(source_dir)
+
+
+def pick_cards_file_interactive(source_dir: str) -> str:
+    if not os.path.isdir(source_dir):
+        raise FileNotFoundError(f"Source folder not found: {source_dir}")
+
+    candidates = sorted(
+        f for f in os.listdir(source_dir)
+        if f.lower().endswith(".txt") and os.path.isfile(os.path.join(source_dir, f))
+    )
+    if not candidates:
+        raise FileNotFoundError(f"No .txt files in {source_dir}")
+
+    if len(candidates) == 1:
+        only = candidates[0]
+        print(f"Using only .txt file in {source_dir}: {only}")
+        return os.path.join(source_dir, only)
+
+    print(f"\nDataset card files in {source_dir}:")
+    for i, name in enumerate(candidates, start=1):
+        print(f"  [{i}] {name}")
+
+    while True:
+        choice = input(f"Select a file [1-{len(candidates)}]: ").strip()
+        if choice.isdigit():
+            idx = int(choice)
+            if 1 <= idx <= len(candidates):
+                return os.path.join(source_dir, candidates[idx - 1])
+        print("Invalid selection, try again.")
+
+
+def process_dataset(dataset_name: str, output_root: str, datasets_cache: str) -> None:
+    print("\n" + "=" * 60)
+    print(f"Processing: {dataset_name}")
+    print("=" * 60)
+
+    rows = download_random_audio_sample(
+        dataset_name=dataset_name,
+        split=SPLIT,
+        num_samples=NUM_SAMPLES,
+        seed=SEED,
+        cache_dir=datasets_cache,
+    )
+
+    dataset_dir = os.path.join(output_root, dataset_name.replace("/", "-"))
+    audio_dir = os.path.join(dataset_dir, "audio")
+    os.makedirs(audio_dir, exist_ok=True)
+
+    manifest = []
+    for i, row in enumerate(rows):
+        out_row = {}
+        for col, val in row.items():
+            # Undecoded audio entries look like {"bytes": b"...", "path": "..."}.
+            if isinstance(val, dict) and val.get("bytes"):
+                ext = os.path.splitext(val.get("path") or "")[1] or ".wav"
+                fname = f"{i:04d}_{col}{ext}"
+                with open(os.path.join(audio_dir, fname), "wb") as f:
+                    f.write(val["bytes"])
+                out_row[col] = f"audio/{fname}"
+            else:
+                out_row[col] = val
+        manifest.append(out_row)
+
+    manifest_path = os.path.join(dataset_dir, "sample.json")
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+
+    print(f"Wrote {len(rows)} samples to {dataset_dir}")
+
+
+def write_failures_file(
+    failures: List[Tuple[str, str]], source_dir: str, cards_path: str
+) -> str:
+    """Write failed cards to ``Source/dataset_failed_<timestamp>.txt`` so the
+    user can re-run against it (via the picker or ``-f``)."""
+    os.makedirs(source_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_path = os.path.join(source_dir, f"dataset_failed_{timestamp}.txt")
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(f"# Failed downloads from {cards_path}\n")
+        f.write(f"# Generated: {datetime.now().isoformat(timespec='seconds')}\n")
+        f.write("# Error details follow each entry as a comment.\n\n")
+        for card, err in failures:
+            f.write(f"{card}\n")
+            f.write(f"#   error: {err}\n\n")
+
+    return out_path
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Download random audio samples from Hugging Face datasets listed in a cards file."
+    )
+    parser.add_argument(
+        "-f",
+        "--file",
+        help="Path to cards file, or filename inside the Source folder. "
+             "If omitted, an interactive picker is shown.",
+    )
+    return parser.parse_args()
 
 
 def main():
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    base_output_dir = os.path.join(current_dir, "sampled_datasets")
-    cache_root = os.path.join(base_output_dir, ".hf_cache")
-    datasets_cache_dir = os.path.join(cache_root, "datasets")
+    args = parse_args()
 
-    os.makedirs(base_output_dir, exist_ok=True)
-    os.makedirs(datasets_cache_dir, exist_ok=True)
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    output_root = os.path.join(project_dir, "sampled_datasets")
+    cache_root = os.path.join(output_root, ".hf_cache")
+    datasets_cache = os.path.join(cache_root, "datasets")
+    source_dir = os.path.join(project_dir, SOURCE_DIR)
+    os.makedirs(datasets_cache, exist_ok=True)
 
-    # Force Hugging Face caches into this project folder instead of user-level cache.
+    # Pin HF caches inside the project so re-runs reuse downloaded shards.
     os.environ["HF_HOME"] = cache_root
-    os.environ["HF_DATASETS_CACHE"] = datasets_cache_dir
+    os.environ["HF_DATASETS_CACHE"] = datasets_cache
 
-    # Load environment variables from .env located in the same directory
-    env_path = os.path.join(current_dir, ".env")
-    if os.path.exists(env_path):
-        load_dotenv(env_path)
-
-    hf_token = os.getenv("HF_TOKEN")
-    if hf_token:
-        print("Logging into Hugging Face...")
-        login(token=hf_token)
+    load_dotenv(os.path.join(project_dir, ".env"))
+    token = os.getenv("HF_TOKEN")
+    if token:
+        login(token=token)
     else:
-        print("Warning: No HF_TOKEN found in .env file.")
+        print("Warning: no HF_TOKEN in .env — gated datasets will fail.")
 
-    for dataset_name in DATASET_CARDS:
-        print("\n========================================")
-        print(f"Processing dataset: {dataset_name}")
-        print("========================================")
+    cards_path = resolve_cards_file(args.file, source_dir)
+    cards = read_dataset_cards(cards_path)
+    if not cards:
+        print(f"No dataset cards found in {cards_path}.")
+        return
 
+    print(f"\nFound {len(cards)} dataset card(s) in {cards_path}.")
+
+    failures = []
+    for card in cards:
         try:
-            # Call the function from your hf_data_loader script
-            sample = download_random_sample(
-                dataset_name=dataset_name,
-                split="train",
-                num_samples=NUM_SAMPLES,
-                seed=42,
-                cache_dir=datasets_cache_dir,
-            )
-
-            # Mirror the dataset card path, e.g. sampled_datasets/owner/dataset_name/
-            dataset_path_parts = [part for part in dataset_name.split("/") if part]
-            dataset_dir = os.path.join(base_output_dir, "-".join(dataset_path_parts))
-            os.makedirs(dataset_dir, exist_ok=True)
-
-            output_path = os.path.join(dataset_dir, "sample.json")
-
-            print(f"Saving {dataset_name} sample to {output_path}...")
-            sample.to_json(output_path)
-            print("Success!")
-
+            process_dataset(card, output_root, datasets_cache)
         except Exception as e:
-            print(f"Failed to process {dataset_name}. Error: {e}")
+            print(f"Failed to process {card}: {e}")
+            failures.append((card, str(e)))
+
+    print("\n" + "=" * 60)
+    print(f"Done. {len(cards) - len(failures)}/{len(cards)} succeeded.")
+    if failures:
+        print("Failures:")
+        for card, err in failures:
+            print(f"  - {card}: {err}")
+        failures_path = write_failures_file(failures, source_dir, cards_path)
+        print(f"\nWrote failure list to {failures_path}")
+        print(f"Re-run with: python init.py -f {os.path.basename(failures_path)}")
 
 
 if __name__ == "__main__":

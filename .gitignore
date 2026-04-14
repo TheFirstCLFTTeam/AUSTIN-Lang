@@ -11,3 +11,4 @@ backend/retraining-pipeline/data
 .env.*
 !.env.example
 node_modules
+.mypy_cache/

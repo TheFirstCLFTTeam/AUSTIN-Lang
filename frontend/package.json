@@ -1,41 +1,42 @@
 {
-  "name": "austin-lang-frontend",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@lottiefiles/dotlottie-react": "^0.18.8",
-    "@tailwindcss/postcss": "^4.1.18",
-    "lucide-react": "^1.8.0",
-    "next": "^16.1.6",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
-  },
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "vitest"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@types/node": "^25.4.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "autoprefixer": "^10.4.23",
-    "eslint": "^9.0.0",
-    "eslint-config-next": "^16.1.6",
-    "jsdom": "^29.0.1",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.2.2",
-    "typescript": "^5.9.3",
-    "vitest": "^4.1.2"
-  },
-  "description": "frontend for the FYP project",
-  "main": "postcss.config.js",
-  "author": "",
-  "license": "ISC",
-  "type": "module"
+    "name": "austin-lang-frontend",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "@lottiefiles/dotlottie-react": "^0.18.8",
+        "@tailwindcss/postcss": "^4.1.18",
+        "lucide-react": "^1.8.0",
+        "next": "^16.1.6",
+        "react": "^19.2.3",
+        "react-dom": "^19.2.3"
+    },
+    "scripts": {
+        "dev": "next dev",
+        "deb": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint",
+        "test": "vitest"
+    },
+    "devDependencies": {
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@types/node": "^25.4.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.1",
+        "autoprefixer": "^10.4.23",
+        "eslint": "^9.0.0",
+        "eslint-config-next": "^16.1.6",
+        "jsdom": "^29.0.1",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^4.2.2",
+        "typescript": "^5.9.3",
+        "vitest": "^4.1.2"
+    },
+    "description": "frontend for the FYP project",
+    "main": "postcss.config.js",
+    "author": "",
+    "license": "ISC",
+    "type": "module"
 }
