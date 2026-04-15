@@ -1,70 +1,38 @@
-import { fetchSubmittedFiles } from "./api";
+import { MOCK_FILE_STORE } from "./mock-data";
+import { totalRawWords } from "../lib/transcriptEdits";
 
-/*
-Compare original vs edited transcript
-(simple word difference estimator)
-*/
-function wordDifference(original, edited) {
-  const o = original.join(" ").split(" ");
-  const e = edited.join(" ").split(" ");
-
-  let diff = Math.abs(o.length - e.length);
-
-  for (let i = 0; i < Math.min(o.length, e.length); i++) {
-    if (o[i] !== e[i]) diff++;
-  }
-
-  return diff;
-}
-
+// Aggregate stats across the corpus. Edit count = sum of `edits.length` across
+// files. Estimated accuracy is derived from total edits relative to total
+// raw words (1 - edit-rate, floored at 70%).
 export async function getDashboardStats() {
-  const files = await fetchSubmittedFiles();
+  await new Promise((r) => setTimeout(r, 200));
 
-  let totalFiles = files.length;
+  let totalFiles = 0;
   let totalSegments = 0;
   let totalWordsEdited = 0;
+  let totalWords = 0;
 
-  files.forEach((file) => {
-    if (!file.transcriptSegments) return;
+  for (const file of MOCK_FILE_STORE) {
+    if (file.deletedAt) continue;
+    totalFiles++;
+    const segments = file.rawTranscript?.transcript_segments || [];
+    totalSegments += segments.length;
+    totalWords += totalRawWords(segments);
+    totalWordsEdited += (file.edits || []).length;
+  }
 
-    totalSegments += file.transcriptSegments.length;
-
-    file.transcriptSegments.forEach((seg) => {
-      if (seg.originalText) {
-        totalWordsEdited += wordDifference(
-          [seg.originalText],
-          [seg.text]
-        );
-      }
-    });
-  });
-
-  const estimatedAccuracy =
-    totalSegments === 0
-      ? 100
-      : Math.max(
-          70,
-          100 - totalWordsEdited / totalSegments
-        );
+  const editRate = totalWords === 0 ? 0 : totalWordsEdited / totalWords;
+  const estimatedAccuracy = Math.max(70, (1 - editRate) * 100);
 
   return {
     totalFiles,
     totalSegments,
     totalWordsEdited,
-    estimatedAccuracy: estimatedAccuracy.toFixed(1)
+    estimatedAccuracy: estimatedAccuracy.toFixed(1),
   };
 }
 
 export async function triggerRetraining() {
-  console.log("Retraining started...");
-
-  // simulate training time
   await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  console.log("Retraining finished");
-
-  return {
-    status: "success",
-    message: "Model retrained successfully"
-  };
+  return { status: "success", message: "Model retrained successfully" };
 }

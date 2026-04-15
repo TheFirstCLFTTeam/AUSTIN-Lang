@@ -84,7 +84,6 @@ function buildEntry({
             start: 0.0,
             end: durationSec || 10.0,
             text: text || '',
-            originalText: text || '',
         },
     ];
     const metrics = syntheticMetrics(id, text, durationSec);
@@ -105,12 +104,7 @@ function buildEntry({
             audio_file_id: globalIdx + 1000,
             transcript_segments: segments,
         },
-        editedTranscript: {
-            id: 1000 + globalIdx * 2 + 1,
-            raw_transcript_id: 1000 + globalIdx * 2,
-            transcript_segments: segments,
-        },
-        transcriptSegments: segments,
+        edits: [],
     };
 }
 

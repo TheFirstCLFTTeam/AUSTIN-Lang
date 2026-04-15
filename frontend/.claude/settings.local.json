@@ -28,7 +28,9 @@
       "Bash(npx --no-install eslint \"src/app/\\(dashboard\\)/files/page.jsx\" \"src/app/\\(dashboard\\)/components/TipCard.jsx\")",
       "Bash(npx --no-install next lint)",
       "Bash(timeout 40 npx --no-install next build --no-lint)",
-      "Bash(timeout 80 npx --no-install next build)"
+      "Bash(timeout 80 npx --no-install next build)",
+      "WebSearch",
+      "Bash(awk '{print $5, $NF}')"
     ]
   },
   "prefersReducedMotion": true

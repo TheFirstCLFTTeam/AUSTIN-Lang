@@ -1,6 +1,6 @@
 // Shared mock data — imported by both api.js (client) and api-server.js (server)
 
-import { SAMPLED_DATASET_FILES } from './sampled-datasets';
+import { SAMPLED_DATASET_FILES, ROOT_LEVEL_SAMPLED_FILES } from './sampled-datasets';
 
 export const users = [
     {
@@ -329,80 +329,22 @@ export const MOCK_FILE_STORE = [
                     start: 0.0,
                     end: 3.5,
                     text: 'Good morning everyone, thank you for joining this quarterly earnings call. We have a lot of ground to cover today regarding our fiscal performance.',
-                    originalText: 'Good morning everyone, thank you for joining this quarterly earnings call. We have a lot of ground to cover today regarding our fiscal performance.',
                 },
                 {
                     id: 2,
                     start: 3.5,
                     end: 7.0,
                     text: 'Revenue increased by twelve percent year over year, driven primarily by strong demand in our institutional services division and new client acquisitions.',
-                    originalText:
-                        'Revenue increased by twelve percent year over year, driven primarily by strong demand in our institutional services division and new client acquisitions.',
                 },
                 {
                     id: 3,
                     start: 7.0,
                     end: 11.0,
                     text: 'Our operating margin improved to nineteen point four percent, reflecting ongoing cost optimization initiatives across all major business units.',
-                    originalText:
-                        'Our operating margin improved to nineteen point four percent, reflecting ongoing cost optimization initiatives across all major business units.',
                 },
             ],
         },
-        editedTranscript: {
-            id: 201,
-            raw_transcript_id: 101,
-            transcript_segments: [
-                {
-                    id: 1,
-                    start: 0.0,
-                    end: 3.5,
-                    text: 'Good morning everyone, thank you for joining this quarterly earnings call. We have a lot of ground to cover today regarding our fiscal performance.',
-                    originalText: 'Good morning everyone, thank you for joining this quarterly earnings call. We have a lot of ground to cover today regarding our fiscal performance.',
-                },
-                {
-                    id: 2,
-                    start: 3.5,
-                    end: 7.0,
-                    text: 'Revenue increased by twelve percent year over year, driven primarily by strong demand in our institutional services division and new client acquisitions.',
-                    originalText:
-                        'Revenue increased by twelve percent year over year, driven primarily by strong demand in our institutional services division and new client acquisitions.',
-                },
-                {
-                    id: 3,
-                    start: 7.0,
-                    end: 11.0,
-                    text: 'Our operating margin improved to nineteen point four percent, reflecting ongoing cost optimization initiatives across all major business units.',
-                    originalText:
-                        'Our operating margin improved to nineteen point four percent, reflecting ongoing cost optimization initiatives across all major business units.',
-                },
-            ],
-        },
-        transcriptSegments: [
-            {
-                id: 1,
-                start: 0.0,
-                end: 3.5,
-                text: 'Good morning everyone, thank you for joining this quarterly earnings call. We have a lot of ground to cover today regarding our fiscal performance.',
-                originalText: 'Good morning everyone, thank you for joining this quarterly earnings call. We have a lot of ground to cover today regarding our fiscal performance.',
-            },
-            {
-                id: 2,
-                start: 3.5,
-                end: 7.0,
-                text: 'Revenue increased by twelve percent year over year, driven primarily by strong demand in our institutional services division and new client acquisitions.',
-                originalText:
-                    'Revenue increased by twelve percent year over year, driven primarily by strong demand in our institutional services division and new client acquisitions.',
-            },
-            {
-                id: 3,
-                start: 7.0,
-                end: 11.0,
-                text: 'Our operating margin improved to nineteen point four percent, reflecting ongoing cost optimization initiatives across all major business units.',
-                originalText:
-                    'Our operating margin improved to nineteen point four percent, reflecting ongoing cost optimization initiatives across all major business units.',
-            },
-        ],
+        edits: [],
     },
     {
         id: '2',
@@ -505,5 +447,6 @@ export const MOCK_FILE_STORE = [
             },
         ],
     },
+    ...ROOT_LEVEL_SAMPLED_FILES,
     ...SAMPLED_DATASET_FILES,
 ];

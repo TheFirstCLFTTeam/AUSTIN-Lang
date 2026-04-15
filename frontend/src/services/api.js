@@ -130,14 +130,12 @@ export async function uploadAudio(file) {
                 start: 0.0,
                 end: 3.0,
                 text: 'Mock transcription for ' + file.name,
-                originalText: 'Mock transcription for ' + file.name,
             },
             {
                 id: Date.now() + 1,
                 start: 3.0,
                 end: 6.0,
                 text: 'This is a placeholder transcript.',
-                originalText: 'This is a placeholder transcript.',
             },
         ];
         const currentUser = getCurrentUser();
@@ -153,12 +151,7 @@ export async function uploadAudio(file) {
                 audio_file_id: Number(newId),
                 transcript_segments: segments,
             },
-            editedTranscript: {
-                id: 200 + Number(newId),
-                raw_transcript_id: 100 + Number(newId),
-                transcript_segments: segments,
-            },
-            transcriptSegments: segments,
+            edits: [],
         };
         MOCK_FILE_STORE.push(newFile);
         return newFile;
@@ -208,8 +201,8 @@ export async function fetchSubmittedFiles() {
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return MOCK_FILE_STORE.map(
-            ({ id, name, audioUrl, uploaded_at, transcriptSegments, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset }) => {
-                const fullText = (transcriptSegments || []).map((s) => s.text).join(' ');
+            ({ id, name, audioUrl, uploaded_at, rawTranscript, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset }) => {
+                const fullText = (rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
                 const words = fullText.split(/\s+/).filter(Boolean);
                 const header = words.length > 1
                     ? words.slice(0, 50).join(' ')
@@ -219,7 +212,6 @@ export async function fetchSubmittedFiles() {
                     name,
                     audioUrl,
                     uploaded_at,
-                    transcriptSegments: [],
                     transcriptHeader: header,
                     duration: duration || null,
                     wer: wer ?? null,
@@ -268,7 +260,7 @@ export async function fetchAllFilesMetadata() {
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return MOCK_FILE_STORE.map((f) => {
-            const fullText = (f.transcriptSegments || []).map((s) => s.text).join(' ');
+            const fullText = (f.rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
             const words = fullText.split(/\s+/).filter(Boolean);
             const header = words.length > 1
                 ? words.slice(0, 50).join(' ')
@@ -333,41 +325,26 @@ export async function fetchFileDetail(id) {
         }
         const rawTranscripts = await rawTranscriptsResponse.json();
         const rawTranscript =
-            rawTranscripts.length > 0 ? rawTranscripts[0] : null; // Get the first one
+            rawTranscripts.length > 0 ? rawTranscripts[0] : null;
 
-        let editedTranscript = null;
+        let edits = [];
         if (rawTranscript) {
-            // 3. Fetch Edited Transcript(s) for this raw_transcript_id
-            // Assuming one edited transcript per raw transcript for simplicity
-            const editedTranscriptsResponse = await fetch(
-                `http://localhost:8002/edited-transcripts/?raw_transcript_id=${rawTranscript.id}`,
+            const editsResponse = await fetch(
+                `http://localhost:8002/audio-files/${id}/edits`,
             );
-            if (!editedTranscriptsResponse.ok) {
-                throw new Error(
-                    `Failed to fetch edited transcripts for raw transcript ID ${rawTranscript.id}: ${editedTranscriptsResponse.status}`,
-                );
+            if (editsResponse.ok) {
+                const body = await editsResponse.json();
+                edits = body.edits || [];
             }
-            const editedTranscripts =
-                await editedTranscriptsResponse.json();
-            editedTranscript =
-                editedTranscripts.length > 0 ?
-                    editedTranscripts[0]
-                :   null; // Get the first one
         }
 
-        // Combine all data into the frontend's expected file structure
         const fileDetail = {
             id: String(audioFile.id),
             name: audioFile.file_name,
-            audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`, // Adjust as per your audio serving setup
+            audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`,
             uploaded_at: audioFile.uploaded_at,
-            rawTranscript: rawTranscript, // Include raw transcript data
-            editedTranscript: editedTranscript, // Include edited transcript data
-            transcriptSegments:
-                editedTranscript ?
-                    editedTranscript.transcript_segments
-                : rawTranscript ? rawTranscript.transcript_segments
-                : [],
+            rawTranscript,
+            edits,
         };
 
         return fileDetail;
@@ -377,64 +354,34 @@ export async function fetchFileDetail(id) {
     }
 }
 
-// Update transcript
-export async function updateTranscript(
-    editedTranscriptId,
-    rawTranscriptId,
-    newSegments = [],
-) {
+// Save the edits array for a file. Edits are word-level operations against
+// the raw transcript; the server stores the array verbatim. WER and the
+// displayed transcript are derived client-side from raw + edits.
+export async function saveEdits(fileId, edits = []) {
     requireAuth();
 
     if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const file = MOCK_FILE_STORE.find(
-            (f) =>
-                f.editedTranscript &&
-                f.editedTranscript.id === editedTranscriptId,
-        );
-        if (file) {
-            file.editedTranscript.transcript_segments = newSegments;
-            file.transcriptSegments = newSegments;
-        }
-        return {
-            id: editedTranscriptId,
-            raw_transcript_id: rawTranscriptId,
-            transcript_segments: newSegments,
-        };
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (file) file.edits = edits;
+        return { fileId: String(fileId), edits };
     }
 
     try {
-        const processedSegments = newSegments.map((segment) => ({
-            ...segment,
-            id:
-                Number.isInteger(Number(segment.id)) ?
-                    Number(segment.id)
-                :   null, // Convert to int or null
-        }));
-
         const response = await fetch(
-            `http://localhost:8002/edited-transcripts/${editedTranscriptId}`,
+            `http://localhost:8002/audio-files/${fileId}/edits`,
             {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    raw_transcript_id: rawTranscriptId,
-                    transcript_segments: processedSegments,
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ edits }),
             },
         );
-
         if (!response.ok) {
-            throw new Error(
-                `Failed to update transcript: ${response.status}`,
-            );
+            throw new Error(`Failed to save edits: ${response.status}`);
         }
-
         return await response.json();
     } catch (error) {
-        console.error('Error updating transcript:', error);
+        console.error('Error saving edits:', error);
         throw error;
     }
 }

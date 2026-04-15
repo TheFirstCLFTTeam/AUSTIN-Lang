@@ -3,8 +3,9 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AudioPlayer from "../../../../components/AudioPlayer";
-import { fetchFileDetail, updateTranscript, getCurrentUser } from "../../../../services/api";
+import { fetchFileDetail, saveEdits, getCurrentUser } from "../../../../services/api";
 import { recordAccess } from "../../../../lib/recents";
+import { applyEdits, buildDiffView, computeWER, rawWordIntervals, recomputeSegmentEdits } from "../../../../lib/transcriptEdits";
 
 function formatTime(seconds) {
   const h = Math.floor(seconds / 3600);
@@ -33,9 +34,11 @@ export default function FileDetailPage() {
   const [currentTime, setCurrentTime] = useState(0);
   const [audioReady, setAudioReady] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [localSegments, setLocalSegments] = useState([]);
+  const [edits, setEdits] = useState([]);
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [editingSeg, setEditingSeg] = useState(null);
+  const editRef = useRef(null);
 
   const user = getCurrentUser();
   const userRole = user?.role || "generic";
@@ -49,21 +52,40 @@ export default function FileDetailPage() {
         return;
       }
       setFileData(data);
-      if (data?.transcriptSegments) setLocalSegments(data.transcriptSegments);
+      setEdits(data.edits || []);
       recordAccess(user?.id || "anon", id);
     });
   }, [id, userRole, user?.id]);
+
+  const rawSegments = fileData?.rawTranscript?.transcript_segments || [];
+  // Applied text per segment — only consumed by edit mode, where the user
+  // edits the post-edit version they see. View mode renders the diff
+  // directly from rawSegments + edits.
+  const appliedSegments = applyEdits(rawSegments, edits);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.playbackRate = playbackSpeed;
   }, [playbackSpeed]);
 
-  const activeId = localSegments.find((s) => currentTime >= s.start && currentTime < s.end)?.id;
+  const activeId = rawSegments.find((s) => currentTime >= s.start && currentTime < s.end)?.id;
 
   useEffect(() => {
     const el = document.getElementById(`seg-${activeId}`);
     el?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [activeId]);
+
+  // When entering edit mode, focus the editable paragraph and put the caret
+  // at the end so the user can start typing immediately.
+  useEffect(() => {
+    if (editingSeg == null || !editRef.current) return;
+    editRef.current.focus();
+    const range = document.createRange();
+    range.selectNodeContents(editRef.current);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }, [editingSeg]);
 
   function handleSeek(time) {
     if (!audioRef.current || !audioReady) return;
@@ -72,29 +94,19 @@ export default function FileDetailPage() {
   }
 
   function updateText(segId, newText) {
-    setLocalSegments((prev) => prev.map((s) => (s.id === segId ? { ...s, text: newText } : s)));
+    const rawSeg = rawSegments.find((s) => s.id === segId);
+    if (!rawSeg) return;
+    setEdits((prev) => recomputeSegmentEdits(prev, segId, rawSeg.text, newText, { editedBy: user?.id }));
   }
 
   async function handleSubmit() {
-    if (!fileData.editedTranscript) return;
-    await updateTranscript(fileData.editedTranscript.id, fileData.rawTranscript.id, localSegments);
-    fetchFileDetail(id).then(setFileData);
+    if (!fileData) return;
+    await saveEdits(fileData.id, edits);
     setSuccess(true);
     setTimeout(() => setSuccess(false), 3000);
   }
 
-  const totalWords = localSegments.reduce((acc, s) => acc + (s.originalText?.split(" ").length || 0), 0);
-  const editedWords = localSegments.reduce((acc, s) => {
-    if (!s.originalText || s.text === s.originalText) return acc;
-    const orig = s.originalText.split(" ");
-    const curr = s.text.split(" ");
-    let diff = Math.abs(orig.length - curr.length);
-    for (let i = 0; i < Math.min(orig.length, curr.length); i++) {
-      if (orig[i] !== curr[i]) diff++;
-    }
-    return acc + diff;
-  }, 0);
-  const wer = totalWords > 0 ? ((editedWords / totalWords) * 100).toFixed(2) : "0.00";
+  const wer = computeWER(rawSegments, edits).toFixed(2);
 
   if (accessDenied) {
     return (
@@ -181,20 +193,110 @@ export default function FileDetailPage() {
 
           {/* Transcript */}
           <div className="space-y-6">
-            {localSegments.map((seg, i) => {
-              const isActive = seg.id === activeId;
+            {rawSegments.map((rawSeg, i) => {
+              const isActive = rawSeg.id === activeId;
               const speaker = speakers[i % speakers.length];
+              const intervals = rawWordIntervals(rawSeg);
+              const tokens = buildDiffView(rawSeg, edits);
+              const editCount = edits.filter((e) => e.segmentId === rawSeg.id).length;
+              const appliedText = appliedSegments[i]?.text ?? rawSeg.text;
               return (
-                <div key={seg.id} id={`seg-${seg.id}`} className="flex gap-6 cursor-pointer" onClick={() => handleSeek(seg.start)}>
+                <div key={rawSeg.id} id={`seg-${rawSeg.id}`} className="flex gap-6 cursor-pointer" onClick={() => handleSeek(rawSeg.start)}>
                   <div className="w-24 shrink-0 pt-1">
-                    <SpeakerLabel speaker={speaker.toUpperCase()} time={formatTime(seg.start)} />
+                    <SpeakerLabel speaker={speaker.toUpperCase()} time={formatTime(rawSeg.start)} />
+                    {editCount > 0 && (
+                      <span
+                        className="inline-block mt-1 px-1.5 py-0.5 text-[0.625rem] font-semibold"
+                        style={{ backgroundColor: "rgba(26, 127, 55, 0.10)", color: "#1a7f37", borderRadius: "2px" }}
+                        title={`${editCount} edit${editCount === 1 ? "" : "s"} in this segment`}
+                      >
+                        +{editCount}
+                      </span>
+                    )}
                   </div>
                   <div className="w-px self-stretch" style={{ backgroundColor: isActive ? "#b20100" : "rgba(233, 188, 181, 0.2)" }} />
-                  <div className="flex-1 p-4 transition-colors" style={{ backgroundColor: isActive ? "rgba(178, 1, 0, 0.03)" : "transparent" }}>
-                    <p contentEditable suppressContentEditableWarning onBlur={(e) => updateText(seg.id, e.target.innerText)} className="text-[0.875rem] leading-relaxed outline-none" style={{ color: "#1c1b1b" }}>{seg.text}</p>
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-[0.6875rem]" style={{ color: "#7a7574" }}>AI Accuracy: 98.4%</span>
-                    </div>
+                  <div className="flex-1 p-4 transition-colors" style={{ backgroundColor: isActive ? "rgba(178, 1, 0, 0.06)" : "transparent" }}>
+                    {editingSeg === rawSeg.id ? (
+                      <p
+                        ref={editRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onClick={(e) => e.stopPropagation()}
+                        onBlur={(e) => { updateText(rawSeg.id, e.target.innerText); setEditingSeg(null); }}
+                        onKeyDown={(e) => { if (e.key === "Escape") { e.preventDefault(); setEditingSeg(null); } }}
+                        className="text-[0.875rem] leading-relaxed outline-none"
+                        style={{ color: "#1c1b1b", boxShadow: "0 0 0 2px rgba(178, 1, 0, 0.25)", padding: "2px 4px" }}
+                      >
+                        {appliedText}
+                      </p>
+                    ) : (
+                      <p
+                        onDoubleClick={(e) => { e.stopPropagation(); setEditingSeg(rawSeg.id); }}
+                        className="text-[0.875rem] leading-relaxed"
+                        style={{ color: "#1c1b1b" }}
+                        title="Double-click to edit"
+                      >
+                        {tokens.map((tok, ti) => {
+                          const interval = tok.rawIndex != null ? intervals[tok.rawIndex] : null;
+                          const isWordActive = isActive && interval && currentTime >= interval.start && currentTime < interval.end;
+                          const base = {
+                            padding: "0 1px",
+                            borderRadius: "2px",
+                            transition: "background-color 0.1s ease-out",
+                          };
+                          if (tok.kind === "inserted") {
+                            return (
+                              <span
+                                key={ti}
+                                style={{
+                                  ...base,
+                                  color: "#1a7f37",
+                                  textDecoration: "underline",
+                                  textDecorationStyle: "solid",
+                                  textUnderlineOffset: "2px",
+                                }}
+                                title="Inserted by reviewer"
+                              >
+                                {tok.text}{" "}
+                              </span>
+                            );
+                          }
+                          if (tok.kind === "deleted") {
+                            return (
+                              <span
+                                key={ti}
+                                onClick={(e) => { e.stopPropagation(); if (interval) handleSeek(interval.start); }}
+                                style={{
+                                  ...base,
+                                  color: "#b20100",
+                                  textDecoration: "line-through",
+                                  backgroundColor: isWordActive ? "rgba(178, 1, 0, 0.15)" : "transparent",
+                                  cursor: "pointer",
+                                }}
+                                title="Removed by reviewer — click to seek"
+                              >
+                                {tok.text}{" "}
+                              </span>
+                            );
+                          }
+                          return (
+                            <span
+                              key={ti}
+                              onClick={(e) => { e.stopPropagation(); if (interval) handleSeek(interval.start); }}
+                              style={{
+                                ...base,
+                                color: isWordActive ? "#1c1b1b" : "inherit",
+                                backgroundColor: isWordActive ? "rgba(178, 1, 0, 0.20)" : "transparent",
+                                fontWeight: isWordActive ? 600 : "inherit",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {tok.text}{" "}
+                            </span>
+                          );
+                        })}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -233,7 +335,7 @@ export default function FileDetailPage() {
 
           <div className="p-4" style={{ backgroundColor: "#ffffff" }}>
             <p className="text-[0.6875rem] font-semibold uppercase tracking-wider mb-3" style={{ color: "#7a7574" }}>Institutional Audit</p>
-            <AuditRow label="Duration" value={fileData.transcriptSegments?.length ? formatTime(fileData.transcriptSegments[fileData.transcriptSegments.length - 1]?.end || 0) : "\u2014"} />
+            <AuditRow label="Duration" value={rawSegments.length ? formatTime(rawSegments[rawSegments.length - 1]?.end || 0) : "\u2014"} />
             <AuditRow label="Asset Quality" value="HIGH" />
             <AuditRow label="Source Format" value="WAV (48kHz)" />
           </div>
