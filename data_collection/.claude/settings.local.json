@@ -7,7 +7,8 @@
       "Bash(mv sampled_datasets/Source Source)",
       "Bash(mkdir -p Source/failure_runs)",
       "Bash(mv Source/dataset_failed_*.txt Source/failure_runs/)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(find *)"
     ]
   }
 }

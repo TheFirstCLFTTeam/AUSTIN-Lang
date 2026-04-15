@@ -23,7 +23,12 @@
       "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\AlienKevin-mixed_cantonese_and_english_speech\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\mixed-cantonese-english.json\")",
       "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\AlienKevin-wordshk_cantonese_speech\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\wordshk-cantonese.json\")",
       "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\alvanlii-cantonese-youtube\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\alvanlii-youtube.json\")",
-      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\edmundchan70-Cantonese_fine_tune\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\edmundchan-finetune.json\")"
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\edmundchan70-Cantonese_fine_tune\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\edmundchan-finetune.json\")",
+      "Bash(npx --no-install next lint --file \"src/app/\\(dashboard\\)/files/page.jsx\")",
+      "Bash(npx --no-install eslint \"src/app/\\(dashboard\\)/files/page.jsx\" \"src/app/\\(dashboard\\)/components/TipCard.jsx\")",
+      "Bash(npx --no-install next lint)",
+      "Bash(timeout 40 npx --no-install next build --no-lint)",
+      "Bash(timeout 80 npx --no-install next build)"
     ]
   },
   "prefersReducedMotion": true

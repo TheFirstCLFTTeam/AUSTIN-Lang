@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import AudioPlayer from "../../../../components/AudioPlayer";
 import { fetchFileDetail, updateTranscript, getCurrentUser } from "../../../../services/api";
+import { recordAccess } from "../../../../lib/recents";
 
 function formatTime(seconds) {
   const h = Math.floor(seconds / 3600);
@@ -49,6 +50,7 @@ export default function FileDetailPage() {
       }
       setFileData(data);
       if (data?.transcriptSegments) setLocalSegments(data.transcriptSegments);
+      recordAccess(user?.id || "anon", id);
     });
   }, [id, userRole, user?.id]);
 

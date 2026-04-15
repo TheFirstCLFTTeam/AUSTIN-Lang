@@ -194,28 +194,28 @@ function buildAll() {
 
 export const SAMPLED_DATASET_FILES = buildAll();
 
+// Names match the on-disk folder names created by
+// data_collection/init.py (dataset_name.replace('/', '-')), so a folder in
+// the UI is identifiable 1:1 with a directory under sampled_datasets/.
 export const SAMPLED_DATASET_FOLDERS = [
     {
         id: 'mixed',
-        name: 'Mixed Cantonese & English',
         source: 'AlienKevin/mixed_cantonese_and_english_speech',
     },
     {
         id: 'wordshk',
-        name: 'words.hk Cantonese',
         source: 'AlienKevin/wordshk_cantonese_speech',
     },
     {
         id: 'alvanlii',
-        name: 'Cantonese YouTube',
         source: 'alvanlii/cantonese-youtube',
     },
     {
         id: 'edmund',
-        name: 'Cantonese Fine-tune',
         source: 'edmundchan70/Cantonese_fine_tune',
     },
 ].map((f) => ({
     ...f,
+    name: f.source.replace('/', '-'),
     fileCount: SAMPLED_DATASET_FILES.filter((x) => x.dataset === f.id).length,
 }));

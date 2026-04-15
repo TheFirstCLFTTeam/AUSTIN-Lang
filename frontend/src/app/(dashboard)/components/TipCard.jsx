@@ -11,7 +11,8 @@ const PRELOAD_COUNT = 4;
 
 const TIPS = [
     'Drop audio files anywhere on the transcripts page to queue them instantly.',
-    'Star transcripts to pin them to the top of your recent view.',
+    'Star transcripts to keep them in a personal collection you can filter to instantly.',
+    'Pin important transcripts to stick them to the top of your file list.',
     'Use Privacy Flags to mask PII before sharing transcripts outside your group.',
     'Assign colleagues to a group once, then share whole folders in one click.',
     'Check the Metrics Dashboard weekly to track accuracy trends across your team.',

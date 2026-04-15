@@ -11,6 +11,9 @@ import { SAMPLED_DATASET_FOLDERS } from "../../../services/sampled-datasets";
 const FOLDERS = SAMPLED_DATASET_FOLDERS;
 const FOLDER_COLS = 4;
 
+/* Fraction of the sidebar's height to use for the preview card. */
+const PREVIEW_HEIGHT_RATIO = 0.88;
+
 /* ── Helpers ── */
 function StatusBadge({ status }) {
   const styles = {
@@ -55,6 +58,95 @@ function FileIcon() {
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
       <polyline points="14 2 14 8 20 8" />
     </svg>
+  );
+}
+
+function StarIcon({ filled, size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "#f5a623" : "none"} stroke={filled ? "#f5a623" : "#7a7574"} strokeWidth="1.5" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
+function PinIcon({ active, size = 12, color }) {
+  const stroke = color || (active ? "#b20100" : "#7a7574");
+  const fill = active ? stroke : "none";
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 24 24"
+      fill={fill} stroke={stroke} strokeWidth="1.5" strokeLinejoin="round"
+      style={{ transform: active ? "rotate(45deg)" : "none", transition: "transform 0.15s" }}
+    >
+      <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6h2v-6h5v-2z" />
+    </svg>
+  );
+}
+
+function StarButton({ active, onClick }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick?.(e); }}
+      className={`w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition-opacity ${active ? "" : "opacity-0 group-hover:opacity-100"}`}
+      style={{ backgroundColor: "transparent", border: "none" }}
+      aria-label={active ? "Unstar" : "Star"}
+      title={active ? "Unstar" : "Star"}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.06)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+    >
+      <StarIcon filled={active} />
+    </button>
+  );
+}
+
+function RowMenu({ items }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition-opacity ${open ? "" : "opacity-0 group-hover:opacity-100"}`}
+        style={{ backgroundColor: open ? "rgba(0,0,0,0.06)" : "transparent", border: "none" }}
+        aria-label="More actions"
+        onMouseEnter={(e) => { if (!open) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.06)"; }}
+        onMouseLeave={(e) => { if (!open) e.currentTarget.style.backgroundColor = "transparent"; }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#7a7574">
+          <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-8 z-20 py-1"
+          style={{ backgroundColor: "#ffffff", borderRadius: "6px", border: "1px solid #e8e4e3", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", minWidth: "170px" }}
+        >
+          {items.map((item, i) => (
+            <button
+              key={i}
+              onClick={() => { item.onClick(); setOpen(false); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] cursor-pointer transition-colors"
+              style={{ backgroundColor: "transparent", border: "none", color: "#1c1b1b", textAlign: "left" }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+            >
+              <span className="w-4 flex items-center justify-center">{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -194,12 +286,48 @@ export default function FilesPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [showAllFolders, setShowAllFolders] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState(null);
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [timeFormat, setTimeFormatState] = useState("12h");
+  const [previewHeight, setPreviewHeight] = useState(null);
   const audioRef = useRef(null);
+  const previewRef = useRef(null);
   const router = useRouter();
   const user = getCurrentUser();
   const userRole = user?.role || "generic";
+  const userId = user?.id || "anon";
+
+  const [favorites, setFavorites] = useState(() => new Set());
+  const [pinned, setPinned] = useState(() => []);
+
+  useEffect(() => {
+    try {
+      const favs = JSON.parse(localStorage.getItem(`austin.favorites.${userId}`) || "[]");
+      const pins = JSON.parse(localStorage.getItem(`austin.pins.${userId}`) || "[]");
+      setFavorites(new Set(favs));
+      setPinned(pins);
+    } catch {
+      setFavorites(new Set());
+      setPinned([]);
+    }
+  }, [userId]);
+
+  const toggleFavorite = (id) => {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      try { localStorage.setItem(`austin.favorites.${userId}`, JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  };
+
+  const togglePin = (id) => {
+    setPinned((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [id, ...prev];
+      try { localStorage.setItem(`austin.pins.${userId}`, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   // Sync the time-format preference from localStorage, and react to changes
   // from the profile page (same-tab custom event) or other tabs (storage event).
@@ -225,6 +353,24 @@ export default function FilesPage() {
     }
     setIsPlaying(false);
   }, [selected?.id]);
+
+  // Size the preview card as a fraction of the sidebar's current height.
+  useEffect(() => {
+    if (!selected) return;
+    const sidebar = document.querySelector("aside");
+    if (!sidebar) return;
+    const compute = () => {
+      setPreviewHeight(sidebar.offsetHeight * PREVIEW_HEIGHT_RATIO);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    const ro = new ResizeObserver(compute);
+    ro.observe(sidebar);
+    return () => {
+      window.removeEventListener("resize", compute);
+      ro.disconnect();
+    };
+  }, [selected]);
 
   // When drilling into a folder, pre-select the first file inside it. When
   // leaving the folder view, clear the selection so the detail pane hides.
@@ -281,14 +427,131 @@ export default function FilesPage() {
 
   const filters = [
     { key: "all", label: "All" },
+    { key: "starred", label: "Starred" },
     { key: "completed", label: "Completed" },
     { key: "in review", label: "In Review" },
     { key: "transcribing", label: "Transcribing" },
   ];
 
   const filteredFiles = files.map((f, i) => ({ ...f, _status: getFileStatus(i) }))
-    .filter((f) => activeFilter === "all" || f._status === activeFilter)
+    .filter((f) => {
+      if (activeFilter === "starred") return favorites.has(f.id);
+      if (activeFilter === "all") return true;
+      return f._status === activeFilter;
+    })
     .filter((f) => !selectedFolder || f.dataset === selectedFolder);
+
+  const pinnedSet = new Set(pinned);
+  const pinnedFiles = pinned
+    .map((id) => filteredFiles.find((f) => f.id === id))
+    .filter(Boolean);
+  const unpinnedFiles = filteredFiles.filter((f) => !pinnedSet.has(f.id));
+
+  const renderListRow = (file) => {
+    const isSelected = selected?.id === file.id;
+    const isFav = favorites.has(file.id);
+    const isPinned = pinnedSet.has(file.id);
+    return (
+      <div
+        key={file.id}
+        onClick={() => setSelected(file)}
+        onDoubleClick={() => {
+          if (file.isOwned || userRole === "admin") router.push(`/files/${file.id}`);
+        }}
+        className="group flex items-center px-4 py-3 cursor-pointer transition-colors"
+        style={{
+          backgroundColor: isSelected ? "#eef0fc" : "#ffffff",
+          borderBottom: "1px solid #f0edec",
+        }}
+        onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+        onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#ffffff"; }}
+      >
+        <div className="w-8 flex justify-center">
+          <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
+        </div>
+        <div className="w-8 flex items-center gap-1">
+          <FileIcon />
+          {isPinned && <PinIcon active size={10} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[0.8125rem] font-medium truncate" style={{ color: "#1c1b1b" }}>
+            {file.name.replace(/\.[^.]+$/, "")}
+          </p>
+        </div>
+        {userRole !== "generic" && (
+          <div className="w-28 text-center text-[0.8125rem]" style={{ color: file.isOwned ? "#1c1b1b" : "#7a7574" }}>
+            {file.isOwned ? "You" : file.ownerName || "\u2014"}
+          </div>
+        )}
+        <div className="w-28 text-center"><StatusBadge status={file._status} /></div>
+        <div className="w-28 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{formatDate(file.uploaded_at)}</div>
+        <div className="w-20 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{file.duration || "\u2014"}</div>
+        <div className="w-24 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{file.detectedLanguage || "\u2014"}</div>
+        <div className="w-16 text-center text-[0.8125rem]" style={{ color: file.wer != null ? "#b20100" : "#7a7574" }}>{file.wer != null ? `${file.wer}%` : "\u2014"}</div>
+        <div className="w-8 flex justify-center">
+          <RowMenu items={[
+            { label: isPinned ? "Unpin" : "Pin to top", icon: <PinIcon active={isPinned} size={12} />, onClick: () => togglePin(file.id) },
+            { label: isFav ? "Remove star" : "Star", icon: <StarIcon filled={isFav} size={12} />, onClick: () => toggleFavorite(file.id) },
+          ]} />
+        </div>
+      </div>
+    );
+  };
+
+  const renderGridCard = (file) => {
+    const isSelected = selected?.id === file.id;
+    const isFav = favorites.has(file.id);
+    const isPinned = pinnedSet.has(file.id);
+    return (
+      <div
+        key={file.id}
+        onClick={() => setSelected(file)}
+        onDoubleClick={() => {
+          if (file.isOwned || userRole === "admin") router.push(`/files/${file.id}`);
+        }}
+        className="group cursor-pointer transition-colors overflow-hidden relative"
+        style={{
+          backgroundColor: isSelected ? "#eef0fc" : "#ffffff",
+          borderRadius: "8px",
+          border: isSelected ? "2px solid #b20100" : "1px solid #e8e4e3",
+        }}
+        onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+        onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = isSelected ? "#eef0fc" : "#ffffff"; }}
+      >
+        <div className="absolute top-2 right-2 z-10" style={{ backgroundColor: isFav ? "rgba(255,255,255,0.9)" : "transparent", borderRadius: "9999px" }}>
+          <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
+        </div>
+        {file.transcriptHeader ? (
+          <TranscriptPreview text={file.transcriptHeader} />
+        ) : (
+          <div className="h-32 flex items-center justify-center" style={{ backgroundColor: "#f6f3f2", borderBottom: "1px solid #e8e4e3" }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c4bfbe" strokeWidth="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="8" y1="13" x2="16" y2="13" />
+              <line x1="8" y1="17" x2="12" y2="17" />
+            </svg>
+          </div>
+        )}
+        <div className="flex items-center gap-2 px-3 py-2.5">
+          <FileIcon />
+          {isPinned && <PinIcon active size={10} />}
+          <div className="flex-1 min-w-0">
+            <p className="text-[0.8125rem] font-medium truncate" style={{ color: "#1c1b1b" }}>
+              {file.name.replace(/\.[^.]+$/, "")}
+            </p>
+            <p className="text-[0.6875rem] truncate" style={{ color: "#7a7574" }}>
+              {formatDate(file.uploaded_at)}
+            </p>
+          </div>
+          <RowMenu items={[
+            { label: isPinned ? "Unpin" : "Pin to top", icon: <PinIcon active={isPinned} size={12} />, onClick: () => togglePin(file.id) },
+            { label: isFav ? "Remove star" : "Star", icon: <StarIcon filled={isFav} size={12} />, onClick: () => toggleFavorite(file.id) },
+          ]} />
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -373,7 +636,7 @@ export default function FilesPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Folders</h2>
-            {FOLDERS.length > FOLDER_COLS && (
+            {!activeFolder && FOLDERS.length > FOLDER_COLS && (
               <button
                 onClick={() => setShowAllFolders(!showAllFolders)}
                 className="text-[0.75rem] font-medium cursor-pointer"
@@ -383,32 +646,58 @@ export default function FilesPage() {
               </button>
             )}
           </div>
-          {fullRowFolders.length > 0 && (
-            <div className="grid grid-cols-4 gap-3">
-              {fullRowFolders.map((folder) => (
-                <FolderCard
-                  key={folder.id}
-                  folder={folder}
-                  isSelected={selectedFolder === folder.id}
-                  onClick={() => setSelectedFolder(selectedFolder === folder.id ? null : folder.id)}
-                />
-              ))}
+          {activeFolder ? (
+            <div
+              className="flex items-center justify-center gap-2 px-4 text-[0.75rem] text-center"
+              style={{
+                backgroundColor: "#faf9f8",
+                borderRadius: "8px",
+                border: "1px dashed #d4d4d4",
+                color: "#7a7574",
+                minHeight: "62px",
+              }}
+            >
+              <span>No subfolders in this folder.</span>
+              <span>·</span>
+              <button
+                type="button"
+                onClick={() => setTicketModalOpen(true)}
+                className="font-medium underline-offset-2 hover:underline cursor-pointer"
+                style={{ color: "#b20100", backgroundColor: "transparent", border: "none", padding: 0 }}
+              >
+                Can&#39;t find a subfolder? Open a ticket
+              </button>
             </div>
-          )}
-          {lastRowFolders.length > 0 && (
-            <div className={`grid grid-cols-4 gap-3 ${fullRowFolders.length > 0 ? "mt-3" : ""}`}>
-              {Array.from({ length: lastRowPad }).map((_, i) => (
-                <div key={`pad-${i}`} />
-              ))}
-              {lastRowFolders.map((folder) => (
-                <FolderCard
-                  key={folder.id}
-                  folder={folder}
-                  isSelected={selectedFolder === folder.id}
-                  onClick={() => setSelectedFolder(selectedFolder === folder.id ? null : folder.id)}
-                />
-              ))}
-            </div>
+          ) : (
+            <>
+              {fullRowFolders.length > 0 && (
+                <div className="grid grid-cols-4 gap-3">
+                  {fullRowFolders.map((folder) => (
+                    <FolderCard
+                      key={folder.id}
+                      folder={folder}
+                      isSelected={selectedFolder === folder.id}
+                      onClick={() => setSelectedFolder(folder.id)}
+                    />
+                  ))}
+                </div>
+              )}
+              {lastRowFolders.length > 0 && (
+                <div className={`grid grid-cols-4 gap-3 ${fullRowFolders.length > 0 ? "mt-3" : ""}`}>
+                  {Array.from({ length: lastRowPad }).map((_, i) => (
+                    <div key={`pad-${i}`} />
+                  ))}
+                  {lastRowFolders.map((folder) => (
+                    <FolderCard
+                      key={folder.id}
+                      folder={folder}
+                      isSelected={selectedFolder === folder.id}
+                      onClick={() => setSelectedFolder(folder.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -416,21 +705,7 @@ export default function FilesPage() {
         {activeFolder && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSelectedFolder(null)}
-                className="flex items-center gap-1 text-[0.75rem] font-medium cursor-pointer"
-                style={{ color: "#7a7574", backgroundColor: "transparent", border: "none", padding: 0 }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-                BACK
-              </button>
-              <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
-                Files in {activeFolder.name}
-              </h2>
-            </div>
+            <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Files</h2>
           </div>
 
           {viewMode === "list" ? (
@@ -441,6 +716,7 @@ export default function FilesPage() {
                 className="flex items-center px-4 py-2 text-[0.6875rem] font-semibold uppercase tracking-wider"
                 style={{ color: "#7a7574", borderBottom: "1px solid #e8e4e3" }}
               >
+                <div className="w-8" />
                 <div className="w-8" />
                 <div className="flex-1">Name</div>
                 {userRole !== "generic" && <div className="w-28 text-center">Owner</div>}
@@ -454,95 +730,39 @@ export default function FilesPage() {
 
               {/* File rows */}
               <div>
-                {filteredFiles.map((file) => {
-                  const isSelected = selected?.id === file.id;
-                  return (
-                    <div
-                      key={file.id}
-                      onClick={() => setSelected(file)}
-                      onDoubleClick={() => {
-                        if (file.isOwned || userRole === "admin") router.push(`/files/${file.id}`);
-                      }}
-                      className="group flex items-center px-4 py-3 cursor-pointer transition-colors"
-                      style={{
-                        backgroundColor: isSelected ? "#eef0fc" : "#ffffff",
-                        borderBottom: "1px solid #f0edec",
-                      }}
-                      onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
-                      onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#ffffff"; }}
-                    >
-                      <div className="w-8"><FileIcon /></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[0.8125rem] font-medium truncate" style={{ color: "#1c1b1b" }}>
-                          {file.name.replace(/\.[^.]+$/, "")}
-                        </p>
-                      </div>
-                      {userRole !== "generic" && (
-                        <div className="w-28 text-center text-[0.8125rem]" style={{ color: file.isOwned ? "#1c1b1b" : "#7a7574" }}>
-                          {file.isOwned ? "You" : file.ownerName || "\u2014"}
-                        </div>
-                      )}
-                      <div className="w-28 text-center"><StatusBadge status={file._status} /></div>
-                      <div className="w-28 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{formatDate(file.uploaded_at)}</div>
-                      <div className="w-20 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{file.duration || "\u2014"}</div>
-                      <div className="w-24 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{file.detectedLanguage || "\u2014"}</div>
-                      <div className="w-16 text-center text-[0.8125rem]" style={{ color: file.wer != null ? "#b20100" : "#7a7574" }}>{file.wer != null ? `${file.wer}%` : "\u2014"}</div>
-                      <div className="w-8 flex justify-center"><ThreeDotMenu /></div>
-                    </div>
-                  );
-                })}
+                {pinnedFiles.length > 0 && (
+                  <div
+                    className="flex items-center gap-2 px-4 py-1.5 text-[0.625rem] font-semibold uppercase tracking-wider"
+                    style={{ color: "#7a7574", backgroundColor: "#faf9f8", borderBottom: "1px solid #e8e4e3" }}
+                  >
+                    <PinIcon active size={10} />
+                    <span>Pinned</span>
+                  </div>
+                )}
+                {pinnedFiles.map(renderListRow)}
+                {pinnedFiles.length > 0 && unpinnedFiles.length > 0 && (
+                  <div style={{ height: "12px" }} />
+                )}
+                {unpinnedFiles.map(renderListRow)}
               </div>
             </div>
           ) : (
             /* ── Grid view ── */
             <div className="grid grid-cols-3 gap-4">
-              {filteredFiles.map((file) => {
-                const isSelected = selected?.id === file.id;
-                return (
-                  <div
-                    key={file.id}
-                    onClick={() => setSelected(file)}
-                    onDoubleClick={() => {
-                      if (file.isOwned || userRole === "admin") router.push(`/files/${file.id}`);
-                    }}
-                    className="group cursor-pointer transition-colors overflow-hidden"
-                    style={{
-                      backgroundColor: isSelected ? "#eef0fc" : "#ffffff",
-                      borderRadius: "8px",
-                      border: isSelected ? "2px solid #b20100" : "1px solid #e8e4e3",
-                    }}
-                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
-                    onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = isSelected ? "#eef0fc" : "#ffffff"; }}
-                  >
-                    {/* Thumbnail / preview area */}
-                    {file.transcriptHeader ? (
-                      <TranscriptPreview text={file.transcriptHeader} />
-                    ) : (
-                      <div className="h-32 flex items-center justify-center" style={{ backgroundColor: "#f6f3f2", borderBottom: "1px solid #e8e4e3" }}>
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c4bfbe" strokeWidth="1.5">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                          <line x1="8" y1="13" x2="16" y2="13" />
-                          <line x1="8" y1="17" x2="12" y2="17" />
-                        </svg>
-                      </div>
-                    )}
-                    {/* Card info */}
-                    <div className="flex items-center gap-2 px-3 py-2.5">
-                      <FileIcon />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[0.8125rem] font-medium truncate" style={{ color: "#1c1b1b" }}>
-                          {file.name.replace(/\.[^.]+$/, "")}
-                        </p>
-                        <p className="text-[0.6875rem] truncate" style={{ color: "#7a7574" }}>
-                          {formatDate(file.uploaded_at)}
-                        </p>
-                      </div>
-                      <ThreeDotMenu />
-                    </div>
-                  </div>
-                );
-              })}
+              {pinnedFiles.length > 0 && (
+                <div
+                  className="col-span-3 flex items-center gap-2 text-[0.625rem] font-semibold uppercase tracking-wider"
+                  style={{ color: "#7a7574" }}
+                >
+                  <PinIcon active size={10} />
+                  <span>Pinned</span>
+                </div>
+              )}
+              {pinnedFiles.map(renderGridCard)}
+              {pinnedFiles.length > 0 && unpinnedFiles.length > 0 && (
+                <div className="col-span-3" style={{ borderTop: "1px solid #e8e4e3", marginTop: "4px" }} />
+              )}
+              {unpinnedFiles.map(renderGridCard)}
             </div>
           )}
 
@@ -566,8 +786,14 @@ export default function FilesPage() {
       {/* ══ Right side: full-height preview panel ══ */}
       {selected && (
         <div
-          className="w-80 shrink-0 p-5 flex flex-col"
-          style={{ backgroundColor: "#ffffff", borderRadius: "8px", border: "1px solid #e8e4e3" }}
+          ref={previewRef}
+          className="w-80 shrink-0 self-start sticky top-6 p-5 flex flex-col"
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "8px",
+            border: "1px solid #e8e4e3",
+            height: previewHeight ? `${previewHeight}px` : "calc(100vh - 3rem)",
+          }}
         >
           {/* Preview thumbnail */}
           {(selected.isOwned || userRole === "admin") ? (
@@ -623,7 +849,10 @@ export default function FilesPage() {
           )}
 
           {/* Metadata */}
-          <div className="mt-4 pt-4 space-y-3" style={{ borderTop: "1px solid #e8e4e3" }}>
+          <div
+            className="mt-4 pt-4 space-y-3 flex-1 min-h-0 overflow-y-auto"
+            style={{ borderTop: "1px solid #e8e4e3" }}
+          >
             <p className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>METADATA DETAILS</p>
             <DetailRow label="File Name" value={selected.name} />
             <DetailRow label="Date Uploaded" value={formatDateTime(selected.uploaded_at, timeFormat)} />
@@ -667,6 +896,146 @@ export default function FilesPage() {
           </div>
         </div>
       )}
+
+      {ticketModalOpen && (
+        <TicketModal
+          folderName={activeFolder?.name || ""}
+          onCancel={() => setTicketModalOpen(false)}
+          onProceed={({ to, subject, body }) => {
+            window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            setTicketModalOpen(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ── Ticket modal ── */
+const TICKET_RECIPIENT = "support@ubs.com";
+
+function TicketModal({ folderName, onCancel, onProceed }) {
+  const defaultSubject = `Missing subfolder in "${folderName}"`;
+  const defaultBody =
+    `Hi team,\n\n` +
+    `I couldn't find the subfolder I was expecting inside "${folderName}" in the AUSTIN-Lang transcripts dashboard. Could you help me locate it or confirm whether it needs to be created?\n\n` +
+    `Folder: ${folderName}\n` +
+    `Expected subfolder name: \n` +
+    `Why I expected it to be there: \n\n` +
+    `Thanks.`;
+
+  const [subject, setSubject] = useState(defaultSubject);
+  const [body, setBody] = useState(defaultBody);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ backgroundColor: "rgba(28, 27, 27, 0.45)" }}
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-lg flex flex-col"
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "10px",
+          border: "1px solid #e8e4e3",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 pt-5 pb-3" style={{ borderBottom: "1px solid #e8e4e3" }}>
+          <h3 className="text-[1rem] font-bold" style={{ color: "#1c1b1b" }}>
+            Open a subfolder ticket
+          </h3>
+          <p className="text-[0.75rem] mt-1" style={{ color: "#7a7574" }}>
+            Review the draft below. Proceed to open this in your mail client addressed to{" "}
+            <span style={{ color: "#1c1b1b", fontWeight: 600 }}>{TICKET_RECIPIENT}</span>.
+          </p>
+        </div>
+
+        <div className="px-6 py-4 space-y-3">
+          <div>
+            <label className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+              To
+            </label>
+            <div
+              className="mt-1 px-3 py-2 text-[0.8125rem]"
+              style={{ backgroundColor: "#f6f3f2", borderRadius: "6px", color: "#1c1b1b" }}
+            >
+              {TICKET_RECIPIENT}
+            </div>
+          </div>
+          <div>
+            <label className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+              Subject
+            </label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="mt-1 w-full px-3 py-2 text-[0.8125rem]"
+              style={{
+                backgroundColor: "#ffffff",
+                border: "1px solid #e8e4e3",
+                borderRadius: "6px",
+                color: "#1c1b1b",
+                outline: "none",
+              }}
+            />
+          </div>
+          <div>
+            <label className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+              Message
+            </label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={8}
+              className="mt-1 w-full px-3 py-2 text-[0.8125rem] leading-relaxed resize-none"
+              style={{
+                backgroundColor: "#ffffff",
+                border: "1px solid #e8e4e3",
+                borderRadius: "6px",
+                color: "#1c1b1b",
+                outline: "none",
+                fontFamily: "inherit",
+              }}
+            />
+          </div>
+        </div>
+
+        <div
+          className="flex items-center justify-end gap-2 px-6 py-4"
+          style={{ borderTop: "1px solid #e8e4e3" }}
+        >
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-[0.8125rem] font-medium cursor-pointer"
+            style={{
+              backgroundColor: "transparent",
+              border: "1px solid #e8e4e3",
+              borderRadius: "6px",
+              color: "#1c1b1b",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onProceed({ to: TICKET_RECIPIENT, subject, body })}
+            className="px-4 py-2 text-[0.8125rem] font-semibold cursor-pointer"
+            style={{
+              background: "linear-gradient(135deg, #b20100, #e10000)",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: "6px",
+            }}
+          >
+            Proceed
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

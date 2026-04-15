@@ -63,7 +63,7 @@ export default function SidebarShell({ userRole }) {
 
     return (
         <aside
-            className={`${sidebarW} flex flex-col justify-between shrink-0 transition-all duration-200`}
+            className={`${sidebarW} h-screen sticky top-0 overflow-y-auto flex flex-col justify-between shrink-0 transition-all duration-200`}
             style={{ backgroundColor: '#ffffff' }}
         >
             <div>
