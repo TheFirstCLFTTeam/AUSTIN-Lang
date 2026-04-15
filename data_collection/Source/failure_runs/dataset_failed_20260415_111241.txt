@@ -1,0 +1,16 @@
+# Failed downloads from C:\Users\ChunChunMaru\Desktop\Repos\AUSTIN-Lang\data_collection\Source\dataset_cards_finance.txt
+# Generated: 2026-04-15T11:12:41
+# Error details follow each entry as a comment.
+
+kensho/spgispeech
+#   error: Config name is missing.
+Please pick one among the available configs: ['L', 'M', 'S', 'dev', 'test']
+Example of usage:
+	`load_dataset('kensho/spgispeech', 'L')`
+
+distil-whisper/earnings22
+#   error: Config name is missing.
+Please pick one among the available configs: ['chunked', 'full']
+Example of usage:
+	`load_dataset('distil-whisper/earnings22', 'chunked')`
+

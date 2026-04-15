@@ -1,5 +1,7 @@
 # One Hugging Face dataset card per line.
 # Blank lines and lines starting with # are ignored.
+# To pin a specific config, append ":<config>" (e.g. org/name:L).
+# Without a config, the first advertised config is used as a fallback.
 
 AlienKevin/mixed_cantonese_and_english_speech
 ziyou-li/cantonese_daily

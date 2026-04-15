@@ -1,0 +1,7 @@
+# Failed downloads from C:\Users\ChunChunMaru\Desktop\Repos\AUSTIN-Lang\data_collection\Source\dataset_cards_finance.txt
+# Generated: 2026-04-15T11:34:10
+# Error details follow each entry as a comment.
+
+distil-whisper/earnings22:chunked
+#   error: Bad split: train. Available splits: ['test']
+

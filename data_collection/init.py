@@ -81,20 +81,40 @@ def pick_cards_file_interactive(source_dir: str) -> str:
         print("Invalid selection, try again.")
 
 
-def process_dataset(dataset_name: str, output_root: str, datasets_cache: str) -> None:
+def parse_card(card: str) -> Tuple[str, Optional[str], Optional[str]]:
+    """Split ``dataset/name[:config][@split]`` into ``(name, config, split)``."""
+    rest = card.strip()
+    split_override: Optional[str] = None
+    if "@" in rest:
+        rest, _, split_part = rest.partition("@")
+        split_override = split_part.strip() or None
+    if ":" in rest:
+        name, _, config = rest.partition(":")
+        return name.strip(), (config.strip() or None), split_override
+    return rest.strip(), None, split_override
+
+
+def process_dataset(card: str, output_root: str, datasets_cache: str) -> None:
+    dataset_name, config_name, split_override = parse_card(card)
+    split = split_override or SPLIT
+    label = f"{dataset_name}:{config_name}" if config_name else dataset_name
     print("\n" + "=" * 60)
-    print(f"Processing: {dataset_name}")
+    print(f"Processing: {label} (split={split})")
     print("=" * 60)
 
     rows = download_random_audio_sample(
         dataset_name=dataset_name,
-        split=SPLIT,
+        split=split,
         num_samples=NUM_SAMPLES,
         seed=SEED,
         cache_dir=datasets_cache,
+        config_name=config_name,
     )
 
-    dataset_dir = os.path.join(output_root, dataset_name.replace("/", "-"))
+    subdir = dataset_name.replace("/", "-")
+    if config_name:
+        subdir = f"{subdir}-{config_name}"
+    dataset_dir = os.path.join(output_root, subdir)
     audio_dir = os.path.join(dataset_dir, "audio")
     os.makedirs(audio_dir, exist_ok=True)
 
@@ -120,15 +140,24 @@ def process_dataset(dataset_name: str, output_root: str, datasets_cache: str) ->
     print(f"Wrote {len(rows)} samples to {dataset_dir}")
 
 
+def derive_cards_name(cards_path: str) -> str:
+    """Extract ``{name}`` from a ``dataset_cards_{name}.txt`` filename. Falls
+    back to the bare stem if the prefix isn't present."""
+    stem = os.path.splitext(os.path.basename(cards_path))[0]
+    prefix = "dataset_cards_"
+    return stem[len(prefix):] if stem.startswith(prefix) else stem
+
+
 def write_failures_file(
     failures: List[Tuple[str, str]], source_dir: str, cards_path: str
 ) -> str:
-    """Write failed cards to ``Source/failure_runs/dataset_failed_<timestamp>.txt``
+    """Write failed cards to ``Source/failure_runs/failed_<name>_<timestamp>.txt``
     so the user can re-run against it (via the picker or ``-f``)."""
     failures_dir = os.path.join(source_dir, FAILURE_RUNS_SUBDIR)
     os.makedirs(failures_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = os.path.join(failures_dir, f"dataset_failed_{timestamp}.txt")
+    name = derive_cards_name(cards_path)
+    out_path = os.path.join(failures_dir, f"failed_{name}_{timestamp}.txt")
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(f"# Failed downloads from {cards_path}\n")

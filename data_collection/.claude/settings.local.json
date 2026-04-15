@@ -8,7 +8,9 @@
       "Bash(mkdir -p Source/failure_runs)",
       "Bash(mv Source/dataset_failed_*.txt Source/failure_runs/)",
       "Bash(xargs grep *)",
-      "Bash(find *)"
+      "Bash(find *)",
+      "Bash(git -C \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\" status -sb)",
+      "Bash(git -C \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\" log --oneline origin/ui_enhancement..ui_enhancement)"
     ]
   }
 }
