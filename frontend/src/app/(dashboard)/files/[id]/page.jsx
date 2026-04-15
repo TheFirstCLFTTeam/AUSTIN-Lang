@@ -40,6 +40,16 @@ export default function FileDetailPage() {
   const [editingSeg, setEditingSeg] = useState(null);
   const editRef = useRef(null);
 
+  // Editor UX state — undo/redo stacks, save status, find bar, help overlay.
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
+  const [savedEdits, setSavedEdits] = useState([]);
+  const [saveStatus, setSaveStatus] = useState("idle"); // 'idle' | 'saving' | 'saved' | 'error'
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showHelp, setShowHelp] = useState(false);
+  const searchInputRef = useRef(null);
+
   const user = getCurrentUser();
   const userRole = user?.role || "generic";
 
@@ -52,7 +62,11 @@ export default function FileDetailPage() {
         return;
       }
       setFileData(data);
-      setEdits(data.edits || []);
+      const initial = data.edits || [];
+      setEdits(initial);
+      setSavedEdits(initial);
+      setUndoStack([]);
+      setRedoStack([]);
       recordAccess(user?.id || "anon", id);
     });
   }, [id, userRole, user?.id]);
@@ -93,18 +107,167 @@ export default function FileDetailPage() {
     if (audioRef.current.readyState >= 2) audioRef.current.play();
   }
 
+  // Commit a new edits array and record the previous one for undo. Every
+  // user-initiated change to `edits` (text edit, revert segment) funnels
+  // through this so undo/redo semantics stay consistent.
+  function commitEdits(nextEdits) {
+    setUndoStack((s) => [...s, edits]);
+    setRedoStack([]);
+    setEdits(nextEdits);
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    const prev = undoStack[undoStack.length - 1];
+    setUndoStack((s) => s.slice(0, -1));
+    setRedoStack((s) => [...s, edits]);
+    setEdits(prev);
+  }
+
+  function redo() {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setRedoStack((s) => s.slice(0, -1));
+    setUndoStack((s) => [...s, edits]);
+    setEdits(next);
+  }
+
   function updateText(segId, newText) {
     const rawSeg = rawSegments.find((s) => s.id === segId);
     if (!rawSeg) return;
-    setEdits((prev) => recomputeSegmentEdits(prev, segId, rawSeg.text, newText, { editedBy: user?.id }));
+    const next = recomputeSegmentEdits(edits, segId, rawSeg.text, newText, { editedBy: user?.id });
+    // Skip the undo entry if the text didn't actually change.
+    if (next.length === edits.length && next.every((e, i) => e === edits[i])) return;
+    commitEdits(next);
   }
 
-  async function handleSubmit() {
-    if (!fileData) return;
-    await saveEdits(fileData.id, edits);
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+  function revertSegment(segId) {
+    const next = edits.filter((e) => e.segmentId !== segId);
+    if (next.length === edits.length) return;
+    commitEdits(next);
   }
+
+  // Segments that have edits, in reading order. Used for Alt+↓/↑ navigation.
+  const editedSegmentIds = rawSegments
+    .filter((s) => edits.some((e) => e.segmentId === s.id))
+    .map((s) => s.id);
+
+  function jumpToEdit(direction) {
+    if (editedSegmentIds.length === 0) return;
+    const activeIndex = editedSegmentIds.indexOf(activeId);
+    let nextIndex;
+    if (direction === "next") {
+      nextIndex = activeIndex === -1
+        ? editedSegmentIds.findIndex((sid) => {
+            const seg = rawSegments.find((s) => s.id === sid);
+            return seg && seg.start >= currentTime;
+          })
+        : activeIndex + 1;
+      if (nextIndex < 0 || nextIndex >= editedSegmentIds.length) nextIndex = 0;
+    } else {
+      nextIndex = activeIndex <= 0 ? editedSegmentIds.length - 1 : activeIndex - 1;
+    }
+    const targetId = editedSegmentIds[nextIndex];
+    const el = document.getElementById(`seg-${targetId}`);
+    el?.scrollIntoView({ block: "center", behavior: "smooth" });
+    const target = rawSegments.find((s) => s.id === targetId);
+    if (target) handleSeek(target.start);
+  }
+
+  function togglePlay() {
+    if (!audioRef.current) return;
+    if (audioRef.current.paused) {
+      audioRef.current.play().catch(() => {});
+    } else {
+      audioRef.current.pause();
+    }
+  }
+
+  // `edits` is considered "dirty" when it differs from the last-saved
+  // snapshot. Shallow length check plus per-entry identity is enough
+  // because every edit commit produces fresh objects.
+  const isDirty = edits.length !== savedEdits.length
+    || edits.some((e, i) => e !== savedEdits[i]);
+
+  async function handleSubmit() {
+    if (!fileData || !isDirty) return;
+    setSaveStatus("saving");
+    try {
+      await saveEdits(fileData.id, edits);
+      setSavedEdits(edits);
+      setSaveStatus("saved");
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      console.error(err);
+      setSaveStatus("error");
+    }
+  }
+
+  // Reflect dirty state back into the save-status chip while idle.
+  useEffect(() => {
+    if (saveStatus === "saving" || saveStatus === "error") return;
+    setSaveStatus(isDirty ? "idle" : "saved");
+  }, [isDirty, saveStatus]);
+
+  // Focus the find input when the bar opens.
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  // Global keyboard shortcuts. Inside editable content we defer to the
+  // browser for undo/redo so the native text-level history wins; our
+  // app-level history only fires outside edit mode.
+  useEffect(() => {
+    function onKey(e) {
+      const t = e.target;
+      const isTyping = t?.isContentEditable
+        || t?.tagName === "INPUT"
+        || t?.tagName === "TEXTAREA";
+      const mod = e.metaKey || e.ctrlKey;
+
+      if (e.key === "Escape") {
+        if (showHelp) { setShowHelp(false); return; }
+        if (searchOpen) { setSearchOpen(false); setSearchQuery(""); return; }
+        return;
+      }
+
+      if (isTyping) return;
+
+      if (mod && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redo(); else undo();
+        return;
+      }
+      if (mod && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        setSearchOpen(true);
+        return;
+      }
+      if (e.key === " ") {
+        e.preventDefault();
+        togglePlay();
+        return;
+      }
+      if (e.altKey && e.key === "ArrowDown") {
+        e.preventDefault();
+        jumpToEdit("next");
+        return;
+      }
+      if (e.altKey && e.key === "ArrowUp") {
+        e.preventDefault();
+        jumpToEdit("prev");
+        return;
+      }
+      if (e.key === "?") {
+        e.preventDefault();
+        setShowHelp((v) => !v);
+        return;
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  });
 
   const wer = computeWER(rawSegments, edits).toFixed(2);
 
@@ -137,8 +300,16 @@ export default function FileDetailPage() {
           <span className="inline-block px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider" style={{ backgroundColor: "rgba(0, 78, 198, 0.08)", color: "#004ec6", borderRadius: "0px" }}>IN REVIEW</span>
         </div>
         <div className="flex items-center gap-3">
+          <SaveStatus status={saveStatus} isDirty={isDirty} />
           <button className="px-3 py-1.5 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1.5px solid rgba(233, 188, 181, 0.3)", borderRadius: "0px", color: "#b20100" }}>FLAG PRIVACY</button>
-          <button onClick={handleSubmit} className="px-3 py-1.5 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1.5px solid rgba(233, 188, 181, 0.3)", borderRadius: "0px", color: "#1c1b1b" }}>SAVE EDITS</button>
+          <button
+            onClick={handleSubmit}
+            disabled={!isDirty || saveStatus === "saving"}
+            className="px-3 py-1.5 text-[0.8125rem] font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: "transparent", border: "1.5px solid rgba(233, 188, 181, 0.3)", borderRadius: "0px", color: "#1c1b1b" }}
+          >
+            {saveStatus === "saving" ? "SAVING…" : "SAVE EDITS"}
+          </button>
           <button className="px-4 py-1.5 text-[0.8125rem] font-semibold cursor-pointer" style={{ background: "linear-gradient(135deg, #b20100, #e10000)", color: "#ffffff", border: "none", borderRadius: "0px" }}>APPROVE TRANSCRIPT</button>
         </div>
       </div>
@@ -191,6 +362,52 @@ export default function FileDetailPage() {
             <AudioPlayer fileUrl={fileData.audioUrl} audioRef={audioRef} onTimeUpdate={setCurrentTime} onReady={() => setAudioReady(true)} />
           </div>
 
+          {/* Editor toolbar — undo/redo, find, jump-between-edits, help. */}
+          <div className="flex items-center justify-between px-4 py-2 mb-4" style={{ backgroundColor: "#ffffff", border: "1px solid #f0edec" }}>
+            <div className="flex items-center gap-1">
+              <ToolbarButton onClick={undo} disabled={undoStack.length === 0} title="Undo (Ctrl+Z)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-7 3L3 13" /></svg>
+              </ToolbarButton>
+              <ToolbarButton onClick={redo} disabled={redoStack.length === 0} title="Redo (Ctrl+Shift+Z)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 7v6h-6" /><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 7 3l2 2" /></svg>
+              </ToolbarButton>
+              <div className="w-px h-5 mx-1" style={{ backgroundColor: "#f0edec" }} />
+              <ToolbarButton onClick={() => setSearchOpen((v) => !v)} title="Find (Ctrl+F)" active={searchOpen}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              </ToolbarButton>
+              <div className="w-px h-5 mx-1" style={{ backgroundColor: "#f0edec" }} />
+              <ToolbarButton onClick={() => jumpToEdit("prev")} disabled={editedSegmentIds.length === 0} title="Previous edit (Alt+↑)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="18 15 12 9 6 15" /></svg>
+              </ToolbarButton>
+              <ToolbarButton onClick={() => jumpToEdit("next")} disabled={editedSegmentIds.length === 0} title="Next edit (Alt+↓)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9" /></svg>
+              </ToolbarButton>
+              <span className="ml-2 text-[0.6875rem]" style={{ color: "#7a7574" }}>
+                {editedSegmentIds.length === 0 ? "No edits" : `${edits.length} edit${edits.length === 1 ? "" : "s"} across ${editedSegmentIds.length} segment${editedSegmentIds.length === 1 ? "" : "s"}`}
+              </span>
+            </div>
+            <ToolbarButton onClick={() => setShowHelp(true)} title="Keyboard shortcuts (?)">
+              <span className="text-[0.75rem] font-semibold" style={{ fontFamily: "monospace" }}>?</span>
+            </ToolbarButton>
+          </div>
+
+          {searchOpen && (
+            <div className="flex items-center gap-2 px-4 py-2 mb-4" style={{ backgroundColor: "#fffbea", border: "1px solid #f5e6a8" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7a7574" strokeWidth="2"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+              <input
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Find in transcript…"
+                className="flex-1 text-[0.8125rem] outline-none"
+                style={{ backgroundColor: "transparent", border: "none", color: "#1c1b1b" }}
+              />
+              <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }} className="text-[0.75rem] cursor-pointer" style={{ backgroundColor: "transparent", border: "none", color: "#7a7574" }}>
+                Esc
+              </button>
+            </div>
+          )}
+
           {/* Transcript */}
           <div className="space-y-6">
             {rawSegments.map((rawSeg, i) => {
@@ -205,13 +422,23 @@ export default function FileDetailPage() {
                   <div className="w-24 shrink-0 pt-1">
                     <SpeakerLabel speaker={speaker.toUpperCase()} time={formatTime(rawSeg.start)} />
                     {editCount > 0 && (
-                      <span
-                        className="inline-block mt-1 px-1.5 py-0.5 text-[0.625rem] font-semibold"
-                        style={{ backgroundColor: "rgba(26, 127, 55, 0.10)", color: "#1a7f37", borderRadius: "2px" }}
-                        title={`${editCount} edit${editCount === 1 ? "" : "s"} in this segment`}
-                      >
-                        +{editCount}
-                      </span>
+                      <div className="flex items-center gap-1 mt-1">
+                        <span
+                          className="inline-block px-1.5 py-0.5 text-[0.625rem] font-semibold"
+                          style={{ backgroundColor: "rgba(26, 127, 55, 0.10)", color: "#1a7f37", borderRadius: "2px" }}
+                          title={`${editCount} edit${editCount === 1 ? "" : "s"} in this segment`}
+                        >
+                          +{editCount}
+                        </span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); revertSegment(rawSeg.id); }}
+                          className="text-[0.625rem] cursor-pointer"
+                          style={{ backgroundColor: "transparent", border: "none", color: "#7a7574", padding: 0 }}
+                          title="Revert this segment to the model output"
+                        >
+                          revert
+                        </button>
+                      </div>
                     )}
                   </div>
                   <div className="w-px self-stretch" style={{ backgroundColor: isActive ? "#b20100" : "rgba(233, 188, 181, 0.2)" }} />
