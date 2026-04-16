@@ -37,7 +37,18 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/files)",
       "Bash(grep -E \"\\\\.\\(ts|js|tsx|jsx\\)$\")",
       "Bash(find /c/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/src -type f \\\\\\( -name \"*.jsx\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"useState\\\\|useEffect\\\\|useCallback\" {} \\\\;)",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(netstat -ano)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl -s http://localhost:3000/files/1)",
+      "Bash(grep -E '\\\\.\\(tsx?|jsx?\\)$')",
+      "WebFetch(domain:uxdesign.cc)",
+      "WebFetch(domain:support.google.com)",
+      "WebFetch(domain:www.customguide.com)",
+      "WebFetch(domain:9to5google.com)",
+      "WebFetch(domain:www.androidpolice.com)",
+      "WebFetch(domain:xebia.com)",
+      "WebFetch(domain:workspaceupdates.googleblog.com)"
     ]
   },
   "prefersReducedMotion": true

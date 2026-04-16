@@ -1,14 +1,21 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { fetchSubmittedFiles, fetchAllFilesMetadata, getCurrentUser } from "../../../services/api";
 import { getTimeFormat, formatDateTime, TIME_FORMAT_EVENT, TIME_FORMAT_KEY } from "../../../lib/timeFormat";
-import { SAMPLED_DATASET_FOLDERS } from "../../../services/sampled-datasets";
+import {
+  getGroupIdForRole, isControlMember, getFoldersForGroup, getFolderById,
+  createFolder, renameFolder, deleteFolder, getFilesInFolder,
+  moveFilesToFolder,
+  submitFolderRequest, getPendingRequests, approveRequest, denyRequest,
+  subscribe as subscribeFolders, getControlMemberForGroup,
+} from "../../../services/folders";
+import {
+  addFolderRequestNotification, addFolderRequestResponseNotification,
+} from "../../../services/notifications";
 
-/* ── Folders are the sampled-dataset sources ── */
-const FOLDERS = SAMPLED_DATASET_FOLDERS;
 const FOLDER_COLS = 4;
 
 /* Fraction of the sidebar's height to use for the preview card. */
@@ -17,11 +24,13 @@ const PREVIEW_HEIGHT_RATIO = 0.88;
 /* ── Helpers ── */
 function StatusBadge({ status }) {
   const styles = {
-    completed: { bg: "rgba(178, 1, 0, 0.08)", color: "#b20100", label: "COMPLETED" },
+    "needs action": { bg: "rgba(178, 1, 0, 0.08)", color: "#b20100", label: "NEEDS ACTION" },
     "in review": { bg: "rgba(0, 78, 198, 0.08)", color: "#004ec6", label: "IN REVIEW" },
     transcribing: { bg: "rgba(122, 117, 116, 0.1)", color: "#7a7574", label: "TRANSCRIBING" },
+    reviewed: { bg: "rgba(26, 127, 55, 0.08)", color: "#1a7f37", label: "REVIEWED" },
+    transcribed: { bg: "rgba(158, 106, 0, 0.08)", color: "#9e6a00", label: "TRANSCRIBED" },
   };
-  const s = styles[status] || styles.completed;
+  const s = styles[status] || styles["needs action"];
   return (
     <span
       className="inline-block px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wider"
@@ -39,7 +48,7 @@ function formatDate(dateStr) {
 }
 
 function getFileStatus(index) {
-  const statuses = ["completed", "in review", "completed", "transcribing"];
+  const statuses = ["needs action", "in review", "transcribed", "transcribing", "reviewed", "needs action"];
   return statuses[index % statuses.length];
 }
 
@@ -95,6 +104,28 @@ function StarButton({ active, onClick }) {
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
     >
       <StarIcon filled={active} />
+    </button>
+  );
+}
+
+function SelectCheckbox({ checked, onClick }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick?.(e); }}
+      className="w-7 h-7 flex items-center justify-center cursor-pointer"
+      style={{ backgroundColor: "transparent", border: "none" }}
+      aria-label={checked ? "Deselect" : "Select"}
+    >
+      {checked ? (
+        <svg width="16" height="16" viewBox="0 0 16 16">
+          <rect x="0" y="0" width="16" height="16" rx="0" fill="#b20100" />
+          <polyline points="3.5 8 6.5 11 12.5 5" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 16 16">
+          <rect x="0.5" y="0.5" width="15" height="15" rx="0" fill="none" stroke="#7a7574" strokeWidth="1" />
+        </svg>
+      )}
     </button>
   );
 }
@@ -181,6 +212,371 @@ function FilterChip({ label, active, onClick }) {
     >
       {label}
     </button>
+  );
+}
+
+/* ── Column filter dropdown ── */
+function ColumnFilterDropdown({ label, options, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  const hasFilter = value !== "all";
+
+  return (
+    <div ref={ref} className="relative inline-flex items-center justify-center">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 cursor-pointer text-[0.6875rem] font-semibold uppercase tracking-wider"
+        style={{
+          backgroundColor: "transparent",
+          border: "none",
+          color: hasFilter ? "#b20100" : "#7a7574",
+          padding: 0,
+        }}
+      >
+        <span>{label}</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          className="absolute top-full left-1/2 z-30 mt-1 py-1"
+          style={{
+            transform: "translateX(-50%)",
+            backgroundColor: "#ffffff",
+            borderRadius: "6px",
+            border: "1px solid #e8e4e3",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+            minWidth: "140px",
+          }}
+        >
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-[0.75rem] cursor-pointer transition-colors"
+              style={{
+                backgroundColor: value === opt.value ? "#f6f3f2" : "transparent",
+                border: "none",
+                color: value === opt.value ? "#b20100" : "#1c1b1b",
+                textAlign: "left",
+                fontWeight: value === opt.value ? 600 : 400,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = value === opt.value ? "#f6f3f2" : "transparent"; }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Group files by date ── */
+function groupFilesByDate(files) {
+  const groups = [];
+  const groupMap = new Map();
+  for (const file of files) {
+    const key = formatDate(file.uploaded_at);
+    if (!groupMap.has(key)) {
+      const group = { date: key, rawDate: file.uploaded_at, files: [] };
+      groupMap.set(key, group);
+      groups.push(group);
+    }
+    groupMap.get(key).files.push(file);
+  }
+  // Sort groups by date descending (most recent first)
+  groups.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+  return groups;
+}
+
+/* ── Duration parsing helper (mm:ss or h:mm:ss → total seconds) ── */
+function parseDuration(dur) {
+  if (!dur) return null;
+  const parts = dur.split(":").map(Number);
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  return null;
+}
+
+/* ── Duration bucket label ── */
+function getDurationBucket(dur) {
+  const secs = parseDuration(dur);
+  if (secs == null) return "unknown";
+  if (secs < 60) return "<1 min";
+  if (secs < 300) return "1–5 min";
+  if (secs < 600) return "5–10 min";
+  if (secs < 1800) return "10–30 min";
+  return "30+ min";
+}
+
+/* ── WER range tooltip (dual-handle slider + number steppers) ── */
+const WER_TOOLTIP_LINGER_MS = 200;
+
+function WerRangeTooltip({ werRange, onChangeRange, onClear }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const hideTimerRef = useRef(null);
+  const trackRef = useRef(null);
+
+  const hasFilter = werRange[0] !== 0 || werRange[1] !== 100;
+
+  const show = () => {
+    clearTimeout(hideTimerRef.current);
+    setShowTooltip(true);
+  };
+  const hideWithDelay = () => {
+    hideTimerRef.current = setTimeout(() => setShowTooltip(false), WER_TOOLTIP_LINGER_MS);
+  };
+
+  useEffect(() => () => clearTimeout(hideTimerRef.current), []);
+
+  const clamp = (v) => Math.max(0, Math.min(100, Math.round(v)));
+
+  const setMin = (v) => {
+    const clamped = clamp(v);
+    onChangeRange([Math.min(clamped, werRange[1]), werRange[1]]);
+  };
+  const setMax = (v) => {
+    const clamped = clamp(v);
+    onChangeRange([werRange[0], Math.max(clamped, werRange[0])]);
+  };
+
+  // Drag logic
+  const draggingRef = useRef(null); // "min" | "max" | null
+
+  const getPercentFromEvent = useCallback((e) => {
+    const track = trackRef.current;
+    if (!track) return 0;
+    const rect = track.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    return clamp((x / rect.width) * 100);
+  }, []);
+
+  const onPointerDown = useCallback((handle) => (e) => {
+    e.preventDefault();
+    draggingRef.current = handle;
+
+    const onMove = (ev) => {
+      if (!draggingRef.current) return;
+      const pct = getPercentFromEvent(ev);
+      if (draggingRef.current === "min") {
+        onChangeRange((prev) => [Math.min(pct, prev[1]), prev[1]]);
+      } else {
+        onChangeRange((prev) => [prev[0], Math.max(pct, prev[0])]);
+      }
+    };
+    const onUp = () => {
+      draggingRef.current = null;
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onUp);
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.addEventListener("touchmove", onMove);
+    document.addEventListener("touchend", onUp);
+  }, [getPercentFromEvent, onChangeRange]);
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <button
+        className="flex items-center gap-1 cursor-pointer text-[0.6875rem] font-semibold uppercase tracking-wider"
+        style={{
+          backgroundColor: "transparent",
+          border: "none",
+          color: hasFilter ? "#b20100" : "#7a7574",
+          padding: 0,
+        }}
+        onMouseEnter={show}
+        onMouseLeave={hideWithDelay}
+      >
+        <span>WER</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {showTooltip && (
+        <div
+          className="absolute top-full left-1/2 z-30 mt-2 p-4"
+          style={{
+            transform: "translateX(-50%)",
+            backgroundColor: "#1c1b1b",
+            borderRadius: "8px",
+            boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
+            width: "280px",
+          }}
+          onMouseEnter={show}
+          onMouseLeave={hideWithDelay}
+        >
+          {/* Arrow */}
+          <div
+            className="absolute left-1/2"
+            style={{
+              top: "-4px",
+              transform: "translateX(-50%) rotate(45deg)",
+              width: "8px",
+              height: "8px",
+              backgroundColor: "#1c1b1b",
+            }}
+          />
+
+          {/* Title row */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[0.625rem] font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.5)" }}>
+              Word Error Rate Range
+            </span>
+            {hasFilter && (
+              <button
+                onClick={() => { onClear(); }}
+                className="text-[0.625rem] font-semibold cursor-pointer"
+                style={{ color: "#ff6b6b", backgroundColor: "transparent", border: "none", padding: 0 }}
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          {/* Dual-handle slider */}
+          <div className="mb-4 px-1">
+            <div
+              ref={trackRef}
+              className="relative h-1.5 rounded-full"
+              style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+            >
+              {/* Active range fill */}
+              <div
+                className="absolute h-full rounded-full"
+                style={{
+                  left: `${werRange[0]}%`,
+                  width: `${werRange[1] - werRange[0]}%`,
+                  background: "linear-gradient(135deg, #b20100, #e10000)",
+                }}
+              />
+              {/* Min handle */}
+              <div
+                onMouseDown={onPointerDown("min")}
+                onTouchStart={onPointerDown("min")}
+                className="absolute w-4 h-4 rounded-full cursor-grab active:cursor-grabbing"
+                style={{
+                  left: `${werRange[0]}%`,
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                  backgroundColor: "#b20100",
+                  border: "2px solid #ffffff",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                }}
+              />
+              {/* Max handle */}
+              <div
+                onMouseDown={onPointerDown("max")}
+                onTouchStart={onPointerDown("max")}
+                className="absolute w-4 h-4 rounded-full cursor-grab active:cursor-grabbing"
+                style={{
+                  left: `${werRange[1]}%`,
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                  backgroundColor: "#e10000",
+                  border: "2px solid #ffffff",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                }}
+              />
+            </div>
+            {/* Scale labels */}
+            <div className="flex justify-between mt-1.5">
+              <span className="text-[0.5625rem]" style={{ color: "rgba(255,255,255,0.3)" }}>0%</span>
+              <span className="text-[0.5625rem]" style={{ color: "rgba(255,255,255,0.3)" }}>100%</span>
+            </div>
+          </div>
+
+          {/* Number inputs with steppers */}
+          <div className="flex items-center gap-3">
+            <WerNumberField label="Min" value={werRange[0]} onChange={setMin} />
+            <div className="text-[0.75rem] font-medium pt-4" style={{ color: "rgba(255,255,255,0.3)" }}>–</div>
+            <WerNumberField label="Max" value={werRange[1]} onChange={setMax} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WerNumberField({ label, value, onChange }) {
+  const handleInput = (e) => {
+    const raw = e.target.value.replace(/[^0-9]/g, "");
+    if (raw === "") { onChange(0); return; }
+    onChange(parseInt(raw, 10));
+  };
+
+  return (
+    <div className="flex-1">
+      <span className="block text-[0.5625rem] font-semibold uppercase tracking-wider mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+        {label}
+      </span>
+      <div
+        className="flex items-center"
+        style={{
+          backgroundColor: "rgba(255,255,255,0.08)",
+          borderRadius: "4px",
+          border: "1px solid rgba(255,255,255,0.12)",
+          overflow: "hidden",
+        }}
+      >
+        <button
+          onClick={() => onChange(value - 1)}
+          className="w-7 h-8 flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+          style={{ backgroundColor: "transparent", border: "none", color: "rgba(255,255,255,0.5)" }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+        >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+        <input
+          type="text"
+          value={value}
+          onChange={handleInput}
+          className="flex-1 h-8 text-center text-[0.75rem] font-medium"
+          style={{
+            backgroundColor: "transparent",
+            border: "none",
+            borderLeft: "1px solid rgba(255,255,255,0.08)",
+            borderRight: "1px solid rgba(255,255,255,0.08)",
+            color: "#ffffff",
+            outline: "none",
+            width: "0",
+            minWidth: "0",
+          }}
+        />
+        <button
+          onClick={() => onChange(value + 1)}
+          className="w-7 h-8 flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+          style={{ backgroundColor: "transparent", border: "none", color: "rgba(255,255,255,0.5)" }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+        >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -283,7 +679,14 @@ export default function FilesPage() {
   const [selected, setSelected] = useState(null);
   const [viewMode, setViewMode] = useState("list");
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState("all");
+  const router = useRouter();
+  const user = getCurrentUser();
+  const userRole = user?.role || "generic";
+  const userId = user?.id || "anon";
+
+  // Reviewer and admin personas default to "in review" filter
+  const defaultFilter = (userRole === "reviewer" || userRole === "admin") ? "in review" : "all";
+  const [activeFilter, setActiveFilter] = useState(defaultFilter);
   const [showAllFolders, setShowAllFolders] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
@@ -292,13 +695,33 @@ export default function FilesPage() {
   const [previewHeight, setPreviewHeight] = useState(null);
   const audioRef = useRef(null);
   const previewRef = useRef(null);
-  const router = useRouter();
-  const user = getCurrentUser();
-  const userRole = user?.role || "generic";
-  const userId = user?.id || "anon";
+
+  // Folder organisation state
+  const groupId = getGroupIdForRole(userRole);
+  const isControl = isControlMember(userId, groupId);
+  const [folders, setFolders] = useState(() => getFoldersForGroup(groupId));
+  const [folderFileMap, setFolderFileMap] = useState(() => new Map());
+  const [pendingRequests, setPendingRequests] = useState(() => isControl ? getPendingRequests(groupId) : []);
+  const [createFolderOpen, setCreateFolderOpen] = useState(false);
+  const [requestFolderOpen, setRequestFolderOpen] = useState(false);
+  const [manageFoldersOpen, setManageFoldersOpen] = useState(false);
+  const [renamingFolder, setRenamingFolder] = useState(null);  // folderId being renamed
+  const [toast, setToast] = useState(null);
+
+  // Multi-select organise mode
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [checkedFiles, setCheckedFiles] = useState(() => new Set());
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
 
   const [favorites, setFavorites] = useState(() => new Set());
   const [pinned, setPinned] = useState(() => []);
+
+  // Column filters
+  const [colFilterStatus, setColFilterStatus] = useState("all");
+  const [colFilterDate, setColFilterDate] = useState("all");
+  const [colFilterDuration, setColFilterDuration] = useState("all");
+  const [colFilterLanguage, setColFilterLanguage] = useState("all");
+  const [werRange, setWerRange] = useState([0, 100]);
 
   useEffect(() => {
     try {
@@ -311,6 +734,48 @@ export default function FilesPage() {
       setPinned([]);
     }
   }, [userId]);
+
+  const enterMultiSelect = (fileId) => {
+    setMultiSelectMode(true);
+    setCheckedFiles(new Set([fileId]));
+  };
+
+  const exitMultiSelect = () => {
+    setMultiSelectMode(false);
+    setCheckedFiles(new Set());
+    setMoveDialogOpen(false);
+  };
+
+  const toggleChecked = (fileId) => {
+    setCheckedFiles((prev) => {
+      const next = new Set(prev);
+      if (next.has(fileId)) next.delete(fileId); else next.add(fileId);
+      return next;
+    });
+  };
+
+  // Subscribe to folder store changes
+  useEffect(() => {
+    const refreshFolders = () => {
+      setFolders(getFoldersForGroup(groupId));
+      if (isControl) setPendingRequests(getPendingRequests(groupId));
+      // Rebuild folder→files mapping
+      const map = new Map();
+      getFoldersForGroup(groupId).forEach((f) => {
+        map.set(f.id, getFilesInFolder(f.id));
+      });
+      setFolderFileMap(map);
+    };
+    refreshFolders();
+    return subscribeFolders(refreshFolders);
+  }, [groupId, isControl]);
+
+  // Toast auto-dismiss
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => {
@@ -376,16 +841,25 @@ export default function FilesPage() {
   // leaving the folder view, clear the selection so the detail pane hides.
   useEffect(() => {
     if (!selectedFolder) {
-      // At root level, pre-select the first root-level file (no dataset)
       const firstRoot = files.find((f) => !f.dataset);
       setSelected(firstRoot || null);
       return;
     }
-    if (!selected || selected.dataset !== selectedFolder) {
-      const first = files.find((f) => f.dataset === selectedFolder);
-      setSelected(first || null);
+    // Find folder to check if it's dataset-backed or manual
+    const folder = folders.find((f) => f.id === selectedFolder);
+    if (folder?.datasetId) {
+      if (!selected || selected.dataset !== folder.datasetId) {
+        const first = files.find((f) => f.dataset === folder.datasetId);
+        setSelected(first || null);
+      }
+    } else {
+      const memberSet = folderFileMap.get(selectedFolder);
+      if (memberSet && (!selected || !memberSet.has(selected.id))) {
+        const first = files.find((f) => memberSet.has(f.id));
+        setSelected(first || null);
+      }
     }
-  }, [selectedFolder, files]);
+  }, [selectedFolder, files, folders, folderFileMap]);
 
   const togglePlayback = () => {
     const audio = audioRef.current;
@@ -397,22 +871,46 @@ export default function FilesPage() {
     }
   };
 
-  useEffect(() => {
-    setLoading(true);
+  const refetchFiles = useCallback(() => {
     const fetchFn = (userRole === "engineer" || userRole === "admin")
       ? fetchAllFilesMetadata
       : () => fetchSubmittedFiles().then((data) => data.map((f) => ({ ...f, isOwned: true })));
-
-    fetchFn()
-      .then((data) => {
-        setFiles(data);
-      })
-      .catch((error) => console.error("Error fetching files:", error))
-      .finally(() => setLoading(false));
+    return fetchFn()
+      .then((data) => { setFiles(data); })
+      .catch((error) => console.error("Error fetching files:", error));
   }, [userRole]);
 
+  useEffect(() => {
+    setLoading(true);
+    refetchFiles().finally(() => setLoading(false));
+  }, [refetchFiles]);
+
   const pageTitle = userRole === "generic" ? "MY TRANSCRIPTS" : "ALL TRANSCRIPTS";
-  const visibleFolders = showAllFolders ? FOLDERS : FOLDERS.slice(0, FOLDER_COLS);
+
+  const activeFolder = selectedFolder
+    ? folders.find((f) => f.id === selectedFolder)
+    : null;
+
+  // Helper: count files in a manual folder
+  const folderFileCount = (folderId) => {
+    const folder = folders.find((f) => f.id === folderId);
+    if (folder?.datasetId) {
+      return files.filter((f) => f.dataset === folder.datasetId).length;
+    }
+    return folderFileMap.get(folderId)?.size || 0;
+  };
+
+  // Non-system (user-created) folders for this group
+  const userFolders = folders.filter((f) => !f.isSystem);
+  // System (dataset) folders
+  const systemFolders = folders.filter((f) => f.isSystem);
+
+  // All folders combined for the grid display, with file counts attached
+  const allDisplayFolders = [...systemFolders, ...userFolders].map((f) => ({
+    ...f,
+    fileCount: folderFileCount(f.id),
+  }));
+  const visibleFolders = showAllFolders ? allDisplayFolders : allDisplayFolders.slice(0, FOLDER_COLS);
 
   // Split folders so the overflow row is right-aligned: full rows render normally,
   // the partial last row is padded with empty cells on the left.
@@ -423,29 +921,79 @@ export default function FilesPage() {
     ? FOLDER_COLS - lastRowFolders.length
     : 0;
 
-  const activeFolder = selectedFolder
-    ? FOLDERS.find((f) => f.id === selectedFolder)
-    : null;
-
   const filters = [
     { key: "all", label: "All" },
     { key: "starred", label: "Starred" },
-    { key: "completed", label: "Completed" },
+    { key: "needs action", label: "Needs Action" },
     { key: "in review", label: "In Review" },
     { key: "transcribing", label: "Transcribing" },
   ];
 
-  const filteredFiles = files.map((f, i) => ({ ...f, _status: getFileStatus(i) }))
+  // Base files with status attached, scoped to folder
+  const scopedFiles = files.map((f, i) => ({ ...f, _status: f.status === "completed" ? "needs action" : (f.status || getFileStatus(i)) }))
+    .filter((f) => {
+      if (!selectedFolder) return !f.dataset;
+      // System folder (dataset-backed)
+      const folder = folders.find((fo) => fo.id === selectedFolder);
+      if (folder?.datasetId) return f.dataset === folder.datasetId;
+      // Manual folder — check membership
+      const memberSet = folderFileMap.get(selectedFolder);
+      return memberSet ? memberSet.has(f.id) : false;
+    });
+
+  // Build dynamic filter options from the scoped dataset
+  const colStatusOptions = [
+    { value: "all", label: "All statuses" },
+    ...[...new Set(scopedFiles.map((f) => f._status))].sort().map((s) => ({
+      value: s, label: s.charAt(0).toUpperCase() + s.slice(1),
+    })),
+  ];
+  const colDateOptions = [
+    { value: "all", label: "All dates" },
+    ...[...new Set(scopedFiles.map((f) => formatDate(f.uploaded_at)))].sort((a, b) => {
+      return new Date(b) - new Date(a);
+    }).map((d) => ({ value: d, label: d })),
+  ];
+  const colDurationOptions = [
+    { value: "all", label: "All durations" },
+    ...[...new Set(scopedFiles.map((f) => getDurationBucket(f.duration)))].sort().map((d) => ({
+      value: d, label: d,
+    })),
+  ];
+  const colLanguageOptions = [
+    { value: "all", label: "All languages" },
+    ...[...new Set(scopedFiles.map((f) => f.detectedLanguage).filter(Boolean))].sort().map((l) => ({
+      value: l, label: l,
+    })),
+  ];
+  const werHasFilter = werRange[0] !== 0 || werRange[1] !== 100;
+
+  const filteredFiles = scopedFiles
     .filter((f) => {
       if (activeFilter === "starred") return favorites.has(f.id);
       if (activeFilter === "all") return true;
       return f._status === activeFilter;
     })
     .filter((f) => {
-      if (selectedFolder) return f.dataset === selectedFolder;
-      // At root level, show only files that don't belong to any folder
-      return !f.dataset;
+      if (colFilterStatus !== "all" && f._status !== colFilterStatus) return false;
+      if (colFilterDate !== "all" && formatDate(f.uploaded_at) !== colFilterDate) return false;
+      if (colFilterDuration !== "all" && getDurationBucket(f.duration) !== colFilterDuration) return false;
+      if (colFilterLanguage !== "all" && f.detectedLanguage !== colFilterLanguage) return false;
+      if (werHasFilter) {
+        if (f.wer == null || f.wer === 'NA') return false;
+        if (f.wer < werRange[0] || f.wer > werRange[1]) return false;
+      }
+      return true;
     });
+
+  const hasActiveColumnFilter = colFilterStatus !== "all" || colFilterDate !== "all" || colFilterDuration !== "all" || colFilterLanguage !== "all" || werHasFilter;
+  const clearAllColumnFilters = () => {
+    setColFilterStatus("all");
+    setColFilterDate("all");
+    setColFilterDuration("all");
+    setColFilterLanguage("all");
+    setWerRange([0, 100]);
+  };
 
   const pinnedSet = new Set(pinned);
   const pinnedFiles = pinned
@@ -453,27 +1001,45 @@ export default function FilesPage() {
     .filter(Boolean);
   const unpinnedFiles = filteredFiles.filter((f) => !pinnedSet.has(f.id));
 
+  // Group unpinned files by date for rendering.
+  // For reviewer/admin, sort "in review" files to the top within each group.
+  const dateGroups = groupFilesByDate(unpinnedFiles);
+  if (userRole === "reviewer" || userRole === "admin") {
+    for (const group of dateGroups) {
+      group.files.sort((a, b) => {
+        const aReview = a._status === "in review" ? 0 : 1;
+        const bReview = b._status === "in review" ? 0 : 1;
+        return aReview - bReview;
+      });
+    }
+  }
+
   const renderListRow = (file) => {
     const isSelected = selected?.id === file.id;
     const isFav = favorites.has(file.id);
     const isPinned = pinnedSet.has(file.id);
+    const isChecked = checkedFiles.has(file.id);
     return (
       <div
         key={file.id}
-        onClick={() => setSelected(file)}
+        onClick={() => multiSelectMode ? toggleChecked(file.id) : setSelected(file)}
         onDoubleClick={() => {
-          if (file.isOwned || userRole === "admin") router.push(`/files/${file.id}`);
+          if (!multiSelectMode && (file.isOwned || userRole === "admin")) router.push(`/files/${file.id}`);
         }}
         className="group flex items-center px-4 py-3 cursor-pointer transition-colors"
         style={{
-          backgroundColor: isSelected ? "#eef0fc" : "#ffffff",
+          backgroundColor: multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff",
           borderBottom: "1px solid #f0edec",
         }}
-        onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
-        onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#ffffff"; }}
+        onMouseEnter={(e) => { const base = multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff"; if (e.currentTarget.style.backgroundColor === base) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff"; }}
       >
         <div className="w-8 flex justify-center">
-          <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
+          {multiSelectMode ? (
+            <SelectCheckbox checked={isChecked} onClick={() => toggleChecked(file.id)} />
+          ) : (
+            <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
+          )}
         </div>
         <div className="w-8 flex items-center gap-1">
           <FileIcon />
@@ -493,11 +1059,12 @@ export default function FilesPage() {
         <div className="w-28 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{formatDate(file.uploaded_at)}</div>
         <div className="w-20 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{file.duration || "\u2014"}</div>
         <div className="w-24 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{file.detectedLanguage || "\u2014"}</div>
-        <div className="w-16 text-center text-[0.8125rem]" style={{ color: file.wer != null ? "#b20100" : "#7a7574" }}>{file.wer != null ? `${file.wer}%` : "\u2014"}</div>
+        <div className="w-16 text-center text-[0.8125rem]" style={{ color: file.wer != null && file.wer !== 'NA' ? "#b20100" : "#7a7574" }}>{file.wer != null && file.wer !== 'NA' ? `${file.wer}%` : "\u2014"}</div>
         <div className="w-8 flex justify-center">
           <RowMenu items={[
             { label: isPinned ? "Unpin" : "Pin to top", icon: <PinIcon active={isPinned} size={12} />, onClick: () => togglePin(file.id) },
             { label: isFav ? "Remove star" : "Star", icon: <StarIcon filled={isFav} size={12} />, onClick: () => toggleFavorite(file.id) },
+            { label: "Organise files", icon: <FolderIcon />, onClick: () => enterMultiSelect(file.id) },
           ]} />
         </div>
       </div>
@@ -508,24 +1075,29 @@ export default function FilesPage() {
     const isSelected = selected?.id === file.id;
     const isFav = favorites.has(file.id);
     const isPinned = pinnedSet.has(file.id);
+    const isChecked = checkedFiles.has(file.id);
     return (
       <div
         key={file.id}
-        onClick={() => setSelected(file)}
+        onClick={() => multiSelectMode ? toggleChecked(file.id) : setSelected(file)}
         onDoubleClick={() => {
-          if (file.isOwned || userRole === "admin") router.push(`/files/${file.id}`);
+          if (!multiSelectMode && (file.isOwned || userRole === "admin")) router.push(`/files/${file.id}`);
         }}
         className="group cursor-pointer transition-colors overflow-hidden relative"
         style={{
-          backgroundColor: isSelected ? "#eef0fc" : "#ffffff",
+          backgroundColor: multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff",
           borderRadius: "8px",
-          border: isSelected ? "2px solid #b20100" : "1px solid #e8e4e3",
+          border: multiSelectMode && isChecked ? "2px solid #b20100" : isSelected && !multiSelectMode ? "2px solid #b20100" : "1px solid #e8e4e3",
         }}
-        onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
-        onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = isSelected ? "#eef0fc" : "#ffffff"; }}
+        onMouseEnter={(e) => { if (!isSelected || multiSelectMode) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff"; }}
       >
-        <div className="absolute top-2 right-2 z-10" style={{ backgroundColor: isFav ? "rgba(255,255,255,0.9)" : "transparent", borderRadius: "9999px" }}>
-          <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
+        <div className="absolute top-2 right-2 z-10" style={{ backgroundColor: (isFav || isChecked) ? "rgba(255,255,255,0.9)" : "transparent", borderRadius: "9999px" }}>
+          {multiSelectMode ? (
+            <SelectCheckbox checked={isChecked} onClick={() => toggleChecked(file.id)} />
+          ) : (
+            <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
+          )}
         </div>
         {file.transcriptHeader ? (
           <TranscriptPreview text={file.transcriptHeader} />
@@ -546,13 +1118,17 @@ export default function FilesPage() {
             <p className="text-[0.8125rem] font-medium truncate" style={{ color: "#1c1b1b" }}>
               {file.name.replace(/\.[^.]+$/, "")}
             </p>
-            <p className="text-[0.6875rem] truncate" style={{ color: "#7a7574" }}>
-              {formatDate(file.uploaded_at)}
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[0.6875rem]" style={{ color: "#7a7574" }}>
+                {formatDate(file.uploaded_at)}
+              </span>
+              <StatusBadge status={file._status} />
+            </div>
           </div>
           <RowMenu items={[
             { label: isPinned ? "Unpin" : "Pin to top", icon: <PinIcon active={isPinned} size={12} />, onClick: () => togglePin(file.id) },
             { label: isFav ? "Remove star" : "Star", icon: <StarIcon filled={isFav} size={12} />, onClick: () => toggleFavorite(file.id) },
+            { label: "Organise files", icon: <FolderIcon />, onClick: () => enterMultiSelect(file.id) },
           ]} />
         </div>
       </div>
@@ -642,15 +1218,46 @@ export default function FilesPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Folders</h2>
-            {!activeFolder && FOLDERS.length > FOLDER_COLS && (
-              <button
-                onClick={() => setShowAllFolders(!showAllFolders)}
-                className="text-[0.75rem] font-medium cursor-pointer"
-                style={{ color: "#b20100", backgroundColor: "transparent", border: "none" }}
-              >
-                {showAllFolders ? "SHOW LESS" : "VIEW ALL"}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {isControl && pendingRequests.length > 0 && (
+                <button
+                  onClick={() => setManageFoldersOpen(true)}
+                  className="flex items-center gap-1 text-[0.6875rem] font-medium cursor-pointer"
+                  style={{ color: "#b20100", backgroundColor: "transparent", border: "none", padding: 0 }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                  {pendingRequests.length} request{pendingRequests.length !== 1 ? "s" : ""}
+                </button>
+              )}
+              {isControl ? (
+                <button
+                  onClick={() => setCreateFolderOpen(true)}
+                  className="flex items-center gap-1 text-[0.6875rem] font-medium cursor-pointer"
+                  style={{ color: "#b20100", backgroundColor: "transparent", border: "none", padding: 0 }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                  New Folder
+                </button>
+              ) : (
+                <button
+                  onClick={() => setRequestFolderOpen(true)}
+                  className="flex items-center gap-1 text-[0.6875rem] font-medium cursor-pointer"
+                  style={{ color: "#b20100", backgroundColor: "transparent", border: "none", padding: 0 }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                  Request Folder
+                </button>
+              )}
+              {!activeFolder && allDisplayFolders.length > FOLDER_COLS && (
+                <button
+                  onClick={() => setShowAllFolders(!showAllFolders)}
+                  className="text-[0.75rem] font-medium cursor-pointer"
+                  style={{ color: "#b20100", backgroundColor: "transparent", border: "none" }}
+                >
+                  {showAllFolders ? "SHOW LESS" : "VIEW ALL"}
+                </button>
+              )}
+            </div>
           </div>
           {activeFolder ? (
             <div
@@ -710,13 +1317,45 @@ export default function FilesPage() {
         {/* ── Files ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Files</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Files</h2>
+              {multiSelectMode && (
+                <span className="text-[0.6875rem]" style={{ color: "#7a7574" }}>
+                  {checkedFiles.size} file{checkedFiles.size !== 1 ? "s" : ""} selected
+                </span>
+              )}
+            </div>
+            {multiSelectMode && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={exitMultiSelect}
+                  className="px-3 py-1.5 text-[0.75rem] font-medium cursor-pointer"
+                  style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => checkedFiles.size > 0 && setMoveDialogOpen(true)}
+                  disabled={checkedFiles.size === 0}
+                  className="px-3 py-1.5 text-[0.75rem] font-semibold cursor-pointer flex items-center gap-1.5"
+                  style={{
+                    background: checkedFiles.size > 0 ? "linear-gradient(135deg, #b20100, #e10000)" : "#e8e4e3",
+                    color: checkedFiles.size > 0 ? "#ffffff" : "#7a7574",
+                    border: "none",
+                    borderRadius: "6px",
+                  }}
+                >
+                  Move items
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+            )}
           </div>
 
           {viewMode === "list" ? (
             /* ── List view ── */
             <div>
-              {/* Column header */}
+              {/* Column header with filter dropdowns */}
               <div
                 className="flex items-center px-4 py-2 text-[0.6875rem] font-semibold uppercase tracking-wider"
                 style={{ color: "#7a7574", borderBottom: "1px solid #e8e4e3" }}
@@ -725,12 +1364,58 @@ export default function FilesPage() {
                 <div className="w-8" />
                 <div className="flex-1">Name</div>
                 {userRole !== "generic" && <div className="w-28 text-center">Owner</div>}
-                <div className="w-28 text-center">Status</div>
-                <div className="w-28 text-center">Date Uploaded</div>
-                <div className="w-20 text-center">Duration</div>
-                <div className="w-24 text-center">Language</div>
-                <div className="w-16 text-center">WER</div>
-                <div className="w-8" />
+                <div className="w-28 text-center">
+                  <ColumnFilterDropdown label="Status" options={colStatusOptions} value={colFilterStatus} onChange={setColFilterStatus} />
+                </div>
+                <div className="w-28 text-center">
+                  <ColumnFilterDropdown label="Date" options={colDateOptions} value={colFilterDate} onChange={setColFilterDate} />
+                </div>
+                <div className="w-20 text-center">
+                  <ColumnFilterDropdown label="Duration" options={colDurationOptions} value={colFilterDuration} onChange={setColFilterDuration} />
+                </div>
+                <div className="w-24 text-center">
+                  <ColumnFilterDropdown label="Language" options={colLanguageOptions} value={colFilterLanguage} onChange={setColFilterLanguage} />
+                </div>
+                <div className="w-16 text-center">
+                  <WerRangeTooltip
+                    werRange={werRange}
+                    onChangeRange={setWerRange}
+                    onClear={() => setWerRange([0, 100])}
+                  />
+                </div>
+                <div className="w-8 flex justify-center">
+                  <button
+                    onClick={hasActiveColumnFilter ? clearAllColumnFilters : undefined}
+                    className="w-7 h-7 flex items-center justify-center rounded-full relative group/filter"
+                    style={{
+                      backgroundColor: "transparent",
+                      border: "none",
+                      cursor: hasActiveColumnFilter ? "pointer" : "default",
+                      opacity: hasActiveColumnFilter ? 1 : 0.4,
+                    }}
+                    onMouseEnter={(e) => { if (hasActiveColumnFilter) e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.06)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >
+                    <img
+                      src={hasActiveColumnFilter ? "/black_filter.png" : "/white_filter.png"}
+                      alt="Filter"
+                      width={14}
+                      height={14}
+                    />
+                    {hasActiveColumnFilter && (
+                      <span
+                        className="absolute bottom-full left-1/2 mb-1.5 px-2 py-1 text-[0.625rem] font-medium whitespace-nowrap rounded opacity-0 group-hover/filter:opacity-100 transition-opacity pointer-events-none"
+                        style={{
+                          transform: "translateX(-50%)",
+                          backgroundColor: "#1c1b1b",
+                          color: "#ffffff",
+                        }}
+                      >
+                        Click to clear filters
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* File rows */}
@@ -745,10 +1430,30 @@ export default function FilesPage() {
                   </div>
                 )}
                 {pinnedFiles.map(renderListRow)}
-                {pinnedFiles.length > 0 && unpinnedFiles.length > 0 && (
+                {pinnedFiles.length > 0 && dateGroups.length > 0 && (
                   <div style={{ height: "12px" }} />
                 )}
-                {unpinnedFiles.map(renderListRow)}
+                {dateGroups.map((group, gi) => (
+                  <div key={group.date}>
+                    {/* Date section divider */}
+                    <div
+                      className="flex items-center gap-3 px-4 py-2 mt-1"
+                      style={{ borderBottom: "1px solid #e8e4e3" }}
+                    >
+                      <span
+                        className="text-[0.6875rem] font-semibold uppercase tracking-wider shrink-0"
+                        style={{ color: "#7a7574" }}
+                      >
+                        {group.date}
+                      </span>
+                      <div className="flex-1" style={{ height: "1px", backgroundColor: "#e8e4e3" }} />
+                      <span className="text-[0.625rem] shrink-0" style={{ color: "#a8a3a2" }}>
+                        {group.files.length} file{group.files.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    {group.files.map(renderListRow)}
+                  </div>
+                ))}
               </div>
             </div>
           ) : (
@@ -764,10 +1469,24 @@ export default function FilesPage() {
                 </div>
               )}
               {pinnedFiles.map(renderGridCard)}
-              {pinnedFiles.length > 0 && unpinnedFiles.length > 0 && (
-                <div className="col-span-3" style={{ borderTop: "1px solid #e8e4e3", marginTop: "4px" }} />
-              )}
-              {unpinnedFiles.map(renderGridCard)}
+              {dateGroups.map((group) => (
+                <React.Fragment key={group.date}>
+                  {/* Date section divider */}
+                  <div className="col-span-3 flex items-center gap-3 mt-2">
+                    <span
+                      className="text-[0.6875rem] font-semibold uppercase tracking-wider shrink-0"
+                      style={{ color: "#7a7574" }}
+                    >
+                      {group.date}
+                    </span>
+                    <div className="flex-1" style={{ height: "1px", backgroundColor: "#e8e4e3" }} />
+                    <span className="text-[0.625rem] shrink-0" style={{ color: "#a8a3a2" }}>
+                      {group.files.length} file{group.files.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  {group.files.map(renderGridCard)}
+                </React.Fragment>
+              ))}
             </div>
           )}
 
@@ -859,7 +1578,7 @@ export default function FilesPage() {
             <DetailRow label="Duration" value={selected.duration || "\u2014"} />
             <DetailRow
               label="Word Error Rate (WER)"
-              value={selected.wer != null ? `${selected.absoluteWordErrorRate}/${selected.totalNumberOfWords} words (${selected.wer}%)` : "\u2014"}
+              value={selected.wer != null && selected.wer !== 'NA' ? `${selected.absoluteWordErrorRate}/${selected.totalNumberOfWords} words (${selected.wer}%)` : "\u2014"}
               accent
             />
             <DetailRow label="Speaker Detection" value={selected.speakerDetection != null ? `${selected.speakerDetection} speaker${selected.speakerDetection !== 1 ? "s" : ""}` : "\u2014"} />
@@ -906,6 +1625,113 @@ export default function FilesPage() {
             setTicketModalOpen(false);
           }}
         />
+      )}
+
+      {/* Create Folder modal (control members) */}
+      {createFolderOpen && (
+        <CreateFolderModal
+          onClose={() => setCreateFolderOpen(false)}
+          onCreate={(name, description) => {
+            const folder = createFolder({ name, groupId, description, createdBy: userId });
+            if (folder) {
+              setToast(`Folder "${name}" created.`);
+              setCreateFolderOpen(false);
+            }
+          }}
+        />
+      )}
+
+      {/* Request Folder modal (normal members) */}
+      {requestFolderOpen && (
+        <RequestFolderModal
+          onClose={() => setRequestFolderOpen(false)}
+          onSubmit={(suggestedName, reason) => {
+            const controlUserId = getControlMemberForGroup(groupId);
+            submitFolderRequest({ groupId, requestedBy: userId, requesterName: user?.name || "User", suggestedName, reason });
+            if (controlUserId) {
+              addFolderRequestNotification({
+                groupId,
+                recipientId: controlUserId,
+                requestedBy: userId,
+                requesterName: user?.name || "User",
+                suggestedName,
+              });
+            }
+            setToast("Folder request submitted.");
+            setRequestFolderOpen(false);
+          }}
+        />
+      )}
+
+      {/* Manage Folders panel (control members) */}
+      {manageFoldersOpen && (
+        <ManageFoldersModal
+          requests={pendingRequests}
+          onClose={() => setManageFoldersOpen(false)}
+          onApprove={(reqId) => {
+            const req = pendingRequests.find((r) => r.id === reqId);
+            const folder = approveRequest(reqId, userId);
+            if (folder && req) {
+              addFolderRequestResponseNotification({ recipientId: req.requestedBy, suggestedName: req.suggestedName, approved: true });
+              setToast(`Folder "${req.suggestedName}" created from request.`);
+            }
+          }}
+          onDeny={(reqId, reason) => {
+            const req = pendingRequests.find((r) => r.id === reqId);
+            denyRequest(reqId, userId, reason);
+            if (req) {
+              addFolderRequestResponseNotification({ recipientId: req.requestedBy, suggestedName: req.suggestedName, approved: false, denyReason: reason });
+              setToast(`Request "${req.suggestedName}" denied.`);
+            }
+          }}
+        />
+      )}
+
+      {/* Rename Folder modal */}
+      {renamingFolder && (
+        <RenameFolderModal
+          folder={folders.find((f) => f.id === renamingFolder)}
+          onClose={() => setRenamingFolder(null)}
+          onRename={(newName) => {
+            renameFolder(renamingFolder, newName, userId);
+            setToast(`Folder renamed to "${newName}".`);
+            setRenamingFolder(null);
+          }}
+        />
+      )}
+
+      {/* Move files dialog (multi-select) */}
+      {moveDialogOpen && (
+        <MoveToFolderModal
+          folders={allDisplayFolders}
+          fileCount={checkedFiles.size}
+          onClose={() => setMoveDialogOpen(false)}
+          onMove={(folderId) => {
+            const { moved } = moveFilesToFolder(folderId, [...checkedFiles], userId);
+            const folderName = folders.find((f) => f.id === folderId)?.name || "folder";
+            setToast(moved > 0
+              ? `${moved} file${moved !== 1 ? "s" : ""} moved to "${folderName}".`
+              : `All files are already in "${folderName}".`);
+            exitMultiSelect();
+            refetchFiles();
+          }}
+        />
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div
+          className="fixed bottom-6 left-1/2 px-5 py-3 text-[0.8125rem] font-medium z-50"
+          style={{
+            transform: "translateX(-50%)",
+            backgroundColor: "#1c1b1b",
+            color: "#ffffff",
+            borderRadius: "6px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          }}
+        >
+          {toast}
+        </div>
       )}
     </div>
   );
@@ -1037,5 +1863,309 @@ function TicketModal({ folderName, onCancel, onProceed }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Modal backdrop helper ── */
+function ModalBackdrop({ children, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ backgroundColor: "rgba(28, 27, 27, 0.45)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md flex flex-col"
+        style={{
+          backgroundColor: "#ffffff",
+          borderRadius: "10px",
+          border: "1px solid #e8e4e3",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ── Create Folder modal (control members) ── */
+function CreateFolderModal({ onClose, onCreate }) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  return (
+    <ModalBackdrop onClose={onClose}>
+      <div className="px-6 pt-5 pb-3" style={{ borderBottom: "1px solid #e8e4e3" }}>
+        <h3 className="text-[1rem] font-bold" style={{ color: "#1c1b1b" }}>Create Folder</h3>
+        <p className="text-[0.75rem] mt-1" style={{ color: "#7a7574" }}>
+          Create a new folder visible to all members in your group.
+        </p>
+      </div>
+      <div className="px-6 py-4 space-y-3">
+        <div>
+          <label className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+            Folder name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Training Data"
+            autoFocus
+            className="mt-1 w-full px-3 py-2 text-[0.8125rem]"
+            style={{ backgroundColor: "#ffffff", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b", outline: "none" }}
+          />
+        </div>
+        <div>
+          <label className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+            Description <span style={{ fontWeight: 400 }}>(optional)</span>
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className="mt-1 w-full px-3 py-2 text-[0.8125rem] resize-none"
+            style={{ backgroundColor: "#ffffff", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b", outline: "none", fontFamily: "inherit" }}
+          />
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-2 px-6 py-4" style={{ borderTop: "1px solid #e8e4e3" }}>
+        <button onClick={onClose} className="px-4 py-2 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}>
+          Cancel
+        </button>
+        <button
+          onClick={() => name.trim() && onCreate(name.trim(), description.trim())}
+          disabled={!name.trim()}
+          className="px-4 py-2 text-[0.8125rem] font-semibold cursor-pointer"
+          style={{ background: name.trim() ? "linear-gradient(135deg, #b20100, #e10000)" : "#e8e4e3", color: name.trim() ? "#ffffff" : "#7a7574", border: "none", borderRadius: "6px" }}
+        >
+          Create
+        </button>
+      </div>
+    </ModalBackdrop>
+  );
+}
+
+/* ── Request Folder modal (normal members) ── */
+function RequestFolderModal({ onClose, onSubmit }) {
+  const [name, setName] = useState("");
+  const [reason, setReason] = useState("");
+  return (
+    <ModalBackdrop onClose={onClose}>
+      <div className="px-6 pt-5 pb-3" style={{ borderBottom: "1px solid #e8e4e3" }}>
+        <h3 className="text-[1rem] font-bold" style={{ color: "#1c1b1b" }}>Request a Folder</h3>
+        <p className="text-[0.75rem] mt-1" style={{ color: "#7a7574" }}>
+          Submit a request to the group administrator to create a new folder.
+        </p>
+      </div>
+      <div className="px-6 py-4 space-y-3">
+        <div>
+          <label className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+            Suggested folder name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. High WER Files"
+            autoFocus
+            className="mt-1 w-full px-3 py-2 text-[0.8125rem]"
+            style={{ backgroundColor: "#ffffff", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b", outline: "none" }}
+          />
+        </div>
+        <div>
+          <label className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+            Reason
+          </label>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={3}
+            placeholder="Why do you need this folder?"
+            className="mt-1 w-full px-3 py-2 text-[0.8125rem] resize-none"
+            style={{ backgroundColor: "#ffffff", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b", outline: "none", fontFamily: "inherit" }}
+          />
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-2 px-6 py-4" style={{ borderTop: "1px solid #e8e4e3" }}>
+        <button onClick={onClose} className="px-4 py-2 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}>
+          Cancel
+        </button>
+        <button
+          onClick={() => name.trim() && reason.trim() && onSubmit(name.trim(), reason.trim())}
+          disabled={!name.trim() || !reason.trim()}
+          className="px-4 py-2 text-[0.8125rem] font-semibold cursor-pointer"
+          style={{ background: (name.trim() && reason.trim()) ? "linear-gradient(135deg, #b20100, #e10000)" : "#e8e4e3", color: (name.trim() && reason.trim()) ? "#ffffff" : "#7a7574", border: "none", borderRadius: "6px" }}
+        >
+          Submit Request
+        </button>
+      </div>
+    </ModalBackdrop>
+  );
+}
+
+/* ── Manage Folders modal (control members — folder requests) ── */
+function ManageFoldersModal({ requests, onClose, onApprove, onDeny }) {
+  const [denyingId, setDenyingId] = useState(null);
+  const [denyReason, setDenyReason] = useState("");
+  return (
+    <ModalBackdrop onClose={onClose}>
+      <div className="px-6 pt-5 pb-3" style={{ borderBottom: "1px solid #e8e4e3" }}>
+        <h3 className="text-[1rem] font-bold" style={{ color: "#1c1b1b" }}>Folder Requests</h3>
+        <p className="text-[0.75rem] mt-1" style={{ color: "#7a7574" }}>
+          {requests.length} pending request{requests.length !== 1 ? "s" : ""} from group members.
+        </p>
+      </div>
+      <div className="px-6 py-4 space-y-4 max-h-80 overflow-y-auto">
+        {requests.map((req) => (
+          <div key={req.id} className="p-3" style={{ backgroundColor: "#faf9f8", borderRadius: "6px", border: "1px solid #e8e4e3" }}>
+            <p className="text-[0.8125rem] font-semibold" style={{ color: "#1c1b1b" }}>
+              &ldquo;{req.suggestedName}&rdquo;
+            </p>
+            <p className="text-[0.6875rem] mt-0.5" style={{ color: "#7a7574" }}>
+              Requested by {req.requesterName} &middot; {new Date(req.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+            </p>
+            <p className="text-[0.75rem] mt-1" style={{ color: "#1c1b1b" }}>{req.reason}</p>
+            {denyingId === req.id ? (
+              <div className="mt-2 space-y-2">
+                <textarea
+                  value={denyReason}
+                  onChange={(e) => setDenyReason(e.target.value)}
+                  rows={2}
+                  placeholder="Reason for denial (optional)"
+                  className="w-full px-2 py-1.5 text-[0.75rem] resize-none"
+                  style={{ backgroundColor: "#ffffff", border: "1px solid #e8e4e3", borderRadius: "4px", color: "#1c1b1b", outline: "none", fontFamily: "inherit" }}
+                />
+                <div className="flex gap-2">
+                  <button onClick={() => { setDenyingId(null); setDenyReason(""); }} className="px-3 py-1 text-[0.6875rem] cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "4px", color: "#7a7574" }}>
+                    Back
+                  </button>
+                  <button onClick={() => { onDeny(req.id, denyReason.trim()); setDenyingId(null); setDenyReason(""); }} className="px-3 py-1 text-[0.6875rem] font-semibold cursor-pointer" style={{ backgroundColor: "#1c1b1b", color: "#ffffff", border: "none", borderRadius: "4px" }}>
+                    Confirm Deny
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => onApprove(req.id)} className="px-3 py-1 text-[0.6875rem] font-semibold cursor-pointer" style={{ background: "linear-gradient(135deg, #b20100, #e10000)", color: "#ffffff", border: "none", borderRadius: "4px" }}>
+                  Approve
+                </button>
+                <button onClick={() => setDenyingId(req.id)} className="px-3 py-1 text-[0.6875rem] cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "4px", color: "#1c1b1b" }}>
+                  Deny
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        {requests.length === 0 && (
+          <p className="text-[0.8125rem] text-center py-4" style={{ color: "#7a7574" }}>No pending requests.</p>
+        )}
+      </div>
+      <div className="flex items-center justify-end px-6 py-4" style={{ borderTop: "1px solid #e8e4e3" }}>
+        <button onClick={onClose} className="px-4 py-2 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}>
+          Close
+        </button>
+      </div>
+    </ModalBackdrop>
+  );
+}
+
+/* ── Rename Folder modal ── */
+function RenameFolderModal({ folder, onClose, onRename }) {
+  const [name, setName] = useState(folder?.name || "");
+  if (!folder) return null;
+  return (
+    <ModalBackdrop onClose={onClose}>
+      <div className="px-6 pt-5 pb-3" style={{ borderBottom: "1px solid #e8e4e3" }}>
+        <h3 className="text-[1rem] font-bold" style={{ color: "#1c1b1b" }}>Rename Folder</h3>
+      </div>
+      <div className="px-6 py-4">
+        <label className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+          New name
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          autoFocus
+          className="mt-1 w-full px-3 py-2 text-[0.8125rem]"
+          style={{ backgroundColor: "#ffffff", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b", outline: "none" }}
+          onKeyDown={(e) => { if (e.key === "Enter" && name.trim()) onRename(name.trim()); }}
+        />
+      </div>
+      <div className="flex items-center justify-end gap-2 px-6 py-4" style={{ borderTop: "1px solid #e8e4e3" }}>
+        <button onClick={onClose} className="px-4 py-2 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}>
+          Cancel
+        </button>
+        <button
+          onClick={() => name.trim() && onRename(name.trim())}
+          disabled={!name.trim()}
+          className="px-4 py-2 text-[0.8125rem] font-semibold cursor-pointer"
+          style={{ background: name.trim() ? "linear-gradient(135deg, #b20100, #e10000)" : "#e8e4e3", color: name.trim() ? "#ffffff" : "#7a7574", border: "none", borderRadius: "6px" }}
+        >
+          Rename
+        </button>
+      </div>
+    </ModalBackdrop>
+  );
+}
+
+/* ── Move to folder picker (two-step: select folder, then OK) ── */
+function MoveToFolderModal({ folders, fileCount, onClose, onMove }) {
+  const [selectedId, setSelectedId] = useState(null);
+  const label = fileCount != null ? `Move ${fileCount} file${fileCount !== 1 ? "s" : ""}` : "Move to Folder";
+  return (
+    <ModalBackdrop onClose={onClose}>
+      <div className="px-6 pt-5 pb-3" style={{ borderBottom: "1px solid #e8e4e3" }}>
+        <h3 className="text-[1rem] font-bold" style={{ color: "#1c1b1b" }}>{label}</h3>
+        <p className="text-[0.75rem] mt-1" style={{ color: "#7a7574" }}>
+          Select a destination folder, then click OK.
+        </p>
+      </div>
+      <div className="px-6 py-4 space-y-1 max-h-60 overflow-y-auto">
+        {folders.map((folder) => {
+          const isSel = selectedId === folder.id;
+          return (
+            <button
+              key={folder.id}
+              onClick={() => setSelectedId(folder.id)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors text-left"
+              style={{
+                backgroundColor: isSel ? "rgba(178, 1, 0, 0.06)" : "#ffffff",
+                border: isSel ? "1px solid #b20100" : "1px solid transparent",
+                borderRadius: "6px",
+              }}
+              onMouseEnter={(e) => { if (!isSel) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isSel ? "rgba(178, 1, 0, 0.06)" : "#ffffff"; }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isSel ? "#b20100" : "#7a7574"} strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+              <span className="text-[0.8125rem] font-medium flex-1" style={{ color: isSel ? "#b20100" : "#1c1b1b" }}>{folder.name}</span>
+              {folder.fileCount != null && (
+                <span className="text-[0.6875rem]" style={{ color: "#7a7574" }}>{folder.fileCount}</span>
+              )}
+            </button>
+          );
+        })}
+        {folders.length === 0 && (
+          <p className="text-[0.8125rem] text-center py-4" style={{ color: "#7a7574" }}>
+            No folders available. Ask a control member to create one.
+          </p>
+        )}
+      </div>
+      <div className="flex items-center justify-end gap-2 px-6 py-4" style={{ borderTop: "1px solid #e8e4e3" }}>
+        <button onClick={onClose} className="px-4 py-2 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}>
+          Cancel
+        </button>
+        <button
+          onClick={() => selectedId && onMove(selectedId)}
+          disabled={!selectedId}
+          className="px-4 py-2 text-[0.8125rem] font-semibold cursor-pointer"
+          style={{ background: selectedId ? "linear-gradient(135deg, #b20100, #e10000)" : "#e8e4e3", color: selectedId ? "#ffffff" : "#7a7574", border: "none", borderRadius: "6px" }}
+        >
+          OK
+        </button>
+      </div>
+    </ModalBackdrop>
   );
 }

@@ -13,6 +13,8 @@ export const users = [
         name: 'Generic User',
         role: 'generic',
         company: 'SELF',
+        fileOrgGroup: 'user-file-org',
+        isControlMember: true,
     },
     {
         id: 'u2',
@@ -21,6 +23,8 @@ export const users = [
         name: 'Engineer User',
         role: 'engineer',
         company: 'SELF',
+        fileOrgGroup: 'engineer-file-org',
+        isControlMember: true,
     },
     {
         id: 'u3',
@@ -29,6 +33,8 @@ export const users = [
         name: 'Admin User',
         role: 'admin',
         company: 'SELF',
+        fileOrgGroup: 'admin-file-org',
+        isControlMember: true,
     },
     {
         id: 'u4',
@@ -37,6 +43,8 @@ export const users = [
         name: 'Reviewer User',
         role: 'reviewer',
         company: 'SELF',
+        fileOrgGroup: 'reviewer-file-org',
+        isControlMember: true,
     },
 ];
 
@@ -226,6 +234,11 @@ export const MOCK_USER_PROFILES = {
                 isPrimary: false,
                 permissions: ['Audit Log Viewer', 'Compliance Report Access', 'Incident Response'],
             },
+            {
+                name: 'Transcript Review',
+                isPrimary: false,
+                permissions: ['Transcript Review Access', 'Compliance Verification', 'Edit Approval'],
+            },
         ],
     },
     u4: {
@@ -260,6 +273,11 @@ export const MOCK_USER_PROFILES = {
                 name: 'Reviewer - Level 2',
                 isPrimary: true,
                 permissions: ['Transcript Review Access', 'Edit Approval', 'Quality Report Viewer'],
+            },
+            {
+                name: 'Transcript Review',
+                isPrimary: false,
+                permissions: ['Transcript Review Access', 'Compliance Verification', 'Edit Approval'],
             },
         ],
     },

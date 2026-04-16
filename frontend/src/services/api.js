@@ -1,6 +1,8 @@
 // src/services/api.js
 
 import { users, MOCK_FILE_STORE, MOCK_PROCESSING_JOBS, MOCK_USER_PROFILES } from './mock-data';
+import { addReviewNotification, addReviewActionNotification } from './notifications';
+import { assertTransition } from '../lib/statusFlow';
 
 // Set NEXT_PUBLIC_MOCK_API=true in .env.development to run without the backend.
 const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_API === 'true';
@@ -201,7 +203,7 @@ export async function fetchSubmittedFiles() {
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map(
-            ({ id, name, audioUrl, uploaded_at, rawTranscript, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset }) => {
+            ({ id, name, audioUrl, uploaded_at, rawTranscript, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset, status, reviewerId, submittedForReviewAt }) => {
                 const fullText = (rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
                 const words = fullText.split(/\s+/).filter(Boolean);
                 const header = words.length > 1
@@ -221,6 +223,9 @@ export async function fetchSubmittedFiles() {
                     detectedLanguage: detectedLanguage || null,
                     compliance: compliance || null,
                     dataset: dataset || null,
+                    status: status || 'completed',
+                    reviewerId: reviewerId || null,
+                    submittedForReviewAt: submittedForReviewAt || null,
                 };
             },
         );
@@ -320,6 +325,9 @@ export async function fetchAllFilesMetadata() {
                 detectedLanguage: f.detectedLanguage || null,
                 compliance: f.compliance || null,
                 dataset: f.dataset || null,
+                status: f.status || 'completed',
+                reviewerId: f.reviewerId || null,
+                submittedForReviewAt: f.submittedForReviewAt || null,
             };
         });
     }
@@ -422,4 +430,111 @@ export async function saveEdits(fileId, edits = []) {
         console.error('Error saving edits:', error);
         throw error;
     }
+}
+
+// Submit a file for review by a specific reviewer/admin.
+// Updates the file status to "in review" and sends a notification to the reviewer.
+export async function submitForReview(fileId, reviewerId) {
+    requireAuth();
+    const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        const currentStatus = file.status || 'needs action';
+        assertTransition(currentStatus, 'in review');
+        file.status = 'in review';
+        file.reviewerId = reviewerId;
+        file.submittedForReviewAt = new Date().toISOString();
+        file.submittedBy = currentUser?.id;
+
+        // Find reviewer details for the notification
+        const reviewer = users.find((u) => u.id === reviewerId);
+        const submitterProfile = MOCK_USER_PROFILES[currentUser?.id];
+        const submitterName = submitterProfile?.name || currentUser?.email || 'A user';
+
+        addReviewNotification({
+            fileId: String(fileId),
+            fileName: file.name,
+            recipientId: reviewerId,
+            submittedBy: currentUser?.id,
+            submitterName,
+        });
+
+        return { fileId: String(fileId), status: 'in review', reviewerId };
+    }
+
+    // Real API call would go here
+    throw new Error('Not implemented for real API');
+}
+
+// Reviewer/admin approves a transcript — moves status from "in review" to "reviewed".
+export async function approveTranscript(fileId) {
+    requireAuth();
+    const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        assertTransition(file.status, 'reviewed');
+        file.status = 'reviewed';
+        file.reviewedBy = currentUser?.id;
+        file.reviewedAt = new Date().toISOString();
+
+        // Notify the original submitter
+        if (file.submittedBy) {
+            const reviewerProfile = MOCK_USER_PROFILES[currentUser?.id];
+            const reviewerName = reviewerProfile?.name || currentUser?.email || 'A reviewer';
+            addReviewActionNotification({
+                fileId: String(fileId),
+                fileName: file.name,
+                recipientId: file.submittedBy,
+                reviewerName,
+                action: 'approved',
+            });
+        }
+
+        return { fileId: String(fileId), status: 'reviewed' };
+    }
+
+    throw new Error('Not implemented for real API');
+}
+
+// Reviewer/admin requests changes — moves status from "in review" to "needs action".
+export async function requestChanges(fileId, reason) {
+    requireAuth();
+    const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        assertTransition(file.status, 'needs action');
+        file.status = 'needs action';
+        file.reviewerId = null;
+        file.submittedForReviewAt = null;
+        file.changeRequestReason = reason || null;
+        file.changeRequestedBy = currentUser?.id;
+        file.changeRequestedAt = new Date().toISOString();
+
+        // Notify the original submitter
+        if (file.submittedBy) {
+            const reviewerProfile = MOCK_USER_PROFILES[currentUser?.id];
+            const reviewerName = reviewerProfile?.name || currentUser?.email || 'A reviewer';
+            addReviewActionNotification({
+                fileId: String(fileId),
+                fileName: file.name,
+                recipientId: file.submittedBy,
+                reviewerName,
+                action: 'needs action',
+                reason: reason || null,
+            });
+        }
+
+        return { fileId: String(fileId), status: 'needs action' };
+    }
+
+    throw new Error('Not implemented for real API');
 }

@@ -84,3 +84,90 @@ export function subscribe(fn) {
     _listeners.add(fn);
     return () => _listeners.delete(fn);
 }
+
+// ─── Review notifications ───────────────────────────────────────────────────
+// Sent to a reviewer/admin when a user submits a transcript for review.
+
+export function addReviewNotification({ fileId, fileName, recipientId, submittedBy, submitterName }) {
+    // Don't duplicate for the same file + recipient
+    if (_notifications.some((n) => n.type === 'review_submitted' && n.fileId === fileId && n.recipientId === recipientId)) return;
+
+    _notifications.push({
+        id: _nextId++,
+        type: 'review_submitted',
+        fileId,
+        fileName,
+        recipientId,
+        submittedBy,
+        message: `${submitterName} submitted "${fileName}" for your review.`,
+        createdAt: new Date().toISOString(),
+        read: false,
+    });
+    notify();
+}
+
+// ─── Review action notifications ─────────────────────────────────────────────
+// Sent to the original submitter when a reviewer approves or requests changes.
+
+export function addReviewActionNotification({ fileId, fileName, recipientId, reviewerName, action, reason }) {
+    _notifications.push({
+        id: _nextId++,
+        type: 'review_action',
+        fileId,
+        fileName,
+        recipientId,
+        action,
+        message: action === 'approved'
+            ? `${reviewerName} approved "${fileName}".`
+            : `${reviewerName} requested changes on "${fileName}".${reason ? ` Reason: ${reason}` : ''}`,
+        createdAt: new Date().toISOString(),
+        read: false,
+    });
+    notify();
+}
+
+// ─── Folder request notifications ──────────────────────────────────────────────
+
+export function addFolderRequestNotification({ groupId, recipientId, requestedBy, requesterName, suggestedName }) {
+    _notifications.push({
+        id: _nextId++,
+        type: 'folder_request',
+        groupId,
+        recipientId,
+        requestedBy,
+        message: `${requesterName} requested a new folder "${suggestedName}".`,
+        createdAt: new Date().toISOString(),
+        read: false,
+    });
+    notify();
+}
+
+export function addFolderRequestResponseNotification({ recipientId, suggestedName, approved, denyReason }) {
+    _notifications.push({
+        id: _nextId++,
+        type: 'folder_request_response',
+        recipientId,
+        message: approved
+            ? `Your folder request "${suggestedName}" was approved.`
+            : `Your folder request "${suggestedName}" was denied.${denyReason ? ` Reason: ${denyReason}` : ''}`,
+        createdAt: new Date().toISOString(),
+        read: false,
+    });
+    notify();
+}
+
+// Get notifications targeted at a specific user (by userId).
+// Job notifications use the userId from the watch; review notifications use recipientId.
+export function getNotificationsForUser(userId) {
+    return _notifications.filter((n) => {
+        if (n.type === 'review_submitted') return n.recipientId === userId;
+        if (n.type === 'review_action') return n.recipientId === userId;
+        if (n.type === 'folder_request') return n.recipientId === userId;
+        if (n.type === 'folder_request_response') return n.recipientId === userId;
+        return n.userId === userId;
+    });
+}
+
+export function getUnreadCountForUser(userId) {
+    return getNotificationsForUser(userId).filter((n) => !n.read).length;
+}

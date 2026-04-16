@@ -90,6 +90,12 @@ function buildEntry({
     ];
     const metrics = syntheticMetrics(id, text, durationSec);
 
+    const statusPool = ['needs action', 'in review', 'transcribed', 'transcribing', 'reviewed', 'needs action'];
+    const status = statusPool[globalIdx % statusPool.length];
+    if (status === 'transcribing' || status === 'transcribed') {
+        metrics.wer = 'NA';
+        metrics.absoluteWordErrorRate = 'NA';
+    }
     return {
         id,
         ownerId: o.ownerId,
@@ -99,6 +105,7 @@ function buildEntry({
         uploaded_at: dateFor(globalIdx),
         dataset: datasetKey,
         detectedLanguage,
+        status,
         ...metrics,
         ...extras,
         rawTranscript: {
@@ -206,6 +213,12 @@ function buildRootEntry({ datasetLabel, globalIdx, localIdx, audioRelPath, text,
         },
     ];
     const metrics = syntheticMetrics(id, text, durationSec);
+    const statusPool = ['needs action', 'in review', 'transcribed', 'transcribing', 'reviewed', 'needs action'];
+    const status = statusPool[globalIdx % statusPool.length];
+    if (status === 'transcribing' || status === 'transcribed') {
+        metrics.wer = 'NA';
+        metrics.absoluteWordErrorRate = 'NA';
+    }
     return {
         id,
         ownerId: o.ownerId,
@@ -214,6 +227,7 @@ function buildRootEntry({ datasetLabel, globalIdx, localIdx, audioRelPath, text,
         audioUrl,
         uploaded_at: dateFor(globalIdx),
         detectedLanguage,
+        status,
         ...metrics,
         rawTranscript: {
             id: 5000 + globalIdx * 2,
@@ -257,9 +271,8 @@ function buildRootFiles() {
             // deleted_at: explicit timestamp if user-initiated, otherwise 7 days after upload (system auto-delete)
             entry.deleted_at = cfg.deletedAt || new Date(uploaded.getTime() + RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
             entry.deleted_by = cfg.deletedBy;
-            // expires_at: always RETENTION_DAYS after the deletion date
-            const deletedMs = new Date(entry.deleted_at).getTime();
-            entry.expires_at = new Date(deletedMs + RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+            // expires_at: always RETENTION_DAYS after the upload date (not deletion date)
+            entry.expires_at = new Date(uploaded.getTime() + RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
         }
         out.push(entry);
     });
