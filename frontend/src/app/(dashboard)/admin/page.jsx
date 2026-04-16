@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { getPendingRequests, approveRequest, denyRequest, subscribe } from "../../../services/credential-requests";
 
 const MOCK_USERS = [
   { id: 1, name: "Elena Kostic", role: "Senior Analyst", access: "PREMIUM", status: "ACTIVE", lastActive: "2 mins ago", permissions: { readOnly: true, reviewEdit: true, adminControls: false, mlPipeline: false } },
@@ -41,6 +42,11 @@ function ToggleSwitch({ on }) {
 export default function AdminPage() {
   const [selected, setSelected] = useState(MOCK_USERS[0]);
   const [tab, setTab] = useState("directory");
+  const [pendingRequests, setPendingRequests] = useState(() => getPendingRequests());
+
+  useEffect(() => {
+    return subscribe(() => setPendingRequests(getPendingRequests()));
+  }, []);
 
   const tabs = ["directory", "permissions", "logs"];
 
@@ -70,6 +76,57 @@ export default function AdminPage() {
         <KpiCard label="Admins" value="18" sub="Institutional" />
         <KpiCard label="ML Engineers" value="156" sub="Pipeline Ops" />
       </div>
+
+      {/* Pending Credential Requests */}
+      {pendingRequests.length > 0 && (
+        <div className="mb-6 p-5" style={{ backgroundColor: "#ffffff" }}>
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-[0.875rem] font-bold uppercase tracking-wider" style={{ color: "#1c1b1b" }}>Pending Credential Changes</h2>
+            <span className="inline-block px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase" style={{ backgroundColor: "rgba(178, 1, 0, 0.08)", color: "#b20100" }}>
+              {pendingRequests.length} PENDING
+            </span>
+          </div>
+          <div className="space-y-3">
+            {pendingRequests.map((req) => (
+              <div key={req.id} className="flex items-center gap-4 p-4" style={{ backgroundColor: "#f6f3f2" }}>
+                <div className="w-9 h-9 shrink-0 overflow-hidden" style={{ backgroundColor: "#313030" }}>
+                  <img src={req.profilePic || '/default_pfp.png'} alt={req.userName} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[0.8125rem] font-semibold" style={{ color: "#1c1b1b" }}>{req.userName}</p>
+                  <p className="text-[0.625rem] mb-1" style={{ color: "#7a7574" }}>ID: {req.userId}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {Object.entries(req.changes).map(([field, { from, to }]) => (
+                      <span key={field} className="text-[0.6875rem]" style={{ color: "#1c1b1b" }}>
+                        <span className="uppercase tracking-wider text-[0.5625rem]" style={{ color: "#7a7574" }}>{field}: </span>
+                        <span style={{ textDecoration: "line-through", color: "#7a7574" }}>{from}</span>
+                        {" → "}
+                        <span className="font-semibold">{to}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => approveRequest(req.id)}
+                    className="px-3 py-1.5 text-[0.75rem] font-semibold cursor-pointer"
+                    style={{ backgroundColor: "#1c1b1b", color: "#ffffff", border: "none", borderRadius: "0px" }}
+                  >
+                    APPROVE
+                  </button>
+                  <button
+                    onClick={() => denyRequest(req.id)}
+                    className="px-3 py-1.5 text-[0.75rem] font-semibold cursor-pointer"
+                    style={{ backgroundColor: "transparent", border: "1.5px solid #1c1b1b", borderRadius: "0px", color: "#1c1b1b" }}
+                  >
+                    DENY
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-6">
         {/* User Directory */}

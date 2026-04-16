@@ -68,7 +68,7 @@ export default function SidebarShell({ userRole }) {
         >
             <div>
                 {/* Logo */}
-                <div className="flex items-center gap-2.5 px-5 pt-5 pb-4">
+                <Link href="/" className="flex items-center gap-2.5 px-5 pt-5 pb-4 no-underline cursor-pointer">
                     <img src="/logo.png" alt="CLFT" className="h-7 w-7 object-contain" />
                     {!collapsed && (
                         <div>
@@ -80,7 +80,7 @@ export default function SidebarShell({ userRole }) {
                             </p>
                         </div>
                     )}
-                </div>
+                </Link>
 
                 {/* New Transcription Button */}
                 <div className="px-4 mb-4">

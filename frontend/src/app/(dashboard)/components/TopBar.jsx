@@ -1,9 +1,18 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import LogoutButton from './LogoutButton';
+import { fetchUserProfile } from '../../../services/api';
 
 export default function TopBar({ userRole }) {
+    const [profilePic, setProfilePic] = useState(null);
+
+    useEffect(() => {
+        fetchUserProfile().then((profile) => {
+            if (profile?.profilePic) setProfilePic(profile.profilePic);
+        });
+    }, []);
     return (
         <header className="flex items-center justify-between px-6 py-3" style={{ backgroundColor: '#ffffff' }}>
             <div className="flex-1 max-w-md flex items-center gap-2">
@@ -31,10 +40,10 @@ export default function TopBar({ userRole }) {
                 <LogoutButton />
                 <Link
                     href="/profile"
-                    className="w-8 h-8 flex items-center justify-center text-[0.75rem] font-bold no-underline"
+                    className="w-8 h-8 flex items-center justify-center text-[0.75rem] font-bold no-underline overflow-hidden"
                     style={{ backgroundColor: '#313030', color: '#f3f0ef', borderRadius: '0px' }}
                 >
-                    {userRole === 'admin' ? 'AD' : userRole === 'engineer' ? 'EN' : userRole === 'reviewer' ? 'RV' : 'GU'}
+                    <img src={profilePic || '/default_pfp.png'} alt="Profile" className="w-full h-full object-cover" />
                 </Link>
             </div>
         </header>

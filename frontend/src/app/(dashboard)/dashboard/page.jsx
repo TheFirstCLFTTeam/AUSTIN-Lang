@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { getDashboardStats, triggerRetraining } from "../../../services/analytics";
 
@@ -15,9 +16,62 @@ function KpiCard({ label, value, sublabel, accent }) {
 }
 
 function WerChart() {
+  const svgRef = useRef(null);
   const baseModel = [18, 16, 15, 14.5, 14, 13.5, 13, 12.5, 12, 11, 10.5, 10];
   const fineTuned = [18, 14, 11, 9, 8, 7.5, 7, 6.2, 5.5, 5, 4.5, 4.2];
   const maxVal = 20;
+
+  useEffect(() => {
+    const container = svgRef.current;
+    if (!container) return;
+
+    d3.select(container).selectAll("*").remove();
+
+    const margin = { top: 8, right: 8, bottom: 4, left: 32 };
+    const width = container.clientWidth - margin.left - margin.right;
+    const height = 200 - margin.top - margin.bottom;
+
+    const svg = d3.select(container)
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleLinear().domain([0, baseModel.length - 1]).range([0, width]);
+    const y = d3.scaleLinear().domain([0, maxVal]).range([height, 0]);
+
+    const ticks = [0, 5, 10, 15, 20];
+    ticks.forEach((v) => {
+      svg.append("line")
+        .attr("x1", 0).attr("x2", width)
+        .attr("y1", y(v)).attr("y2", y(v))
+        .attr("stroke", "rgba(233, 188, 181, 0.15)")
+        .attr("stroke-width", 1);
+      svg.append("text")
+        .attr("x", -8).attr("y", y(v) + 3)
+        .attr("text-anchor", "end")
+        .attr("fill", "#7a7574")
+        .attr("font-size", "0.625rem")
+        .text(`${v}%`);
+    });
+
+    const line = d3.line().x((_, i) => x(i)).y((d) => y(d));
+
+    svg.append("path")
+      .datum(baseModel)
+      .attr("fill", "none")
+      .attr("stroke", "#1c1b1b")
+      .attr("stroke-width", 1.5)
+      .attr("d", line);
+
+    svg.append("path")
+      .datum(fineTuned)
+      .attr("fill", "none")
+      .attr("stroke", "#b20100")
+      .attr("stroke-width", 1.5)
+      .attr("d", line);
+  }, []);
 
   return (
     <div className="p-5" style={{ backgroundColor: "#ffffff" }}>
@@ -31,19 +85,7 @@ function WerChart() {
           <span className="flex items-center gap-1"><span className="w-3 h-1 inline-block" style={{ backgroundColor: "#b20100" }} />Fine-Tuned</span>
         </div>
       </div>
-      <div className="relative" style={{ height: "200px" }}>
-        {[0, 5, 10, 15, 20].map((v) => (
-          <div key={v} className="absolute w-full" style={{ bottom: `${(v / maxVal) * 100}%`, borderTop: "1px solid rgba(233, 188, 181, 0.15)" }}>
-            <span className="absolute -left-8 -top-2 text-[0.625rem]" style={{ color: "#7a7574" }}>{v}%</span>
-          </div>
-        ))}
-        <svg className="absolute inset-0 w-full h-full" viewBox={`0 0 ${baseModel.length - 1} ${maxVal}`} preserveAspectRatio="none">
-          <polyline points={baseModel.map((v, i) => `${i},${maxVal - v}`).join(" ")} fill="none" stroke="#1c1b1b" strokeWidth="0.3" />
-        </svg>
-        <svg className="absolute inset-0 w-full h-full" viewBox={`0 0 ${fineTuned.length - 1} ${maxVal}`} preserveAspectRatio="none">
-          <polyline points={fineTuned.map((v, i) => `${i},${maxVal - v}`).join(" ")} fill="none" stroke="#b20100" strokeWidth="0.3" />
-        </svg>
-      </div>
+      <div ref={svgRef} style={{ height: "200px" }} />
       <div className="flex items-center gap-8 mt-6 pt-4" style={{ borderTop: "1px solid rgba(233, 188, 181, 0.15)" }}>
         <div><p className="text-[0.6875rem] uppercase tracking-wider" style={{ color: "#7a7574" }}>Current WER</p><p className="text-[1.5rem] font-bold" style={{ color: "#1c1b1b" }}>4.2%</p></div>
         <div><p className="text-[0.6875rem] uppercase tracking-wider" style={{ color: "#7a7574" }}>Target</p><p className="text-[1.5rem] font-bold" style={{ color: "#7a7574" }}>2.5%</p></div>

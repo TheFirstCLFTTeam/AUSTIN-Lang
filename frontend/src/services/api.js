@@ -200,7 +200,7 @@ export async function fetchSubmittedFiles() {
 
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
-        return MOCK_FILE_STORE.map(
+        return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map(
             ({ id, name, audioUrl, uploaded_at, rawTranscript, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset }) => {
                 const fullText = (rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
                 const words = fullText.split(/\s+/).filter(Boolean);
@@ -252,6 +252,44 @@ export async function fetchSubmittedFiles() {
     }
 }
 
+// Fetch soft-deleted files (trash)
+export async function fetchTrashedFiles() {
+    requireAuth();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_FILE_STORE.filter((f) => f.deleted_at).map(
+            ({ id, name, audioUrl, uploaded_at, deleted_at, deleted_by, expires_at, rawTranscript, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset }) => {
+                const fullText = (rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
+                const words = fullText.split(/\s+/).filter(Boolean);
+                const header = words.length > 1
+                    ? words.slice(0, 50).join(' ')
+                    : fullText.slice(0, 120);
+                return {
+                    id,
+                    name,
+                    audioUrl,
+                    uploaded_at,
+                    deleted_at,
+                    deleted_by: deleted_by || 'system',
+                    expires_at: expires_at || null,
+                    transcriptHeader: header,
+                    duration: duration || null,
+                    wer: wer ?? null,
+                    absoluteWordErrorRate: absoluteWordErrorRate ?? null,
+                    totalNumberOfWords: totalNumberOfWords ?? null,
+                    speakerDetection: speakerDetection ?? null,
+                    detectedLanguage: detectedLanguage || null,
+                    compliance: compliance || null,
+                    dataset: dataset || null,
+                };
+            },
+        );
+    }
+
+    return [];
+}
+
 // Fetch all files with metadata only (for engineers viewing others' files)
 export async function fetchAllFilesMetadata() {
     requireAuth();
@@ -259,7 +297,7 @@ export async function fetchAllFilesMetadata() {
 
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
-        return MOCK_FILE_STORE.map((f) => {
+        return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map((f) => {
             const fullText = (f.rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
             const words = fullText.split(/\s+/).filter(Boolean);
             const header = words.length > 1

@@ -30,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={fontSans.className}>{children}</body>
+      <body className={fontSans.className} suppressHydrationWarning>{children}</body>
     </html>
   );
 }

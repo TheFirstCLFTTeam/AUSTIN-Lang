@@ -1,198 +1,9 @@
 // Shared mock data — imported by both api.js (client) and api-server.js (server)
 
 import { SAMPLED_DATASET_FILES, ROOT_LEVEL_SAMPLED_FILES } from './sampled-datasets';
+import { users, MOCK_USER_PROFILES, MOCK_CLIENTS } from './mock_data-users';
 
-export const users = [
-    {
-        id: 'u1',
-        email: 'user@example.com',
-        password: 'password123',
-        name: 'Generic User',
-        role: 'generic',
-    },
-    {
-        id: 'u2',
-        email: 'engineer@example.com',
-        password: 'password123',
-        name: 'Engineer User',
-        role: 'engineer',
-    },
-    {
-        id: 'u3',
-        email: 'admin@example.com',
-        password: 'password123',
-        name: 'Admin User',
-        role: 'admin',
-    },
-    {
-        id: 'u4',
-        email: 'reviewer@example.com',
-        password: 'password123',
-        name: 'Reviewer User',
-        role: 'reviewer',
-    },
-];
-
-export const MOCK_USER_PROFILES = {
-    u1: {
-        name: 'J. Montgomery',
-        profilePic: '/04UserPFP.png',
-        designation: 'ML Engineer',
-        employeeId: 'PR-8829-X',
-        department: 'Core Architect',
-        recordingsHandled: {
-            total: 342,
-            daily: [
-                { day: 'Mon', count: 84 },
-                { day: 'Tue', count: 82 },
-                { day: 'Wed', count: 55 },
-                { day: 'Thu', count: 71 },
-                { day: 'Fri', count: 70 },
-            ],
-        },
-        preferences: {
-            localization: { primary: 'English', secondary: 'Mandarin' },
-            notifications: ['Transcription Ready', 'Transco Job Complete', 'Compliance Flags'],
-        },
-        security: {
-            status: 'Alive',
-            mfaEnabled: true,
-            activeSessions: [
-                { id: 'sess-001', label: '192.168.0.1' },
-                { id: 'sess-002', label: '10.0.0.42' },
-            ],
-        },
-        permissionGroups: [
-            {
-                name: 'ML Engineer - Level 3',
-                isPrimary: true,
-                permissions: ['Full Access to Training Pipeline', 'Red Zone Data Access', 'Inference Endpoint Deployment'],
-            },
-            {
-                name: 'Data Architect - Tier 2',
-                isPrimary: false,
-                permissions: ['Schema Design Access', 'Read-Only Production Data', 'ETL Pipeline Management'],
-            },
-            {
-                name: 'Security Auditor - Level 1',
-                isPrimary: false,
-                permissions: ['Audit Log Viewer', 'Compliance Report Access'],
-            },
-        ],
-    },
-    u2: {
-        name: 'R. Nakamura',
-        profilePic: '/03EngiPFP.png',
-        designation: 'Senior Engineer',
-        employeeId: 'EN-4412-K',
-        department: 'Platform Engineering',
-        recordingsHandled: {
-            total: 189,
-            daily: [
-                { day: 'Mon', count: 45 },
-                { day: 'Tue', count: 38 },
-                { day: 'Wed', count: 42 },
-                { day: 'Thu', count: 30 },
-                { day: 'Fri', count: 34 },
-            ],
-        },
-        preferences: {
-            localization: { primary: 'English', secondary: null },
-            notifications: ['Transcription Ready', 'Transco Job Complete'],
-        },
-        security: {
-            status: 'Alive',
-            mfaEnabled: true,
-            activeSessions: [
-                { id: 'sess-003', label: '172.16.0.5' },
-            ],
-        },
-        permissionGroups: [
-            {
-                name: 'Platform Engineer - Level 2',
-                isPrimary: true,
-                permissions: ['Full Access to Training Pipeline', 'Infrastructure Management'],
-            },
-        ],
-    },
-    u3: {
-        name: 'A. Whitfield',
-        profilePic: '/01AdminPFP.png',
-        designation: 'System Administrator',
-        employeeId: 'AD-0001-A',
-        department: 'Operations',
-        recordingsHandled: {
-            total: 512,
-            daily: [
-                { day: 'Mon', count: 120 },
-                { day: 'Tue', count: 105 },
-                { day: 'Wed', count: 98 },
-                { day: 'Thu', count: 102 },
-                { day: 'Fri', count: 87 },
-            ],
-        },
-        preferences: {
-            localization: { primary: 'English', secondary: 'Mandarin' },
-            notifications: ['Transcription Ready', 'Transco Job Complete', 'Compliance Flags'],
-        },
-        security: {
-            status: 'Alive',
-            mfaEnabled: true,
-            activeSessions: [
-                { id: 'sess-004', label: '10.0.1.1' },
-                { id: 'sess-005', label: '192.168.1.50' },
-                { id: 'sess-006', label: '10.0.1.3' },
-            ],
-        },
-        permissionGroups: [
-            {
-                name: 'System Admin - Level 5',
-                isPrimary: true,
-                permissions: ['Full System Access', 'User Management', 'Group Management', 'Audit Controls'],
-            },
-            {
-                name: 'Security Auditor - Level 3',
-                isPrimary: false,
-                permissions: ['Audit Log Viewer', 'Compliance Report Access', 'Incident Response'],
-            },
-        ],
-    },
-    u4: {
-        name: 'L. Vasquez',
-        profilePic: '/02ReviewerPFP.png',
-        designation: 'Transcript Reviewer',
-        employeeId: 'RV-2201-F',
-        department: 'Quality Assurance',
-        recordingsHandled: {
-            total: 276,
-            daily: [
-                { day: 'Mon', count: 62 },
-                { day: 'Tue', count: 58 },
-                { day: 'Wed', count: 50 },
-                { day: 'Thu', count: 54 },
-                { day: 'Fri', count: 52 },
-            ],
-        },
-        preferences: {
-            localization: { primary: 'English', secondary: null },
-            notifications: ['Transcription Ready', 'Compliance Flags'],
-        },
-        security: {
-            status: 'Alive',
-            mfaEnabled: false,
-            activeSessions: [
-                { id: 'sess-007', label: '10.0.2.15' },
-            ],
-        },
-        permissionGroups: [
-            {
-                name: 'Reviewer - Level 2',
-                isPrimary: true,
-                permissions: ['Transcript Review Access', 'Edit Approval', 'Quality Report Viewer'],
-            },
-        ],
-    },
-};
+export { users, MOCK_USER_PROFILES, MOCK_CLIENTS };
 
 export const MOCK_PROCESSING_JOBS = [
     {
@@ -212,6 +23,7 @@ export const MOCK_PROCESSING_JOBS = [
             { id: 'r102', fileName: 'earnings_call_feb.wav',  duration: '38:07', sizeMb: 51.6, progress: 82,  status: 'processing',  stage: 'Speaker diarization' },
             { id: 'r103', fileName: 'earnings_call_mar.wav',  duration: '45:22', sizeMb: 62.9, progress: 54,  status: 'processing',  stage: 'Transcribing' },
             { id: 'r104', fileName: 'qa_session_mar.mp3',     duration: '12:45', sizeMb: 17.4, progress: 35,  status: 'processing',  stage: 'Transcribing' },
+            { id: 'r105', fileName: 'earnings_call_apr.wav',  duration: '00:00', sizeMb: 0.0,  progress: 8,   status: 'failed',      stage: 'Error: Empty audio stream', error: { code: 'AUDIO_EMPTY', message: 'The audio file contains no decodable audio frames. The file may be empty, truncated, or contain only silence headers.', timestamp: '2026-04-15T09:18:02Z', commonCauses: ['Recording was started but no audio was captured (muted mic)', 'File was truncated during upload or transfer', 'Source application wrote headers only without audio data'] } },
         ],
     },
     {
@@ -267,6 +79,7 @@ export const MOCK_PROCESSING_JOBS = [
         recordings: [
             { id: 'r401', fileName: 'onboarding_session_pt1.mp3', duration: '35:22', sizeMb: 48.1, progress: 70, status: 'processing', stage: 'Transcribing' },
             { id: 'r402', fileName: 'onboarding_session_pt2.mp3', duration: '41:08', sizeMb: 56.3, progress: 0,  status: 'queued',     stage: 'Queued' },
+            { id: 'r403', fileName: 'onboarding_session_pt3.mp3', duration: '28:14', sizeMb: 38.7, progress: 45, status: 'failed',     stage: 'Error: Timeout during transcription', error: { code: 'TRANSCRIPTION_TIMEOUT', message: 'Transcription engine timed out after 300s. The audio segment between 12:04–12:38 contains overlapping speakers that exceeded the diarization complexity limit.', timestamp: '2026-04-15T09:47:18Z', commonCauses: ['Audio contains heavily overlapping speakers that exceed diarization limits', 'Background noise levels are too high for the transcription model', 'Server was under heavy load during processing'] } },
         ],
     },
     {
@@ -283,7 +96,7 @@ export const MOCK_PROCESSING_JOBS = [
         estimatedCompletion: null,
         recordings: [
             { id: 'r501', fileName: 'board_meeting_mar_pt1.wav', duration: '48:55', sizeMb: 67.8, progress: 100, status: 'completed', stage: 'Transcript finalized' },
-            { id: 'r502', fileName: 'board_meeting_mar_pt2.wav', duration: '52:11', sizeMb: 72.4, progress: 100, status: 'failed',    stage: 'Error: Unsupported codec' },
+            { id: 'r502', fileName: 'board_meeting_mar_pt2.wav', duration: '52:11', sizeMb: 72.4, progress: 100, status: 'failed',    stage: 'Error: Unsupported codec', error: { code: 'CODEC_UNSUPPORTED', message: 'The audio file uses an unsupported codec (Opus in OGG container). Only PCM, AAC, and MP3 codecs are supported.', timestamp: '2026-04-15T09:12:44Z', commonCauses: ['File was recorded with a non-standard codec', 'Container format does not match the actual codec', 'File was partially re-encoded or corrupted during transfer'] } },
             { id: 'r503', fileName: 'exec_session_mar.wav',      duration: '14:38', sizeMb: 20.2, progress: 100, status: 'completed', stage: 'Transcript finalized' },
         ],
     },
@@ -306,147 +119,6 @@ export const MOCK_PROCESSING_JOBS = [
 ];
 
 export const MOCK_FILE_STORE = [
-    {
-        id: '1',
-        ownerId: 'u1',
-        ownerName: 'Generic User',
-        name: 'interview_sample.wav',
-        audioUrl: null,
-        uploaded_at: '2026-03-01T10:00:00Z',
-        duration: '10:34',
-        wer: 4.2,
-        absoluteWordErrorRate: 31,
-        totalNumberOfWords: 738,
-        speakerDetection: 3,
-        detectedLanguage: 'English (US)',
-        compliance: 'FR-A01 Approved',
-        rawTranscript: {
-            id: 101,
-            audio_file_id: 1,
-            transcript_segments: [
-                {
-                    id: 1,
-                    start: 0.0,
-                    end: 3.5,
-                    text: 'Good morning everyone, thank you for joining this quarterly earnings call. We have a lot of ground to cover today regarding our fiscal performance.',
-                },
-                {
-                    id: 2,
-                    start: 3.5,
-                    end: 7.0,
-                    text: 'Revenue increased by twelve percent year over year, driven primarily by strong demand in our institutional services division and new client acquisitions.',
-                },
-                {
-                    id: 3,
-                    start: 7.0,
-                    end: 11.0,
-                    text: 'Our operating margin improved to nineteen point four percent, reflecting ongoing cost optimization initiatives across all major business units.',
-                },
-            ],
-        },
-        edits: [],
-    },
-    {
-        id: '2',
-        ownerId: 'u2',
-        ownerName: 'Engineer User',
-        name: 'lecture_recording.mp3',
-        audioUrl: null,
-        uploaded_at: '2026-03-02T14:30:00Z',
-        duration: '24:38',
-        wer: 6.8,
-        absoluteWordErrorRate: 142,
-        totalNumberOfWords: 2088,
-        speakerDetection: 1,
-        detectedLanguage: 'English (UK)',
-        compliance: 'Pending Review',
-        rawTranscript: {
-            id: 102,
-            audio_file_id: 2,
-            transcript_segments: [
-                {
-                    id: 4,
-                    start: 0.0,
-                    end: 4.0,
-                    text: 'Welcome to the advanced natural language processing seminar. Today we will examine transformer architectures and their applications in speech-to-text systems.',
-                    originalText:
-                        'Welcome to the advanced natural language processing seminar. Today we will examine transformer architectures and their applications in speech-to-text systems.',
-                },
-                {
-                    id: 5,
-                    start: 4.0,
-                    end: 9.0,
-                    text: 'Attention mechanisms allow the model to weigh the relevance of different input tokens, which is critical for handling long audio sequences with variable speaker patterns.',
-                    originalText:
-                        'Attention mechanisms allow the model to weigh the relevance of different input tokens, which is critical for handling long audio sequences with variable speaker patterns.',
-                },
-                {
-                    id: 6,
-                    start: 9.0,
-                    end: 14.5,
-                    text: 'Fine-tuning on domain-specific corpora, particularly financial terminology, has shown a forty percent reduction in word error rate compared to the base model.',
-                    originalText:
-                        'Fine-tuning on domain-specific corpora, particularly financial terminology, has shown a forty percent reduction in word error rate compared to the base model.',
-                },
-            ],
-        },
-        editedTranscript: {
-            id: 202,
-            raw_transcript_id: 102,
-            transcript_segments: [
-                {
-                    id: 4,
-                    start: 0.0,
-                    end: 4.0,
-                    text: 'Welcome to the advanced natural language processing seminar. Today we will examine transformer architectures and their applications in speech-to-text systems.',
-                    originalText:
-                        'Welcome to the advanced natural language processing seminar. Today we will examine transformer architectures and their applications in speech-to-text systems.',
-                },
-                {
-                    id: 5,
-                    start: 4.0,
-                    end: 9.0,
-                    text: 'Attention mechanisms allow the model to weigh the relevance of different input tokens, which is critical for handling long audio sequences with variable speaker patterns.',
-                    originalText:
-                        'Attention mechanisms allow the model to weigh the relevance of different input tokens, which is critical for handling long audio sequences with variable speaker patterns.',
-                },
-                {
-                    id: 6,
-                    start: 9.0,
-                    end: 14.5,
-                    text: 'Fine-tuning on domain-specific corpora, particularly financial terminology, has shown a forty percent reduction in word error rate compared to the base model.',
-                    originalText:
-                        'Fine-tuning on domain-specific corpora, particularly financial terminology, has shown a forty percent reduction in word error rate compared to the base model.',
-                },
-            ],
-        },
-        transcriptSegments: [
-            {
-                id: 4,
-                start: 0.0,
-                end: 4.0,
-                text: 'Welcome to the advanced natural language processing seminar. Today we will examine transformer architectures and their applications in speech-to-text systems.',
-                originalText:
-                    'Welcome to the advanced natural language processing seminar. Today we will examine transformer architectures and their applications in speech-to-text systems.',
-            },
-            {
-                id: 5,
-                start: 4.0,
-                end: 9.0,
-                text: 'Attention mechanisms allow the model to weigh the relevance of different input tokens, which is critical for handling long audio sequences with variable speaker patterns.',
-                originalText:
-                    'Attention mechanisms allow the model to weigh the relevance of different input tokens, which is critical for handling long audio sequences with variable speaker patterns.',
-            },
-            {
-                id: 6,
-                start: 9.0,
-                end: 14.5,
-                text: 'Fine-tuning on domain-specific corpora, particularly financial terminology, has shown a forty percent reduction in word error rate compared to the base model.',
-                originalText:
-                    'Fine-tuning on domain-specific corpora, particularly financial terminology, has shown a forty percent reduction in word error rate compared to the base model.',
-            },
-        ],
-    },
     ...ROOT_LEVEL_SAMPLED_FILES,
     ...SAMPLED_DATASET_FILES,
 ];

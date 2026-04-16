@@ -376,7 +376,9 @@ export default function FilesPage() {
   // leaving the folder view, clear the selection so the detail pane hides.
   useEffect(() => {
     if (!selectedFolder) {
-      setSelected(null);
+      // At root level, pre-select the first root-level file (no dataset)
+      const firstRoot = files.find((f) => !f.dataset);
+      setSelected(firstRoot || null);
       return;
     }
     if (!selected || selected.dataset !== selectedFolder) {
@@ -439,7 +441,11 @@ export default function FilesPage() {
       if (activeFilter === "all") return true;
       return f._status === activeFilter;
     })
-    .filter((f) => !selectedFolder || f.dataset === selectedFolder);
+    .filter((f) => {
+      if (selectedFolder) return f.dataset === selectedFolder;
+      // At root level, show only files that don't belong to any folder
+      return !f.dataset;
+    });
 
   const pinnedSet = new Set(pinned);
   const pinnedFiles = pinned
@@ -701,8 +707,7 @@ export default function FilesPage() {
           )}
         </div>
 
-        {/* ── Files (only visible when a folder is opened) ── */}
-        {activeFolder && (
+        {/* ── Files ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Files</h2>
@@ -769,18 +774,13 @@ export default function FilesPage() {
           {filteredFiles.length === 0 && (
             <div className="px-4 py-12 text-center text-[0.875rem]" style={{ color: "#7a7574" }}>
               {activeFilter !== "all"
-                ? `No transcripts in "${activeFolder.name}" match the current filter.`
-                : `No transcripts in "${activeFolder.name}" yet.`}
+                ? `No transcripts${activeFolder ? ` in "${activeFolder.name}"` : ""} match the current filter.`
+                : activeFolder
+                  ? `No transcripts in "${activeFolder.name}" yet.`
+                  : "No root-level transcripts yet."}
             </div>
           )}
         </div>
-        )}
-
-        {!activeFolder && (
-          <div className="px-4 py-12 text-center text-[0.875rem]" style={{ color: "#7a7574" }}>
-            Select a folder above to view its transcripts.
-          </div>
-        )}
       </div>
 
       {/* ══ Right side: full-height preview panel ══ */}
