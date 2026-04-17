@@ -11,6 +11,14 @@ const DATASETS_ROOT = path.resolve(
     'sampled_datasets',
 );
 
+// Additional mount points. When the first URL segment matches a key here,
+// the remaining segments are resolved against the mapped directory instead
+// of DATASETS_ROOT. Leaves existing /api/mock-audio/<dataset>/... URLs
+// untouched.
+const MOUNTS = {
+    multispeak: path.resolve(DATASETS_ROOT, '..', 'multispeak_maker'),
+};
+
 const MIME_BY_EXT = {
     '.wav': 'audio/wav',
     '.mp3': 'audio/mpeg',
@@ -22,9 +30,14 @@ const MIME_BY_EXT = {
 export async function GET(_req, ctx) {
     const { path: segments } = await ctx.params;
 
-    // Resolve inside DATASETS_ROOT and guard against traversal.
-    const requested = path.resolve(DATASETS_ROOT, ...segments);
-    if (!requested.startsWith(DATASETS_ROOT + path.sep)) {
+    const [first, ...rest] = segments;
+    const mountRoot = MOUNTS[first];
+    const root = mountRoot || DATASETS_ROOT;
+    const relSegments = mountRoot ? rest : segments;
+
+    // Resolve inside the chosen root and guard against traversal.
+    const requested = path.resolve(root, ...relSegments);
+    if (!requested.startsWith(root + path.sep)) {
         return new Response('Forbidden', { status: 403 });
     }
 

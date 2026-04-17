@@ -48,7 +48,12 @@
       "WebFetch(domain:9to5google.com)",
       "WebFetch(domain:www.androidpolice.com)",
       "WebFetch(domain:xebia.com)",
-      "WebFetch(domain:workspaceupdates.googleblog.com)"
+      "WebFetch(domain:workspaceupdates.googleblog.com)",
+      "Bash(powershell *)",
+      "mcp__ide__getDiagnostics",
+      "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/platform.db\" \".schema\")",
+      "Bash(python *)",
+      "Bash(docker compose *)"
     ]
   },
   "prefersReducedMotion": true

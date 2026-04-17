@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const MOCK_RECORDINGS = [
   {
@@ -37,6 +38,7 @@ function SeverityBadge({ severity }) {
 }
 
 export default function PrivacyPage() {
+  const router = useRouter();
   const [selected, setSelected] = useState(MOCK_RECORDINGS[0]);
 
   return (
@@ -49,7 +51,14 @@ export default function PrivacyPage() {
           </h1>
         </div>
         <div className="flex gap-3">
-          <button className="px-3 py-1.5 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1.5px solid rgba(233, 188, 181, 0.3)", borderRadius: "0px", color: "#1c1b1b" }}>AUDIT TRAIL</button>
+          <button
+            onClick={() => selected && router.push(`/files/${selected.id}/audit`)}
+            disabled={!selected}
+            className="px-3 py-1.5 text-[0.8125rem] font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: "transparent", border: "1.5px solid rgba(233, 188, 181, 0.3)", borderRadius: "0px", color: "#1c1b1b" }}
+          >
+            AUDIT TRAIL
+          </button>
           <button className="px-4 py-1.5 text-[0.8125rem] font-semibold cursor-pointer" style={{ background: "linear-gradient(135deg, #b20100, #e10000)", color: "#ffffff", border: "none", borderRadius: "0px" }}>APPROVE FOR GREEN ZONE</button>
         </div>
       </div>

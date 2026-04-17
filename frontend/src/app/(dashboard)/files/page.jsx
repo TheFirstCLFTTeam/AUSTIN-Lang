@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { fetchSubmittedFiles, fetchAllFilesMetadata, getCurrentUser } from "../../../services/api";
+import OwnerBadge from "../components/OwnerBadge";
 import { getTimeFormat, formatDateTime, TIME_FORMAT_EVENT, TIME_FORMAT_KEY } from "../../../lib/timeFormat";
 import {
   getGroupIdForRole, isControlMember, getFoldersForGroup, getFolderById,
@@ -15,6 +16,8 @@ import {
 import {
   addFolderRequestNotification, addFolderRequestResponseNotification,
 } from "../../../services/notifications";
+import { createDataset } from "../../../services/datasets";
+import { searchTags, normaliseTag, DATASET_TAG_CATALOGUE } from "../../../services/dataset-tags";
 
 const FOLDER_COLS = 4;
 
@@ -27,8 +30,10 @@ function StatusBadge({ status }) {
     "needs action": { bg: "rgba(178, 1, 0, 0.08)", color: "#b20100", label: "NEEDS ACTION" },
     "in review": { bg: "rgba(0, 78, 198, 0.08)", color: "#004ec6", label: "IN REVIEW" },
     transcribing: { bg: "rgba(122, 117, 116, 0.1)", color: "#7a7574", label: "TRANSCRIBING" },
-    reviewed: { bg: "rgba(26, 127, 55, 0.08)", color: "#1a7f37", label: "REVIEWED" },
+    completed: { bg: "rgba(26, 127, 55, 0.08)", color: "#1a7f37", label: "COMPLETED" },
     transcribed: { bg: "rgba(158, 106, 0, 0.08)", color: "#9e6a00", label: "TRANSCRIBED" },
+    queued: { bg: "rgba(122, 117, 116, 0.1)", color: "#7a7574", label: "QUEUED" },
+    failed: { bg: "rgba(200, 0, 0, 0.08)", color: "#c80000", label: "FAILED" },
   };
   const s = styles[status] || styles["needs action"];
   return (
@@ -48,7 +53,7 @@ function formatDate(dateStr) {
 }
 
 function getFileStatus(index) {
-  const statuses = ["needs action", "in review", "transcribed", "transcribing", "reviewed", "needs action"];
+  const statuses = ["needs action", "in review", "transcribed", "transcribing", "completed", "needs action"];
   return statuses[index % statuses.length];
 }
 
@@ -194,6 +199,187 @@ function ThreeDotMenu({ onClick }) {
         <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
       </svg>
     </button>
+  );
+}
+
+/* ── Dataset tag fuzzy picker ──
+   Inline combobox used in the Create Dataset dialog. Accepts both catalogue
+   matches (fuzzy-ranked) and free-form tags typed by the user. */
+function TagPicker({ selected, onChange }) {
+  const [query, setQuery] = useState("");
+  const [activeIdx, setActiveIdx] = useState(0);
+  const inputRef = useRef(null);
+
+  const suggestions = useMemo(() => searchTags(query, selected).slice(0, 8), [query, selected]);
+  const normalisedQuery = normaliseTag(query);
+  const hasExactMatch = suggestions.some((s) => s.value === normalisedQuery);
+  const canAddCustom = normalisedQuery.length > 0 && !hasExactMatch && !selected.includes(normalisedQuery);
+
+  useEffect(() => { setActiveIdx(0); }, [query]);
+
+  const addTag = (value) => {
+    const clean = normaliseTag(value);
+    if (!clean || selected.includes(clean)) return;
+    onChange([...selected, clean]);
+    setQuery("");
+    setActiveIdx(0);
+    inputRef.current?.focus();
+  };
+
+  const removeTag = (value) => onChange(selected.filter((t) => t !== value));
+
+  const onKeyDown = (e) => {
+    const total = suggestions.length + (canAddCustom ? 1 : 0);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (total === 0) return;
+      setActiveIdx((i) => (i + 1) % total);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (total === 0) return;
+      setActiveIdx((i) => (i - 1 + total) % total);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIdx < suggestions.length) {
+        addTag(suggestions[activeIdx].value);
+      } else if (canAddCustom) {
+        addTag(normalisedQuery);
+      }
+    } else if (e.key === "Backspace" && !query && selected.length > 0) {
+      // Backspace on empty input pops the most recent chip.
+      onChange(selected.slice(0, -1));
+    } else if (e.key === "," || e.key === "Tab") {
+      if (canAddCustom || suggestions[activeIdx]) {
+        e.preventDefault();
+        addTag(suggestions[activeIdx]?.value || normalisedQuery);
+      }
+    }
+  };
+
+  // Group suggestions so engineers can scan by category (Subtask, Acoustic, etc.)
+  const grouped = useMemo(() => {
+    const map = new Map();
+    suggestions.forEach((s, idx) => {
+      const list = map.get(s.group) || [];
+      list.push({ ...s, idx });
+      map.set(s.group, list);
+    });
+    return [...map.entries()];
+  }, [suggestions]);
+
+  const groupTotals = useMemo(() => {
+    const totals = new Map();
+    for (const entry of DATASET_TAG_CATALOGUE) {
+      totals.set(entry.group, (totals.get(entry.group) || 0) + 1);
+    }
+    return totals;
+  }, []);
+
+  return (
+    <div>
+      {/* Selected chips */}
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {selected.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wider"
+              style={{ backgroundColor: "#1c1b1b", color: "#ffffff" }}
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => removeTag(tag)}
+                className="cursor-pointer"
+                aria-label={`Remove tag ${tag}`}
+                style={{ background: "transparent", border: "none", color: "#ffffff", padding: 0, lineHeight: 1 }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                </svg>
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Input */}
+      <input
+        ref={inputRef}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={onKeyDown}
+        placeholder={selected.length === 0 ? "Search tags (e.g. code-switch, noisy, fine-tune)" : "Add another tag…"}
+        className="w-full text-[0.8125rem] px-3 py-2 outline-none"
+        style={{ backgroundColor: "#f6f3f2", border: "1px solid #f0edec", color: "#1c1b1b" }}
+      />
+
+      {/* Suggestions panel */}
+      {(suggestions.length > 0 || canAddCustom) && (
+        <div
+          className="mt-2 max-h-56 overflow-y-auto"
+          style={{ backgroundColor: "#ffffff", border: "1px solid #f0edec" }}
+        >
+          {grouped.map(([group, items]) => (
+            <div key={group} className="py-1">
+              <div
+                className="px-3 py-1 text-[0.5625rem] font-semibold uppercase tracking-widest flex items-center justify-between"
+                style={{ color: "#7a7574", backgroundColor: "#faf9f8" }}
+              >
+                <span>{group}</span>
+                <span style={{ color: "#bcb7b6" }}>
+                  {items.length}/{groupTotals.get(group) ?? items.length}
+                </span>
+              </div>
+              {items.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => addTag(s.value)}
+                  onMouseEnter={() => setActiveIdx(s.idx)}
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-[0.8125rem] cursor-pointer"
+                  style={{
+                    backgroundColor: activeIdx === s.idx ? "#f6f3f2" : "transparent",
+                    border: "none",
+                    color: "#1c1b1b",
+                    textAlign: "left",
+                  }}
+                >
+                  <span className="font-medium">{s.value}</span>
+                  <span className="text-[0.625rem] uppercase tracking-widest" style={{ color: "#b20100" }}>Add</span>
+                </button>
+              ))}
+            </div>
+          ))}
+          {canAddCustom && (
+            <button
+              type="button"
+              onClick={() => addTag(normalisedQuery)}
+              onMouseEnter={() => setActiveIdx(suggestions.length)}
+              className="w-full flex items-center justify-between px-3 py-1.5 text-[0.8125rem] cursor-pointer"
+              style={{
+                backgroundColor: activeIdx === suggestions.length ? "#f6f3f2" : "#fffaf9",
+                border: "none",
+                borderTop: "1px solid #f0edec",
+                color: "#1c1b1b",
+                textAlign: "left",
+              }}
+            >
+              <span>
+                Create custom tag <span className="font-bold">"{normalisedQuery}"</span>
+              </span>
+              <span className="text-[0.625rem] uppercase tracking-widest" style={{ color: "#b20100" }}>Enter</span>
+            </button>
+          )}
+        </div>
+      )}
+      {query && suggestions.length === 0 && !canAddCustom && (
+        <p className="mt-2 text-[0.6875rem]" style={{ color: "#7a7574" }}>
+          No matches. Type letters, numbers, or dashes to create a custom tag.
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -713,6 +899,14 @@ export default function FilesPage() {
   const [checkedFiles, setCheckedFiles] = useState(() => new Set());
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
 
+  // Dataset creation mode (engineer only)
+  const [datasetMode, setDatasetMode] = useState(false);
+  const [datasetDialogOpen, setDatasetDialogOpen] = useState(false);
+  const [datasetName, setDatasetName] = useState("");
+  const [datasetDesc, setDatasetDesc] = useState("");
+  const [datasetTags, setDatasetTags] = useState([]);
+  const datasetNameRef = useRef(null);
+
   const [favorites, setFavorites] = useState(() => new Set());
   const [pinned, setPinned] = useState(() => []);
 
@@ -753,6 +947,66 @@ export default function FilesPage() {
       return next;
     });
   };
+
+  // Dataset creation helpers (engineer)
+  const enterDatasetMode = () => {
+    setDatasetMode(true);
+    setCheckedFiles(new Set());
+  };
+
+  const exitDatasetMode = () => {
+    setDatasetMode(false);
+    setCheckedFiles(new Set());
+    setDatasetDialogOpen(false);
+    setDatasetName("");
+    setDatasetDesc("");
+    setDatasetTags([]);
+  };
+
+  const openDatasetDialog = () => {
+    if (checkedFiles.size === 0) return;
+    // Default name: current timestamp
+    const now = new Date();
+    const ts = now.toISOString().replace(/T/, " ").replace(/\..+/, "").replace(/:/g, "-");
+    setDatasetName(ts);
+    // Default description: date range of selected files
+    const selectedFileObjs = files.filter((f) => checkedFiles.has(f.id));
+    const dates = selectedFileObjs
+      .map((f) => f.uploaded_at)
+      .filter(Boolean)
+      .map((d) => new Date(d))
+      .sort((a, b) => a - b);
+    if (dates.length > 0) {
+      const fmt = (d) => d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+      setDatasetDesc(`Recordings from ${fmt(dates[0])} to ${fmt(dates[dates.length - 1])}`);
+    } else {
+      setDatasetDesc("");
+    }
+    setDatasetDialogOpen(true);
+  };
+
+  const handleCreateDataset = () => {
+    if (!datasetName.trim() || checkedFiles.size === 0) return;
+    const count = checkedFiles.size;
+    createDataset({
+      name: datasetName.trim(),
+      description: datasetDesc.trim(),
+      fileIds: [...checkedFiles],
+      tags: datasetTags,
+      createdBy: userId,
+    });
+    setToast(`Dataset "${datasetName.trim()}" created with ${count} file${count !== 1 ? "s" : ""}.`);
+    exitDatasetMode();
+  };
+
+  // Focus and place cursor at the start of the dataset name input
+  useEffect(() => {
+    if (datasetDialogOpen && datasetNameRef.current) {
+      const input = datasetNameRef.current;
+      input.focus();
+      input.setSelectionRange(0, 0);
+    }
+  }, [datasetDialogOpen]);
 
   // Subscribe to folder store changes
   useEffect(() => {
@@ -887,6 +1141,9 @@ export default function FilesPage() {
 
   const pageTitle = userRole === "generic" ? "MY TRANSCRIPTS" : "ALL TRANSCRIPTS";
 
+  // Checkbox select mode is active for either file-move or dataset creation.
+  const isSelectMode = multiSelectMode || datasetMode;
+
   const activeFolder = selectedFolder
     ? folders.find((f) => f.id === selectedFolder)
     : null;
@@ -930,7 +1187,7 @@ export default function FilesPage() {
   ];
 
   // Base files with status attached, scoped to folder
-  const scopedFiles = files.map((f, i) => ({ ...f, _status: f.status === "completed" ? "needs action" : (f.status || getFileStatus(i)) }))
+  const scopedFiles = files.map((f, i) => ({ ...f, _status: f.status || getFileStatus(i) }))
     .filter((f) => {
       if (!selectedFolder) return !f.dataset;
       // System folder (dataset-backed)
@@ -1022,20 +1279,20 @@ export default function FilesPage() {
     return (
       <div
         key={file.id}
-        onClick={() => multiSelectMode ? toggleChecked(file.id) : setSelected(file)}
+        onClick={() => isSelectMode ? toggleChecked(file.id) : setSelected(file)}
         onDoubleClick={() => {
-          if (!multiSelectMode && (file.isOwned || userRole === "admin")) router.push(`/files/${file.id}`);
+          if (!isSelectMode && (file.isOwned || userRole === "admin")) router.push(`/files/${file.id}`);
         }}
         className="group flex items-center px-4 py-3 cursor-pointer transition-colors"
         style={{
-          backgroundColor: multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff",
+          backgroundColor: isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff",
           borderBottom: "1px solid #f0edec",
         }}
-        onMouseEnter={(e) => { const base = multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff"; if (e.currentTarget.style.backgroundColor === base) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff"; }}
+        onMouseEnter={(e) => { const base = isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff"; if (e.currentTarget.style.backgroundColor === base) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff"; }}
       >
         <div className="w-8 flex justify-center">
-          {multiSelectMode ? (
+          {isSelectMode ? (
             <SelectCheckbox checked={isChecked} onClick={() => toggleChecked(file.id)} />
           ) : (
             <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
@@ -1051,8 +1308,12 @@ export default function FilesPage() {
           </p>
         </div>
         {userRole !== "generic" && (
-          <div className="w-28 text-center text-[0.8125rem]" style={{ color: file.isOwned ? "#1c1b1b" : "#7a7574" }}>
-            {file.isOwned ? "You" : file.ownerName || "\u2014"}
+          <div className="w-28 flex justify-center">
+            <OwnerBadge
+              owner={file.ownerId || file.ownerName}
+              selfId={file.isOwned ? (file.ownerId || file.ownerName) : null}
+              size="xs"
+            />
           </div>
         )}
         <div className="w-28 text-center"><StatusBadge status={file._status} /></div>
@@ -1079,21 +1340,21 @@ export default function FilesPage() {
     return (
       <div
         key={file.id}
-        onClick={() => multiSelectMode ? toggleChecked(file.id) : setSelected(file)}
+        onClick={() => isSelectMode ? toggleChecked(file.id) : setSelected(file)}
         onDoubleClick={() => {
-          if (!multiSelectMode && (file.isOwned || userRole === "admin")) router.push(`/files/${file.id}`);
+          if (!isSelectMode && (file.isOwned || userRole === "admin")) router.push(`/files/${file.id}`);
         }}
         className="group cursor-pointer transition-colors overflow-hidden relative"
         style={{
-          backgroundColor: multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff",
+          backgroundColor: isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff",
           borderRadius: "8px",
-          border: multiSelectMode && isChecked ? "2px solid #b20100" : isSelected && !multiSelectMode ? "2px solid #b20100" : "1px solid #e8e4e3",
+          border: isSelectMode && isChecked ? "2px solid #b20100" : isSelected && !isSelectMode ? "2px solid #b20100" : "1px solid #e8e4e3",
         }}
-        onMouseEnter={(e) => { if (!isSelected || multiSelectMode) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = multiSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !multiSelectMode ? "#eef0fc" : "#ffffff"; }}
+        onMouseEnter={(e) => { if (!isSelected || isSelectMode) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff"; }}
       >
         <div className="absolute top-2 right-2 z-10" style={{ backgroundColor: (isFav || isChecked) ? "rgba(255,255,255,0.9)" : "transparent", borderRadius: "9999px" }}>
-          {multiSelectMode ? (
+          {isSelectMode ? (
             <SelectCheckbox checked={isChecked} onClick={() => toggleChecked(file.id)} />
           ) : (
             <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
@@ -1175,9 +1436,42 @@ export default function FilesPage() {
 
         {/* Header row */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-[2rem] font-bold tracking-tight" style={{ color: "#1c1b1b", letterSpacing: "-0.02em" }}>
-            {pageTitle}
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-[2rem] font-bold tracking-tight" style={{ color: "#1c1b1b", letterSpacing: "-0.02em" }}>
+              {pageTitle}
+            </h1>
+            {userRole === "engineer" && (
+              datasetMode ? (
+                <button
+                  onClick={openDatasetDialog}
+                  disabled={checkedFiles.size === 0}
+                  className="px-3 py-1.5 text-[0.75rem] font-semibold uppercase tracking-wider cursor-pointer flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{
+                    backgroundColor: "#1c1b1b",
+                    border: "none",
+                    borderRadius: "0px",
+                    color: "#ffffff",
+                  }}
+                >
+                  Confirm
+                </button>
+              ) : !isSelectMode && (
+                <button
+                  onClick={enterDatasetMode}
+                  className="px-3 py-1.5 text-[0.75rem] font-semibold uppercase tracking-wider cursor-pointer flex items-center gap-1.5"
+                  style={{
+                    background: "linear-gradient(135deg, #b20100, #e10000)",
+                    border: "none",
+                    borderRadius: "0px",
+                    color: "#ffffff",
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+                  Create Dataset
+                </button>
+              )
+            )}
+          </div>
           <div className="flex items-center gap-3">
             {/* Filter chips */}
             <div className="flex items-center gap-2">
@@ -1319,7 +1613,7 @@ export default function FilesPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <h2 className="text-[0.75rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Files</h2>
-              {multiSelectMode && (
+              {isSelectMode && (
                 <span className="text-[0.6875rem]" style={{ color: "#7a7574" }}>
                   {checkedFiles.size} file{checkedFiles.size !== 1 ? "s" : ""} selected
                 </span>
@@ -1349,6 +1643,15 @@ export default function FilesPage() {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
                 </button>
               </div>
+            )}
+            {datasetMode && (
+              <button
+                onClick={exitDatasetMode}
+                className="px-3 py-1.5 text-[0.75rem] font-medium cursor-pointer"
+                style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}
+              >
+                Cancel
+              </button>
             )}
           </div>
 
@@ -1597,7 +1900,11 @@ export default function FilesPage() {
                 >
                   OPEN TRANSCRIPT
                 </button>
-                <button className="w-full py-2.5 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}>
+                <button
+                  onClick={() => router.push(`/files/${selected.id}/audit`)}
+                  className="w-full py-2.5 text-[0.8125rem] font-medium cursor-pointer"
+                  style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}
+                >
                   AUDIT TRAIL
                 </button>
                 <button className="w-full py-2.5 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1px solid #e8e4e3", borderRadius: "6px", color: "#1c1b1b" }}>
@@ -1716,6 +2023,76 @@ export default function FilesPage() {
             refetchFiles();
           }}
         />
+      )}
+
+      {/* Dataset creation dialog */}
+      {datasetDialogOpen && (
+        <div
+          onClick={() => { setDatasetDialogOpen(false); }}
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backgroundColor: "rgba(28, 27, 27, 0.45)" }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="p-6 w-full max-w-md"
+            style={{ backgroundColor: "#ffffff", border: "1px solid #f0edec" }}
+          >
+            <h3 className="text-[0.875rem] font-bold uppercase tracking-wider mb-4" style={{ color: "#1c1b1b" }}>
+              Create Dataset
+            </h3>
+            <p className="text-[0.75rem] mb-4" style={{ color: "#7a7574" }}>
+              {checkedFiles.size} file{checkedFiles.size !== 1 ? "s" : ""} selected
+            </p>
+            <label className="block mb-3">
+              <span className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Dataset Name</span>
+              <input
+                ref={datasetNameRef}
+                value={datasetName}
+                onChange={(e) => setDatasetName(e.target.value)}
+                className="w-full text-[0.8125rem] px-3 py-2 mt-1 outline-none"
+                style={{ backgroundColor: "#f6f3f2", border: "1px solid #f0edec", color: "#1c1b1b" }}
+              />
+            </label>
+            <label className="block mb-3">
+              <span className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>Description</span>
+              <textarea
+                value={datasetDesc}
+                onChange={(e) => setDatasetDesc(e.target.value)}
+                rows={2}
+                className="w-full text-[0.8125rem] px-3 py-2 mt-1 outline-none resize-none"
+                style={{ backgroundColor: "#f6f3f2", border: "1px solid #f0edec", color: "#1c1b1b" }}
+              />
+            </label>
+            <div className="block mb-5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574" }}>
+                  Tags
+                </span>
+                <span className="text-[0.625rem]" style={{ color: "#bcb7b6" }}>
+                  {datasetTags.length} selected &middot; ↑↓ Enter · ⌫ to remove
+                </span>
+              </div>
+              <TagPicker selected={datasetTags} onChange={setDatasetTags} />
+            </div>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setDatasetDialogOpen(false)}
+                className="px-4 py-1.5 text-[0.8125rem] font-medium cursor-pointer"
+                style={{ backgroundColor: "transparent", border: "1.5px solid #f0edec", borderRadius: "0px", color: "#7a7574" }}
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={handleCreateDataset}
+                disabled={!datasetName.trim()}
+                className="px-4 py-1.5 text-[0.8125rem] font-semibold cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg, #b20100, #e10000)", color: "#ffffff", border: "none", borderRadius: "0px" }}
+              >
+                CREATE DATASET
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Toast */}

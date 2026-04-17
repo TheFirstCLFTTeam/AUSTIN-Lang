@@ -7,6 +7,7 @@ import CredentialDetails from './components/CredentialDetails';
 import UserStatistics from './components/UserStatistics';
 import InterfacePreferences from './components/InterfacePreferences';
 import SecurityCore from './components/SecurityCore';
+import ConnectedAccounts from './components/ConnectedAccounts';
 import PermissionGroup from './components/PermissionGroup';
 import Tabs from './components/Tabs';
 
@@ -75,6 +76,9 @@ export default function ProfilePage() {
             {activeTab === 'security' && (
                 <div className="mt-4 mb-4">
                     <SecurityCore security={profile.security} />
+                    <div className="mt-4">
+                        <ConnectedAccounts />
+                    </div>
                 </div>
             )}
         </div>

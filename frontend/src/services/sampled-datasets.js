@@ -8,6 +8,7 @@ import alvanliiRaw from './sampled-data/alvanlii-youtube.json';
 import edmundRaw from './sampled-data/edmundchan-finetune.json';
 import earnings22Raw from './sampled-data/earnings22-chunked.json';
 import spgispeechRaw from './sampled-data/spgispeech.json';
+import multispeakMixRaw from './sampled-data/multispeak-alienkevin-edmundchan70.json';
 
 const OWNER_POOL = [
     { ownerId: 'u1', ownerName: 'Generic User' },
@@ -90,7 +91,7 @@ function buildEntry({
     ];
     const metrics = syntheticMetrics(id, text, durationSec);
 
-    const statusPool = ['needs action', 'in review', 'transcribed', 'transcribing', 'reviewed', 'needs action'];
+    const statusPool = ['needs action', 'in review', 'transcribed', 'transcribing', 'completed', 'needs action'];
     const status = statusPool[globalIdx % statusPool.length];
     if (status === 'transcribing' || status === 'transcribed') {
         metrics.wer = 'NA';
@@ -213,7 +214,7 @@ function buildRootEntry({ datasetLabel, globalIdx, localIdx, audioRelPath, text,
         },
     ];
     const metrics = syntheticMetrics(id, text, durationSec);
-    const statusPool = ['needs action', 'in review', 'transcribed', 'transcribing', 'reviewed', 'needs action'];
+    const statusPool = ['needs action', 'in review', 'transcribed', 'transcribing', 'completed', 'needs action'];
     const status = statusPool[globalIdx % statusPool.length];
     if (status === 'transcribing' || status === 'transcribed') {
         metrics.wer = 'NA';
@@ -227,6 +228,59 @@ function buildRootEntry({ datasetLabel, globalIdx, localIdx, audioRelPath, text,
         audioUrl,
         uploaded_at: dateFor(globalIdx),
         detectedLanguage,
+        status,
+        ...metrics,
+        rawTranscript: {
+            id: 5000 + globalIdx * 2,
+            audio_file_id: globalIdx + 5000,
+            transcript_segments: segments,
+        },
+        edits: [],
+    };
+}
+
+// Multi-speaker mix from data_collection/multispeak_maker/. Each sample has
+// two speakers on the same audio file, each with their own transcript and
+// start offset — rendered as two segments on a single root-level file.
+// Served via /api/mock-audio/multispeak/<folder>/<rel> (see the `multispeak`
+// mount in the API route).
+function buildMultispeakRootEntry({ row, localIdx, globalIdx, datasetFolder }) {
+    const id = `root-multispeak-${String(localIdx).padStart(4, '0')}`;
+    const o = owner(globalIdx);
+    const audioUrl = `/api/mock-audio/multispeak/${datasetFolder}/${row.audio}`;
+    const displayName = `multispeak_${String(localIdx).padStart(4, '0')}.mp3`;
+
+    const speakers = [row.speaker_1, row.speaker_2].filter(Boolean);
+    const segments = speakers.map((sp, i) => {
+        const startSec = (sp.start_ms || 0) / 1000;
+        const nextStartSec = speakers[i + 1] ? (speakers[i + 1].start_ms || 0) / 1000 : startSec + 6;
+        return {
+            id: globalIdx * 10 + i + 1,
+            start: startSec,
+            end: nextStartSec > startSec ? nextStartSec : startSec + 6,
+            text: sp.transcript || '',
+            speaker: `Speaker ${i + 1}`,
+        };
+    });
+
+    const durationSec = segments.length ? segments[segments.length - 1].end : 10;
+    const combinedText = speakers.map((s) => s.transcript).join(' ');
+    const metrics = syntheticMetrics(id, combinedText, durationSec);
+    const statusPool = ['needs action', 'in review', 'transcribed', 'transcribing', 'completed', 'needs action'];
+    const status = statusPool[globalIdx % statusPool.length];
+    if (status === 'transcribing' || status === 'transcribed') {
+        metrics.wer = 'NA';
+        metrics.absoluteWordErrorRate = 'NA';
+    }
+
+    return {
+        id,
+        ownerId: o.ownerId,
+        ownerName: o.ownerName,
+        name: displayName,
+        audioUrl,
+        uploaded_at: dateFor(globalIdx),
+        detectedLanguage: 'Cantonese (mixed speakers)',
         status,
         ...metrics,
         rawTranscript: {
@@ -277,7 +331,7 @@ function buildRootFiles() {
         out.push(entry);
     });
     spgispeechRaw.forEach((row, i) => {
-        out.push(buildRootEntry({
+        const entry = buildRootEntry({
             datasetLabel: 'kensho-spgispeech-S',
             globalIdx: g++,
             localIdx: i,
@@ -286,6 +340,47 @@ function buildRootFiles() {
             displayName: `spgispeech_${String(i).padStart(4, '0')}.wav`,
             detectedLanguage: 'English (US)',
             idPrefix: 'spgispeech',
+        });
+
+        // Hand-wired state for the reviewer persona demo: recording
+        // spgispeech_0007.wav is pinned to the Montgomery / Vasquez pair so
+        // the Recording Parties card on the reviewer's file detail view is
+        // pre-populated — owner = Montgomery (u1), verifier = Vasquez (u4),
+        // and every segment's speaker already assigned to Montgomery.
+        if (i === 7) {
+            entry.ownerId = 'u1';
+            entry.ownerName = 'Generic User';
+            entry.verifier = {
+                id: 'u4',
+                name: 'L. Vasquez',
+                profilePic: '/02ReviewerPFP.png',
+                designation: 'Transcript Reviewer',
+            };
+            const montgomery = {
+                id: 'u1',
+                name: 'J. Montgomery',
+                type: 'operator',
+                profilePic: '/04UserPFP.png',
+            };
+            entry.speakerMap = Object.fromEntries(
+                (entry.rawTranscript.transcript_segments || []).map((seg) => [seg.id, montgomery]),
+            );
+            // File is sitting in Vasquez's review queue with authoring
+            // already complete — status must be "in review" so the reviewer
+            // persona picks it up under their default "In Review" filter.
+            entry.status = 'in review';
+            entry.reviewerId = 'u4';
+            entry.submittedForReviewAt = entry.uploaded_at;
+        }
+
+        out.push(entry);
+    });
+    multispeakMixRaw.forEach((row, i) => {
+        out.push(buildMultispeakRootEntry({
+            row,
+            localIdx: i,
+            globalIdx: g++,
+            datasetFolder: 'MIX-AlienKevin-edmundchan70',
         }));
     });
     return out;

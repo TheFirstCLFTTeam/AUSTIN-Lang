@@ -223,7 +223,7 @@ export async function fetchSubmittedFiles() {
                     detectedLanguage: detectedLanguage || null,
                     compliance: compliance || null,
                     dataset: dataset || null,
-                    status: status || 'completed',
+                    status: status || 'needs action',
                     reviewerId: reviewerId || null,
                     submittedForReviewAt: submittedForReviewAt || null,
                 };
@@ -325,7 +325,7 @@ export async function fetchAllFilesMetadata() {
                 detectedLanguage: f.detectedLanguage || null,
                 compliance: f.compliance || null,
                 dataset: f.dataset || null,
-                status: f.status || 'completed',
+                status: f.status || 'needs action',
                 reviewerId: f.reviewerId || null,
                 submittedForReviewAt: f.submittedForReviewAt || null,
             };
@@ -469,7 +469,7 @@ export async function submitForReview(fileId, reviewerId) {
     throw new Error('Not implemented for real API');
 }
 
-// Reviewer/admin approves a transcript — moves status from "in review" to "reviewed".
+// Reviewer/admin approves a transcript — moves status from "in review" to "completed".
 export async function approveTranscript(fileId) {
     requireAuth();
     const currentUser = getCurrentUser();
@@ -478,8 +478,8 @@ export async function approveTranscript(fileId) {
         await new Promise((resolve) => setTimeout(resolve, 400));
         const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
         if (!file) throw new Error('File not found');
-        assertTransition(file.status, 'reviewed');
-        file.status = 'reviewed';
+        assertTransition(file.status, 'completed');
+        file.status = 'completed';
         file.reviewedBy = currentUser?.id;
         file.reviewedAt = new Date().toISOString();
 
@@ -496,7 +496,7 @@ export async function approveTranscript(fileId) {
             });
         }
 
-        return { fileId: String(fileId), status: 'reviewed' };
+        return { fileId: String(fileId), status: 'completed' };
     }
 
     throw new Error('Not implemented for real API');

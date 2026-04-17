@@ -5,10 +5,14 @@ import { fetchProcessingJobs, getCurrentUser } from '@/services/api';
 import { watchJob, unwatchJob, isWatching, subscribe as subscribeNotifications } from '@/services/notifications';
 
 const STATUS_STYLES = {
-  processing: { bg: 'rgba(178, 1, 0, 0.08)',   color: '#b20100', label: 'PROCESSING' },
-  queued:     { bg: 'rgba(122, 117, 116, 0.1)', color: '#7a7574', label: 'QUEUED' },
-  completed:  { bg: 'rgba(0, 120, 70, 0.08)',   color: '#007846', label: 'COMPLETED' },
-  failed:     { bg: 'rgba(200, 0, 0, 0.08)',    color: '#c80000', label: 'FAILED' },
+  // Job-level statuses
+  processing:   { bg: 'rgba(178, 1, 0, 0.08)',   color: '#b20100', label: 'PROCESSING' },
+  completed:    { bg: 'rgba(0, 120, 70, 0.08)',   color: '#007846', label: 'COMPLETED' },
+  // Recording-level statuses — a subset of the My Transcripts status set
+  transcribing: { bg: 'rgba(122, 117, 116, 0.1)', color: '#7a7574', label: 'TRANSCRIBING' },
+  transcribed:  { bg: 'rgba(158, 106, 0, 0.08)',  color: '#9e6a00', label: 'TRANSCRIBED' },
+  queued:       { bg: 'rgba(122, 117, 116, 0.1)', color: '#7a7574', label: 'QUEUED' },
+  failed:       { bg: 'rgba(200, 0, 0, 0.08)',    color: '#c80000', label: 'FAILED' },
 };
 
 const TICKET_RECIPIENT = 'support@ubs.com';

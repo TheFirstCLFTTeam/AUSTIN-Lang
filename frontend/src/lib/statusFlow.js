@@ -1,16 +1,16 @@
 // Status lifecycle for recording + transcript pairs.
 //
 // Flow:
-//   transcribing → transcribed → in review → reviewed  (done)
+//   transcribing → transcribed → in review → completed  (done — reviewer approved)
 //                                    ↓
-//                               needs action → in review  (loop until reviewed)
+//                               needs action → in review  (loop until completed)
 
 export const VALID_TRANSITIONS = {
     'transcribing': ['transcribed'],
     'transcribed':  ['in review'],
-    'in review':    ['reviewed', 'needs action'],
+    'in review':    ['completed', 'needs action'],
     'needs action': ['in review'],
-    'reviewed':     [],                       // terminal state
+    'completed':    [],                       // terminal state — reviewer approved
 };
 
 export const ALL_STATUSES = Object.keys(VALID_TRANSITIONS);

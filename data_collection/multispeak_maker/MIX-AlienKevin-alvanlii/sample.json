@@ -1,0 +1,17 @@
+[
+  {
+    "audio": "audio/0000_audio.mp3",
+    "speaker_1": {
+      "transcript": "我冇讀過政治學，有錯麻煩各位指正。",
+      "start_ms": 0,
+      "source_folder": "AlienKevin-wordshk_cantonese_speech",
+      "source_audio": "audio/0000_audio.mp3"
+    },
+    "speaker_2": {
+      "transcript": "呢度啊，就係原來嗰個武林公園啊，哦，就係呢度啊！",
+      "start_ms": 1000,
+      "source_folder": "alvanlii-cantonese-youtube",
+      "source_audio": "audio/0000_audio.mp3"
+    }
+  }
+]

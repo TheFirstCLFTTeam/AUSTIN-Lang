@@ -65,15 +65,17 @@ function AddMetricDialog({ open, onClose, onSaved }) {
     if (!filename) { setError('Upload a Python script first.'); return; }
     if (!name.trim()) { setError('Name is required.'); return; }
     const id = `custom_${Date.now()}`;
+    const trimmedDesc = description.trim();
     addCustomMetric({
       id,
-      label: name.trim(),
-      description: description.trim(),
+      name: name.trim(),
+      shortDescription: shortDescription.trim() || trimmedDesc.split(/[.\n]/)[0].trim(),
+      description: trimmedDesc,
+      pythonScript: source,
       value: '—',
       sublabel: 'Awaiting first evaluation',
       custom: true,
       filename,
-      source,
     });
     onSaved();
     onClose();
@@ -95,6 +97,17 @@ function AddMetricDialog({ open, onClose, onSaved }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Edit Density"
+            className="w-full px-3 py-2 text-[0.8125rem]"
+            style={inputStyle}
+          />
+        </FormField>
+
+        <FormField label="Short Description" hint="One-line summary shown on metric cards. Leave blank to auto-derive from the first sentence of the description.">
+          <input
+            type="text"
+            value={shortDescription}
+            onChange={(e) => setShortDescription(e.target.value)}
+            placeholder="e.g. Edit count per transcribed minute."
             className="w-full px-3 py-2 text-[0.8125rem]"
             style={inputStyle}
           />
@@ -209,19 +222,25 @@ function MetricSection({ title, metrics, selectedIds, onToggle, atLimit }) {
           const selected = selectedIds.includes(m.id);
           const disabled = !selected && atLimit;
           return (
-            <button
+            <div
               key={m.id}
-              onClick={() => onToggle(m.id)}
-              disabled={disabled}
-              className="p-5 text-left cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 transition-all"
+              role="button"
+              tabIndex={disabled ? -1 : 0}
+              aria-disabled={disabled}
+              aria-pressed={selected}
+              onClick={() => !disabled && onToggle(m.id)}
+              onKeyDown={(e) => { if (!disabled && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onToggle(m.id); } }}
+              className="p-5 transition-all"
               style={{
                 backgroundColor: '#ffffff',
                 border: selected ? '2px solid #b20100' : '2px solid transparent',
                 borderRadius: '0px',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                opacity: disabled ? 0.4 : 1,
               }}
             >
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: '#7a7574' }}>{m.label}</p>
+                <p className="text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: '#7a7574' }}>{m.name}</p>
                 <span
                   className="inline-block w-4 h-4"
                   style={{
@@ -238,9 +257,19 @@ function MetricSection({ title, metrics, selectedIds, onToggle, atLimit }) {
               </div>
               <p className="text-[1.75rem] font-bold mb-1" style={{ color: '#1c1b1b', letterSpacing: '-0.02em' }}>{m.value}</p>
               <p className="text-[0.6875rem]" style={{ color: '#7a7574' }}>{m.sublabel}</p>
-              {m.description && <p className="text-[0.6875rem] mt-2 italic" style={{ color: '#7a7574' }}>{m.description}</p>}
+              {m.shortDescription && <p className="text-[0.6875rem] mt-2" style={{ color: '#7a7574' }}>{m.shortDescription}</p>}
               {m.filename && <p className="text-[0.625rem] mt-2 font-mono" style={{ color: '#b20100' }}>{m.filename}</p>}
-            </button>
+              <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(233, 188, 181, 0.15)' }}>
+                <Link
+                  href={`/dashboard/metrics/${m.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-[0.625rem] font-semibold uppercase tracking-wider"
+                  style={{ color: '#b20100', textDecoration: 'none' }}
+                >
+                  VIEW DETAILS &rarr;
+                </Link>
+              </div>
+            </div>
           );
         })}
       </div>

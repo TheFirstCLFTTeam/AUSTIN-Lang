@@ -282,3 +282,91 @@ export const MOCK_USER_PROFILES = {
         ],
     },
 };
+
+// ─── User-group catalogue (data-access bundles) ──────────────────────────────
+// A "user group" is a bundle of data-access rights over a specific recording
+// repository. Membership controls *which files* a user can see and act on —
+// not what they can do (that's role-based). The admin page lets the admin
+// assign/unassign users to these groups; permissions propagate through to
+// the file browser scoping.
+
+// Two kinds of groups:
+//   - "File Organisation" groups define the DATA SCOPE a persona sees in the
+//     file browser. They are region + role scoped (here, HK).
+//   - "Access Permissions" groups carry the ACTION + SURFACE bundle. They
+//     correspond to what a persona can DO once they can see the data.
+// A persona is assigned one of each kind so that file visibility and action
+// rights compose cleanly. See Project_Requirements_Document.md FR-U*, FR-A*,
+// FR-M*, and NFR-S02 for the role → permission mapping this encodes.
+
+export const USER_GROUP_CATALOGUE = [
+    // ── File organisation (HK region) ───────────────────────────────────────
+    {
+        id: 'hk-user-file-organisation',
+        name: 'HK User File Organisation',
+        description: 'Commercial-user file scope for the HK region. Each operator only sees their own uploads and any files explicitly shared with them.',
+        category: 'File Organisation',
+        repositorySize: '2,104 recordings',
+    },
+    {
+        id: 'hk-reviewer-file-organisation',
+        name: 'HK Reviewer File Organisation',
+        description: 'Reviewer file scope for the HK region — the compliance review pool plus any recording flagged for PII or regulatory verification.',
+        category: 'File Organisation',
+        repositorySize: '4,870 recordings',
+    },
+    {
+        id: 'hk-engineer-file-organisation',
+        name: 'HK Engineer File Organisation',
+        description: 'Green-zone file scope for HK ML engineers. CID-stripped recordings, sampled datasets, and synthetic data pairs only — no raw CID access.',
+        category: 'File Organisation',
+        repositorySize: '12,600 recordings',
+    },
+    {
+        id: 'hk-admin-file-organisation',
+        name: 'HK Admin File Organisation',
+        description: 'Admin / verifier file scope for the HK region — all recordings, all transcripts, all zones. Used by risk team for compliance review.',
+        category: 'File Organisation',
+        repositorySize: '19,574 recordings',
+    },
+
+    // ── Access permissions ──────────────────────────────────────────────────
+    {
+        id: 'user-generic-access-perms',
+        name: 'User · Generic Access Permissions',
+        description: 'Baseline operator rights: upload audio, read and edit transcripts, submit for review, export. Cannot approve or flag for privacy.',
+        category: 'Access Permissions',
+        repositorySize: 'Permission bundle',
+    },
+    {
+        id: 'MLE-generic-access-perms',
+        name: 'ML Engineer · Generic Access Permissions',
+        description: 'ML engineer toolbox: curate datasets, launch training jobs, submit to the leaderboard, export green-zone artefacts. No CID access.',
+        category: 'Access Permissions',
+        repositorySize: 'Permission bundle',
+    },
+    {
+        id: 'reviewer-generic-access-perms',
+        name: 'Reviewer · Generic Access Permissions',
+        description: 'Reviewer rights: approve/reject transcripts, flag privacy concerns, apply pseudonymisation, and export verified transcripts.',
+        category: 'Access Permissions',
+        repositorySize: 'Permission bundle',
+    },
+    {
+        id: 'hk-admin-access-perms',
+        name: 'HK Admin Access Permissions',
+        description: 'Admin rights in the HK region: every operator/reviewer/engineer action plus membership management and admin consoles.',
+        category: 'Access Permissions',
+        repositorySize: 'Permission bundle',
+    },
+];
+
+// Persona → groups. Each persona gets one File Organisation group (data scope)
+// plus one Access Permissions group (action bundle). The user-groups service
+// loads these on first run and then persists admin edits to localStorage.
+export const INITIAL_USER_GROUP_ASSIGNMENTS = {
+    u1: ['hk-user-file-organisation', 'user-generic-access-perms'],
+    u2: ['hk-engineer-file-organisation', 'MLE-generic-access-perms'],
+    u3: ['hk-admin-file-organisation', 'hk-admin-access-perms'],
+    u4: ['hk-reviewer-file-organisation', 'reviewer-generic-access-perms'],
+};

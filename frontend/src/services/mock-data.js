@@ -19,11 +19,11 @@ export const MOCK_PROCESSING_JOBS = [
         submittedAt: '2026-04-15T09:15:00Z',
         estimatedCompletion: '2026-04-15T12:40:00Z',
         recordings: [
-            { id: 'r101', fileName: 'earnings_call_jan.wav',  duration: '42:18', sizeMb: 58.2, progress: 100, status: 'completed',   stage: 'Transcript finalized' },
-            { id: 'r102', fileName: 'earnings_call_feb.wav',  duration: '38:07', sizeMb: 51.6, progress: 82,  status: 'processing',  stage: 'Speaker diarization' },
-            { id: 'r103', fileName: 'earnings_call_mar.wav',  duration: '45:22', sizeMb: 62.9, progress: 54,  status: 'processing',  stage: 'Transcribing' },
-            { id: 'r104', fileName: 'qa_session_mar.mp3',     duration: '12:45', sizeMb: 17.4, progress: 35,  status: 'processing',  stage: 'Transcribing' },
-            { id: 'r105', fileName: 'earnings_call_apr.wav',  duration: '00:00', sizeMb: 0.0,  progress: 8,   status: 'failed',      stage: 'Error: Empty audio stream', error: { code: 'AUDIO_EMPTY', message: 'The audio file contains no decodable audio frames. The file may be empty, truncated, or contain only silence headers.', timestamp: '2026-04-15T09:18:02Z', commonCauses: ['Recording was started but no audio was captured (muted mic)', 'File was truncated during upload or transfer', 'Source application wrote headers only without audio data'] } },
+            { id: 'r101', fileName: 'earnings_call_jan.wav',  duration: '42:18', sizeMb: 58.2, progress: 100, status: 'transcribed',  stage: 'Transcript finalized' },
+            { id: 'r102', fileName: 'earnings_call_feb.wav',  duration: '38:07', sizeMb: 51.6, progress: 82,  status: 'transcribing', stage: 'Speaker diarization' },
+            { id: 'r103', fileName: 'earnings_call_mar.wav',  duration: '45:22', sizeMb: 62.9, progress: 54,  status: 'transcribing', stage: 'Transcribing' },
+            { id: 'r104', fileName: 'qa_session_mar.mp3',     duration: '12:45', sizeMb: 17.4, progress: 35,  status: 'transcribing', stage: 'Transcribing' },
+            { id: 'r105', fileName: 'earnings_call_apr.wav',  duration: '00:00', sizeMb: 0.0,  progress: 8,   status: 'failed',       stage: 'Error: Empty audio stream', error: { code: 'AUDIO_EMPTY', message: 'The audio file contains no decodable audio frames. The file may be empty, truncated, or contain only silence headers.', timestamp: '2026-04-15T09:18:02Z', commonCauses: ['Recording was started but no audio was captured (muted mic)', 'File was truncated during upload or transfer', 'Source application wrote headers only without audio data'] } },
         ],
     },
     {
@@ -39,9 +39,9 @@ export const MOCK_PROCESSING_JOBS = [
         submittedAt: '2026-04-15T08:55:00Z',
         estimatedCompletion: '2026-04-15T10:05:00Z',
         recordings: [
-            { id: 'r201', fileName: 'deposition_witness_01.wav', duration: '1:12:33', sizeMb: 102.3, progress: 100, status: 'completed',  stage: 'Transcript finalized' },
-            { id: 'r202', fileName: 'deposition_witness_02.wav', duration: '58:41',   sizeMb: 81.7,  progress: 100, status: 'completed',  stage: 'Transcript finalized' },
-            { id: 'r203', fileName: 'counsel_closing_remarks.wav', duration: '08:12', sizeMb: 11.5,  progress: 73,  status: 'processing', stage: 'Quality review' },
+            { id: 'r201', fileName: 'deposition_witness_01.wav', duration: '1:12:33', sizeMb: 102.3, progress: 100, status: 'transcribed',  stage: 'Transcript finalized' },
+            { id: 'r202', fileName: 'deposition_witness_02.wav', duration: '58:41',   sizeMb: 81.7,  progress: 100, status: 'transcribed',  stage: 'Transcript finalized' },
+            { id: 'r203', fileName: 'counsel_closing_remarks.wav', duration: '08:12', sizeMb: 11.5,  progress: 73,  status: 'transcribing', stage: 'Quality review' },
         ],
     },
     {
@@ -77,8 +77,8 @@ export const MOCK_PROCESSING_JOBS = [
         submittedAt: '2026-04-15T09:22:00Z',
         estimatedCompletion: '2026-04-15T10:40:00Z',
         recordings: [
-            { id: 'r401', fileName: 'onboarding_session_pt1.mp3', duration: '35:22', sizeMb: 48.1, progress: 70, status: 'processing', stage: 'Transcribing' },
-            { id: 'r402', fileName: 'onboarding_session_pt2.mp3', duration: '41:08', sizeMb: 56.3, progress: 0,  status: 'queued',     stage: 'Queued' },
+            { id: 'r401', fileName: 'onboarding_session_pt1.mp3', duration: '35:22', sizeMb: 48.1, progress: 70, status: 'transcribing', stage: 'Transcribing' },
+            { id: 'r402', fileName: 'onboarding_session_pt2.mp3', duration: '41:08', sizeMb: 56.3, progress: 0,  status: 'queued',       stage: 'Queued' },
             { id: 'r403', fileName: 'onboarding_session_pt3.mp3', duration: '28:14', sizeMb: 38.7, progress: 45, status: 'failed',     stage: 'Error: Timeout during transcription', error: { code: 'TRANSCRIPTION_TIMEOUT', message: 'Transcription engine timed out after 300s. The audio segment between 12:04–12:38 contains overlapping speakers that exceeded the diarization complexity limit.', timestamp: '2026-04-15T09:47:18Z', commonCauses: ['Audio contains heavily overlapping speakers that exceed diarization limits', 'Background noise levels are too high for the transcription model', 'Server was under heavy load during processing'] } },
         ],
     },
@@ -95,9 +95,9 @@ export const MOCK_PROCESSING_JOBS = [
         submittedAt: '2026-04-15T08:50:00Z',
         estimatedCompletion: null,
         recordings: [
-            { id: 'r501', fileName: 'board_meeting_mar_pt1.wav', duration: '48:55', sizeMb: 67.8, progress: 100, status: 'completed', stage: 'Transcript finalized' },
-            { id: 'r502', fileName: 'board_meeting_mar_pt2.wav', duration: '52:11', sizeMb: 72.4, progress: 100, status: 'failed',    stage: 'Error: Unsupported codec', error: { code: 'CODEC_UNSUPPORTED', message: 'The audio file uses an unsupported codec (Opus in OGG container). Only PCM, AAC, and MP3 codecs are supported.', timestamp: '2026-04-15T09:12:44Z', commonCauses: ['File was recorded with a non-standard codec', 'Container format does not match the actual codec', 'File was partially re-encoded or corrupted during transfer'] } },
-            { id: 'r503', fileName: 'exec_session_mar.wav',      duration: '14:38', sizeMb: 20.2, progress: 100, status: 'completed', stage: 'Transcript finalized' },
+            { id: 'r501', fileName: 'board_meeting_mar_pt1.wav', duration: '48:55', sizeMb: 67.8, progress: 100, status: 'transcribed', stage: 'Transcript finalized' },
+            { id: 'r502', fileName: 'board_meeting_mar_pt2.wav', duration: '52:11', sizeMb: 72.4, progress: 100, status: 'failed',      stage: 'Error: Unsupported codec', error: { code: 'CODEC_UNSUPPORTED', message: 'The audio file uses an unsupported codec (Opus in OGG container). Only PCM, AAC, and MP3 codecs are supported.', timestamp: '2026-04-15T09:12:44Z', commonCauses: ['File was recorded with a non-standard codec', 'Container format does not match the actual codec', 'File was partially re-encoded or corrupted during transfer'] } },
+            { id: 'r503', fileName: 'exec_session_mar.wav',      duration: '14:38', sizeMb: 20.2, progress: 100, status: 'transcribed', stage: 'Transcript finalized' },
         ],
     },
     {
@@ -113,7 +113,7 @@ export const MOCK_PROCESSING_JOBS = [
         submittedAt: '2026-04-15T09:30:00Z',
         estimatedCompletion: '2026-04-15T11:15:00Z',
         recordings: [
-            { id: 'r601', fileName: 'investor_call_q1.mp3', duration: '1:04:12', sizeMb: 88.9, progress: 12, status: 'processing', stage: 'Uploading audio' },
+            { id: 'r601', fileName: 'investor_call_q1.mp3', duration: '1:04:12', sizeMb: 88.9, progress: 12, status: 'transcribing', stage: 'Uploading audio' },
         ],
     },
 ];

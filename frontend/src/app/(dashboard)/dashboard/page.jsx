@@ -56,6 +56,7 @@ function lastNDayLabels(n) {
 function MetricChart({ metric }) {
   const svgRef = useRef(null);
   const series = metric?.series;
+  const target = metric?.target;
 
   useEffect(() => {
     const container = svgRef.current;
@@ -64,7 +65,7 @@ function MetricChart({ metric }) {
     d3.select(container).selectAll("*").remove();
     if (!series) return;
 
-    const { baseModel, fineTuned, yMin, yMax, unit, target } = series;
+    const { baseModel, fineTuned, yMin, yMax, unit } = series;
 
     const margin = { top: 8, right: 8, bottom: 24, left: 44 };
     const width = container.clientWidth - margin.left - margin.right;
@@ -95,22 +96,24 @@ function MetricChart({ metric }) {
         .text(`${v}${unit}`);
     });
 
-    svg.append("line")
-      .attr("x1", 0).attr("x2", width)
-      .attr("y1", y(target)).attr("y2", y(target))
-      .attr("stroke", "#b20100")
-      .attr("stroke-width", 1)
-      .attr("stroke-dasharray", "4 3")
-      .attr("opacity", 0.6);
-    svg.append("text")
-      .attr("x", width - 4)
-      .attr("y", y(target) - 4)
-      .attr("text-anchor", "end")
-      .attr("fill", "#b20100")
-      .attr("font-size", "0.625rem")
-      .attr("font-weight", "600")
-      .attr("letter-spacing", "0.05em")
-      .text(`TARGET ${target}${unit}`);
+    if (target !== undefined && target !== null) {
+      svg.append("line")
+        .attr("x1", 0).attr("x2", width)
+        .attr("y1", y(target)).attr("y2", y(target))
+        .attr("stroke", "#b20100")
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "4 3")
+        .attr("opacity", 0.6);
+      svg.append("text")
+        .attr("x", width - 4)
+        .attr("y", y(target) - 4)
+        .attr("text-anchor", "end")
+        .attr("fill", "#b20100")
+        .attr("font-size", "0.625rem")
+        .attr("font-weight", "600")
+        .attr("letter-spacing", "0.05em")
+        .text(`TARGET ${target}${unit}`);
+    }
 
     const xLabels = lastNDayLabels(baseModel.length);
     xLabels.forEach((label, i) => {
@@ -150,7 +153,7 @@ function MetricChart({ metric }) {
           .attr("fill", color);
       });
     });
-  }, [series]);
+  }, [series, target]);
 
   if (!metric) {
     return (
@@ -188,7 +191,7 @@ function MetricChart({ metric }) {
       <div ref={svgRef} style={{ height: "220px" }} />
       <div className="flex items-center gap-8 mt-6 pt-4" style={{ borderTop: "1px solid rgba(233, 188, 181, 0.15)" }}>
         <div><p className="text-[0.6875rem] uppercase tracking-wider" style={{ color: "#7a7574" }}>Current</p><p className="text-[1.5rem] font-bold" style={{ color: "#1c1b1b" }}>{series.currentValue}{series.unit}</p></div>
-        <div><p className="text-[0.6875rem] uppercase tracking-wider" style={{ color: "#7a7574" }}>Target</p><p className="text-[1.5rem] font-bold" style={{ color: "#7a7574" }}>{series.target}{series.unit}</p></div>
+        <div><p className="text-[0.6875rem] uppercase tracking-wider" style={{ color: "#7a7574" }}>Target</p><p className="text-[1.5rem] font-bold" style={{ color: "#7a7574" }}>{target ?? "—"}{target != null ? series.unit : ""}</p></div>
         <div><p className="text-[0.6875rem] uppercase tracking-wider" style={{ color: "#7a7574" }}>Difference</p><p className="text-[1.5rem] font-bold" style={{ color: "#b20100" }}>{series.difference}</p></div>
         <button className="ml-auto px-4 py-2 text-[0.75rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1.5px solid rgba(233, 188, 181, 0.3)", borderRadius: "0px", color: "#1c1b1b" }}>FULL REPORT</button>
       </div>

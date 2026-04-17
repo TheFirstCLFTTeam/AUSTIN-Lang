@@ -16,7 +16,9 @@ const NAV_ITEMS = [
 
 const NAV_TOOLS = [
     { label: 'Metrics Dashboard', path: '/dashboard', icon: 'chart' },
+    { label: 'Datasets', path: '/datasets', icon: 'database' },
     { label: 'Training Jobs', path: '/training', icon: 'training' },
+    { label: 'Leaderboard', path: '/leaderboard', icon: 'trophy' },
     { label: 'Privacy Flags', path: '/privacy', icon: 'shield' },
 ];
 
@@ -42,8 +44,12 @@ function NavIcon({ type, className = '' }) {
             return (<svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>);
         case 'training':
             return (<svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>);
+        case 'database':
+            return (<svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5" /><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6" /></svg>);
         case 'shield':
             return (<svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>);
+        case 'trophy':
+            return (<svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8" /><path d="M12 17v4" /><path d="M7 4h10v5a5 5 0 0 1-10 0z" /><path d="M17 5h3a2 2 0 0 1 0 4h-3" /><path d="M7 5H4a2 2 0 0 0 0 4h3" /></svg>);
         case 'trash':
             return (<svg className={base} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>);
         case 'admin':
@@ -53,11 +59,32 @@ function NavIcon({ type, className = '' }) {
     }
 }
 
+// All paths rendered in the sidebar. Used to resolve a single "active" item
+// for the current route so that nested routes (e.g. /admin/groups) don't
+// double-highlight a parent item (/admin). The longest matching prefix wins.
+const ALL_NAV_PATHS = [
+    ...NAV_ITEMS.map((i) => i.path),
+    '/trash',
+    ...NAV_TOOLS.map((i) => i.path),
+    ...NAV_ADMIN.map((i) => i.path),
+];
+
+function resolveActivePath(pathname) {
+    let best = null;
+    for (const p of ALL_NAV_PATHS) {
+        if (pathname === p || pathname.startsWith(p + '/')) {
+            if (!best || p.length > best.length) best = p;
+        }
+    }
+    return best;
+}
+
 export default function SidebarShell({ userRole }) {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
 
-    const isActive = (path) => pathname === path || pathname.startsWith(path + '/');
+    const activePath = resolveActivePath(pathname || '');
+    const isActive = (path) => path === activePath;
 
     const sidebarW = collapsed ? 'w-16' : 'w-60';
 

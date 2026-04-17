@@ -57,7 +57,8 @@ def pick_cards_file_interactive(source_dir: str) -> str:
         raise FileNotFoundError(f"Source folder not found: {source_dir}")
 
     candidates = sorted(
-        f for f in os.listdir(source_dir)
+        f
+        for f in os.listdir(source_dir)
         if f.lower().endswith(".txt") and os.path.isfile(os.path.join(source_dir, f))
     )
     if not candidates:
@@ -145,7 +146,7 @@ def derive_cards_name(cards_path: str) -> str:
     back to the bare stem if the prefix isn't present."""
     stem = os.path.splitext(os.path.basename(cards_path))[0]
     prefix = "dataset_cards_"
-    return stem[len(prefix):] if stem.startswith(prefix) else stem
+    return stem[len(prefix) :] if stem.startswith(prefix) else stem
 
 
 def write_failures_file(
@@ -178,7 +179,7 @@ def parse_args():
         "-f",
         "--file",
         help="Path to cards file, or filename inside the Source folder. "
-             "If omitted, an interactive picker is shown.",
+        "If omitted, an interactive picker is shown.",
     )
     return parser.parse_args()
 

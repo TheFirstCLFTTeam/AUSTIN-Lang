@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import AudioPlayer from '../../../../components/AudioPlayer';
 import Dialog from '../../components/Dialog';
+import SpeakerPickerSection from '../../components/SpeakerPickerSection';
 import {
     fetchFileDetail,
     saveEdits,
@@ -311,10 +312,16 @@ export default function FileDetailPage() {
             setSavedEdits(initial);
             setUndoStack([]);
             setRedoStack([]);
-            setFileStatus(data.status === 'completed' ? 'needs action' : (data.status || 'needs action'));
+            setFileStatus(data.status || 'needs action');
             if (data.status === 'in review' && data.reviewerId) {
                 setSubmitStatus('submitted');
             }
+            // Hydrate pre-assigned recording-parties state if the mock data
+            // carries any. This lets specific fixtures (e.g. spgispeech_0007)
+            // land on the detail page with the Recording Parties card
+            // already filled in.
+            if (data.verifier) setVerifier(data.verifier);
+            if (data.speakerMap) setSpeakerMap(data.speakerMap);
             recordAccess(user?.id || 'anon', id);
         });
     }, [id, userRole, user?.id]);
@@ -475,6 +482,53 @@ export default function FileDetailPage() {
         commitEdits(next, `Edited segment ${segIdx + 1}`);
     }
 
+    function splitSegment(segId, beforeText, afterText) {
+        const segIdx = rawSegments.findIndex((s) => s.id === segId);
+        const rawSeg = rawSegments[segIdx];
+        if (!rawSeg || !beforeText.trim() || !afterText.trim()) return;
+
+        // Proportionally split the time range based on word count.
+        const totalWords = (beforeText.trim().split(/\s+/).length + afterText.trim().split(/\s+/).length) || 1;
+        const beforeWords = beforeText.trim().split(/\s+/).length;
+        const ratio = beforeWords / totalWords;
+        const splitTime = rawSeg.start + (rawSeg.end - rawSeg.start) * ratio;
+
+        const newId = Date.now() + Math.floor(Math.random() * 10000);
+
+        // Build updated segments array
+        const updatedSegments = [...rawSegments];
+        // Mutate original segment in place
+        updatedSegments[segIdx] = { ...rawSeg, text: beforeText.trim(), end: splitTime };
+        // Insert new segment after
+        const newSeg = {
+            id: newId,
+            start: splitTime,
+            end: rawSeg.end,
+            text: afterText.trim(),
+            speaker: rawSeg.speaker,
+        };
+        updatedSegments.splice(segIdx + 1, 0, newSeg);
+
+        // Remove any edits that referenced the old segment (since the raw text changed)
+        const nextEdits = edits.filter((e) => e.segmentId !== segId);
+
+        // Update fileData with the new segments
+        setFileData((prev) => ({
+            ...prev,
+            rawTranscript: {
+                ...prev.rawTranscript,
+                transcript_segments: updatedSegments,
+            },
+        }));
+
+        // Record the edit change
+        setUndoStack((s) => [...s, edits]);
+        setRedoStack([]);
+        setEdits(nextEdits);
+        setEditingSeg(null);
+        logAction('text', `Split segment ${segIdx + 1} into two`);
+    }
+
     function applyMaskAcrossSegments(word) {
         // Replace every occurrence of `word` with [MASK] across all segments.
         let nextEdits = [...edits];
@@ -616,7 +670,7 @@ export default function FileDetailPage() {
         setReviewActionStatus('approving');
         try {
             await approveTranscript(fileData.id);
-            setFileStatus('reviewed');
+            setFileStatus('completed');
             setReviewActionStatus('done');
         } catch (err) {
             console.error(err);
@@ -949,8 +1003,8 @@ export default function FileDetailPage() {
                     <span
                         className="inline-block px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider"
                         style={{
-                            backgroundColor: ({ 'in review': 'rgba(0, 78, 198, 0.08)', 'needs action': 'rgba(178, 1, 0, 0.08)', reviewed: 'rgba(26, 127, 55, 0.08)', transcribed: 'rgba(158, 106, 0, 0.08)' })[fileStatus] || 'rgba(122, 117, 116, 0.1)',
-                            color: ({ 'in review': '#004ec6', 'needs action': '#b20100', reviewed: '#1a7f37', transcribed: '#9e6a00' })[fileStatus] || '#7a7574',
+                            backgroundColor: ({ 'in review': 'rgba(0, 78, 198, 0.08)', 'needs action': 'rgba(178, 1, 0, 0.08)', completed: 'rgba(26, 127, 55, 0.08)', transcribed: 'rgba(158, 106, 0, 0.08)' })[fileStatus] || 'rgba(122, 117, 116, 0.1)',
+                            color: ({ 'in review': '#004ec6', 'needs action': '#b20100', completed: '#1a7f37', transcribed: '#9e6a00' })[fileStatus] || '#7a7574',
                             borderRadius: '0px',
                         }}
                     >
@@ -1062,7 +1116,7 @@ export default function FileDetailPage() {
                                 disabled={fileStatus !== 'in review' || reviewActionStatus !== 'idle'}
                                 className="px-4 py-1.5 text-[0.8125rem] font-semibold cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                 style={{
-                                    background: fileStatus === 'reviewed'
+                                    background: fileStatus === 'completed'
                                         ? '#1a7f37'
                                         : 'linear-gradient(135deg, #b20100, #e10000)',
                                     color: '#ffffff',
@@ -1070,7 +1124,7 @@ export default function FileDetailPage() {
                                     borderRadius: '0px',
                                 }}
                             >
-                                {reviewActionStatus === 'approving' ? 'APPROVING…' : fileStatus === 'reviewed' ? 'APPROVED' : 'APPROVE TRANSCRIPT'}
+                                {reviewActionStatus === 'approving' ? 'APPROVING…' : fileStatus === 'completed' ? 'APPROVED' : 'APPROVE TRANSCRIPT'}
                             </button>
                         </>
                     ) : (
@@ -1081,7 +1135,7 @@ export default function FileDetailPage() {
                             style={{
                                 background: submitStatus === 'submitted' || fileStatus === 'in review'
                                     ? '#7a7574'
-                                    : fileStatus === 'reviewed'
+                                    : fileStatus === 'completed'
                                         ? '#1a7f37'
                                         : 'linear-gradient(135deg, #b20100, #e10000)',
                                 color: '#ffffff',
@@ -1091,7 +1145,7 @@ export default function FileDetailPage() {
                         >
                             {submitStatus === 'submitting' ? 'SUBMITTING…'
                                 : fileStatus === 'in review' ? 'IN REVIEW'
-                                : fileStatus === 'reviewed' ? 'REVIEWED'
+                                : fileStatus === 'completed' ? 'COMPLETED'
                                 : fileStatus === 'transcribing' ? 'TRANSCRIBING'
                                 : 'SUBMIT FOR REVIEW'}
                         </button>
@@ -1794,6 +1848,57 @@ export default function FileDetailPage() {
                                                         setEditingSeg(
                                                             null,
                                                         );
+                                                        return;
+                                                    }
+                                                    // Enter: split segment at cursor position
+                                                    if (
+                                                        e.key ===
+                                                        'Enter'
+                                                    ) {
+                                                        e.preventDefault();
+                                                        const sel =
+                                                            window.getSelection();
+                                                        if (
+                                                            !sel ||
+                                                            !sel.rangeCount
+                                                        )
+                                                            return;
+                                                        const fullText =
+                                                            e.target.innerText;
+                                                        // Get cursor offset within the full text
+                                                        const range =
+                                                            sel.getRangeAt(0);
+                                                        const preRange =
+                                                            document.createRange();
+                                                        preRange.selectNodeContents(
+                                                            e.target,
+                                                        );
+                                                        preRange.setEnd(
+                                                            range.startContainer,
+                                                            range.startOffset,
+                                                        );
+                                                        const offset =
+                                                            preRange.toString()
+                                                                .length;
+                                                        const before =
+                                                            fullText.slice(
+                                                                0,
+                                                                offset,
+                                                            );
+                                                        const after =
+                                                            fullText.slice(
+                                                                offset,
+                                                            );
+                                                        if (
+                                                            before.trim() &&
+                                                            after.trim()
+                                                        ) {
+                                                            splitSegment(
+                                                                rawSeg.id,
+                                                                before,
+                                                                after,
+                                                            );
+                                                        }
                                                         return;
                                                     }
                                                     // Alt+G: replace a single highlighted word with [MASK]
@@ -3239,6 +3344,7 @@ function HelpOverlay({ onClose }) {
         ['Previous edit', '↑'],
         ['Edit segment', 'Double-click'],
         ['Mask a word', 'Select word + Alt+G'],
+        ['Split segment', 'Enter (while editing)'],
         ['Seek to a word', 'Click the word'],
         ['Toggle this help', '?'],
     ];
@@ -3324,104 +3430,3 @@ function AuditRow({ label, value }) {
     );
 }
 
-function SpeakerPickerSection({
-    label,
-    items,
-    search,
-    onPick,
-    currentId,
-}) {
-    const q = search.trim().toLowerCase();
-    const filtered =
-        q ?
-            items.filter(
-                (p) =>
-                    p.name.toLowerCase().includes(q) ||
-                    p.company.toLowerCase().includes(q),
-            )
-        :   items;
-    if (filtered.length === 0) return null;
-    return (
-        <div className="mb-3">
-            <p
-                className="text-[0.625rem] font-semibold uppercase tracking-wider mb-1 px-1"
-                style={{ color: '#7a7574' }}
-            >
-                {label}
-            </p>
-            <div className="space-y-0.5">
-                {filtered.map((person) => {
-                    const isSelected = person.id === currentId;
-                    return (
-                        <button
-                            key={person.id}
-                            onClick={() => onPick(person)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-left cursor-pointer transition-colors"
-                            style={{
-                                backgroundColor:
-                                    isSelected ?
-                                        'rgba(0, 78, 198, 0.06)'
-                                    :   'transparent',
-                                border:
-                                    isSelected ?
-                                        '1px solid rgba(0, 78, 198, 0.2)'
-                                    :   '1px solid transparent',
-                                color: '#1c1b1b',
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!isSelected)
-                                    e.currentTarget.style.backgroundColor =
-                                        '#f6f3f2';
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!isSelected)
-                                    e.currentTarget.style.backgroundColor =
-                                        'transparent';
-                            }}
-                        >
-                            <img
-                                src={
-                                    person.profilePic ||
-                                    '/default_pfp.png'
-                                }
-                                alt=""
-                                className="w-7 h-7 shrink-0 object-cover"
-                                style={{
-                                    borderRadius: '0px',
-                                    border:
-                                        isSelected ?
-                                            '2px solid #004ec6'
-                                        :   '2px solid transparent',
-                                }}
-                            />
-                            <div className="flex-1 min-w-0">
-                                <p className="text-[0.8125rem] font-medium truncate">
-                                    {person.name}
-                                </p>
-                                <p
-                                    className="text-[0.6875rem] truncate"
-                                    style={{ color: '#7a7574' }}
-                                >
-                                    {person.company} &middot;{' '}
-                                    {person.role}
-                                </p>
-                            </div>
-                            {isSelected && (
-                                <svg
-                                    width="14"
-                                    height="14"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#004ec6"
-                                    strokeWidth="2.5"
-                                >
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}

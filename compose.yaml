@@ -1,0 +1,63 @@
+services:
+  audio_submission:
+    build: "./backend/audio_submission"
+    ports:
+      - "${AUDIO_SUBMISSION_PORT}:${AUDIO_SUBMISSION_PORT}"
+    volumes:
+      - "./backend/audio_submission:/app"
+
+  transcription-orchestrator:
+    build: "./backend/transcription_orchestrator"
+    ports:
+      - "${TRANSCRIPTION_ORCHESTRATOR_PORT}:${TRANSCRIPTION_ORCHESTRATOR_PORT}"
+    depends_on:
+      - audio_submission
+      - transcription-service-2
+    environment:
+      - AUDIO_SUBMISSION_PORT=${AUDIO_SUBMISSION_PORT}
+      - SERVER_PORT=${SERVER_PORT}
+      - TRANSCRIPTION_SERVICE_2_PORT=${TRANSCRIPTION_SERVICE_2_PORT}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - SKIP_TRANSCRIPTION_SERVER=${SKIP_TRANSCRIPTION_SERVER}
+
+  transcription-server:
+    build:
+      context: "./backend/server"
+      args:
+        SERVER_PORT: ${SERVER_PORT}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    environment:
+      - SERVER_PORT=${SERVER_PORT}
+
+  transcription-service-2:
+    build: "./backend/transcription-service-2"
+    ports:
+      - "${TRANSCRIPTION_SERVICE_2_PORT}:8005"
+    volumes:
+      - "./backend/transcription-service-2:/app"
+      - "./backend/retraining-pipeline/adapters:/app/adapters"
+      - hf_models_cache:/app/models_cache
+    environment:
+      - TRANSCRIPTION_PORT=8005
+
+  database:
+    build: "./backend/database"
+    ports:
+      - "${DATABASE_PORT}:${DATABASE_PORT}"
+    volumes:
+      - "./backend/database:/app"
+
+  frontend:
+    build:
+      context: "./frontend"
+      args:
+        NEXT_PUBLIC_MOCK_API: "true"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - transcription-orchestrator
+      - database
+
+volumes:
+  hf_models_cache:

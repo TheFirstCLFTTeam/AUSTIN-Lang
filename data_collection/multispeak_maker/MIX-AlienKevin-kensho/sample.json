@@ -1,0 +1,17 @@
+[
+  {
+    "audio": "audio/0000_audio.wav",
+    "speaker_1": {
+      "transcript": "\"踢波時，記住positioning tool普通，可能help你防止對方counter attack。\"",
+      "start_ms": 0,
+      "source_folder": "AlienKevin-mixed_cantonese_and_english_speech",
+      "source_audio": "audio/0000_audio.wav"
+    },
+    "speaker_2": {
+      "transcript": "they certainly expect this year to be a lot more reasonably balanced than perhaps we thought of 2017 in the first part of last year.",
+      "start_ms": 1000,
+      "source_folder": "kensho-spgispeech-S",
+      "source_audio": "audio/0000_audio.wav"
+    }
+  }
+]

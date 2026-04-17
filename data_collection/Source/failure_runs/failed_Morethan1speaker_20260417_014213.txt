@@ -1,0 +1,7 @@
+# Failed downloads from C:\Users\ChunChunMaru\Desktop\Repos\AUSTIN-Lang\data_collection\Source\dataset_cards_Morethan1speaker.txt
+# Generated: 2026-04-17T01:42:13
+# Error details follow each entry as a comment.
+
+jml2026/conversational-speech-dataset
+#   error: To support encoding audio data, please install 'torchcodec'.
+
