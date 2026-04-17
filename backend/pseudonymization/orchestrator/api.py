@@ -18,6 +18,19 @@ from pydantic import BaseModel, Field
 
 from . import storage
 from .crypto import decrypt
+from .gliner_client import (
+    GlinerBadInput,
+    GlinerInferenceFailure,
+    pseudonymise_segments,
+)
+from .labels import LABEL_SET_VERSION, MODEL_VERSION
+from .masking import (
+    assign_placeholders,
+    drop_model_spans_overlapping_manual,
+    find_manual_masks,
+    render_masked_text,
+    resolve_overlaps,
+)
 from .worker import SegmentInput, run_pseudonymisation
 
 app = FastAPI(
@@ -123,6 +136,87 @@ def _notify_reviewer(reviewer_id: str, kind: str) -> None:
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+# ── Sync masking endpoint ────────────────────────────────────────────────
+#
+# Stateless companion to /transcripts/:id/submit-for-review. Used by the
+# frontend submit-for-review path to grab the masked segments in one round
+# trip (no DB writes, no reviewer-decision loop). Failure surfaces as 5xx
+# so the caller can decide whether to block or pass through unmasked.
+
+class PseudonymiseSegmentIn(BaseModel):
+    id: str
+    text: str
+    lang: Optional[str] = None
+
+
+class PseudonymiseNowBody(BaseModel):
+    segments: List[PseudonymiseSegmentIn]
+
+
+class MaskedSegmentOut(BaseModel):
+    id: str
+    text: str          # masked text (placeholders substituted in)
+
+
+class PseudonymiseNowResponse(BaseModel):
+    model_version: str
+    label_set_version: str
+    masked_segments: List[MaskedSegmentOut]
+    spans_count: int
+
+
+@app.post("/pseudonymise-now", response_model=PseudonymiseNowResponse)
+async def pseudonymise_now(body: PseudonymiseNowBody):
+    if not body.segments:
+        return PseudonymiseNowResponse(
+            model_version=MODEL_VERSION,
+            label_set_version=LABEL_SET_VERSION,
+            masked_segments=[],
+            spans_count=0,
+        )
+
+    manual_by_segment = {
+        seg.id: find_manual_masks(seg.id, seg.text) for seg in body.segments
+    }
+
+    try:
+        gliner_result = pseudonymise_segments([
+            {"id": s.id, "text": s.text, "lang": s.lang} for s in body.segments
+        ])
+    except GlinerBadInput as exc:
+        raise HTTPException(status_code=400, detail=f"bad input to gliner: {exc}")
+    except GlinerInferenceFailure as exc:
+        raise HTTPException(status_code=503, detail=f"gliner unavailable: {exc}")
+
+    model_spans = drop_model_spans_overlapping_manual(
+        gliner_result.spans, manual_by_segment
+    )
+    model_spans = resolve_overlaps(model_spans)
+
+    segment_text = {seg.id: seg.text for seg in body.segments}
+    manual_spans = [m for ms in manual_by_segment.values() for m in ms]
+    finals = assign_placeholders(model_spans, manual_spans, segment_text)
+
+    finals_by_segment: dict = {}
+    for f in finals:
+        finals_by_segment.setdefault(f.segment_id, []).append(f)
+
+    masked = [
+        MaskedSegmentOut(
+            id=seg.id,
+            text=render_masked_text(seg.text, finals_by_segment.get(seg.id, [])),
+        )
+        for seg in body.segments
+    ]
+
+    return PseudonymiseNowResponse(
+        model_version=MODEL_VERSION,
+        label_set_version=LABEL_SET_VERSION,
+        masked_segments=masked,
+        spans_count=len(finals),
+    )
 
 
 @app.post("/transcripts/{transcript_id}/submit-for-review")
@@ -266,5 +360,5 @@ def _now_iso() -> str:
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PSEUDONYM_ORCHESTRATOR_PORT", 9002))
+    port = int(os.getenv("PSEUDONYM_ORCHESTRATOR_PORT", 5002))
     uvicorn.run(app, host="0.0.0.0", port=port)

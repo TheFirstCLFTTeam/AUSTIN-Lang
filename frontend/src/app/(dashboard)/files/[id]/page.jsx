@@ -1010,6 +1010,19 @@ export default function FileDetailPage() {
                     >
                         {(fileStatus || 'needs action').toUpperCase()}
                     </span>
+                    {canApprove && fileData.pseudonymisationWarning && (
+                        <span
+                            title={`Auto-masking did not run: ${fileData.pseudonymisationWarning.reason}`}
+                            className="inline-block px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider"
+                            style={{
+                                backgroundColor: 'rgba(178, 1, 0, 0.08)',
+                                color: '#b20100',
+                                borderRadius: '0px',
+                            }}
+                        >
+                            ⚠ AUTO-MASKING SKIPPED
+                        </span>
+                    )}
                 </div>
                 <div className="flex items-center gap-3">
                     <SaveStatus

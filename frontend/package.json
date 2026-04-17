@@ -5,7 +5,10 @@
     "dependencies": {
         "@lottiefiles/dotlottie-react": "^0.18.8",
         "@tailwindcss/postcss": "^4.1.18",
+        "bcryptjs": "^2.4.3",
+        "better-sqlite3": "^11.5.0",
         "d3": "^7.9.0",
+        "jose": "^5.9.6",
         "lucide-react": "^1.8.0",
         "next": "^16.1.6",
         "react": "^19.2.3",

@@ -49,27 +49,29 @@ services:
       - "./backend/database:/app"
 
   gliner-service:
-    build: "./pseudonymization/gliner_service"
+    build: "./backend/pseudonymization/gliner_service"
     ports:
-      - "${GLINER_PORT:-9001}:9001"
+      - "${GLINER_SERVICE_PORT}:5001"
     volumes:
+      - "./backend/pseudonymization/gliner_service:/app"
       - hf_models_cache:/app/models_cache
     environment:
-      - GLINER_PORT=9001
-      - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET:-dev-shared-secret}
+      - GLINER_PORT=5001
+      - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET}
 
   pseudonymisation-orchestrator:
-    build: "./pseudonymization/orchestrator"
+    build: "./backend/pseudonymization/orchestrator"
     ports:
-      - "${PSEUDONYM_ORCHESTRATOR_PORT:-9002}:9002"
+      - "${PSEUDONYMISATION_ORCHESTRATOR_PORT}:5002"
     depends_on:
       - gliner-service
     volumes:
+      - "./backend/pseudonymization/orchestrator:/app/orchestrator"
       - pseudonymisation_data:/app/data
     environment:
-      - PSEUDONYM_ORCHESTRATOR_PORT=9002
-      - GLINER_URL=http://gliner-service:9001
-      - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET:-dev-shared-secret}
+      - PSEUDONYM_ORCHESTRATOR_PORT=5002
+      - GLINER_URL=http://gliner-service:5001
+      - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET}
       - PSEUDONYM_FERNET_KEY=${PSEUDONYM_FERNET_KEY:-}
       - TRANSCRIPT_STATUS_URL=http://transcription-orchestrator:${TRANSCRIPTION_ORCHESTRATOR_PORT}
 
@@ -83,6 +85,14 @@ services:
     depends_on:
       - transcription-orchestrator
       - database
+    volumes:
+      # Mount the whole directory so SQLite can create -wal/-shm sidecars
+      # alongside the DB files.
+      - "./database(FE):/db"
+    environment:
+      - USERS_DB_PATH=/db/users.db
+      - PLATFORM_DB_PATH=/db/platform.db
+      - JWT_SECRET=${JWT_SECRET:-dev-only-not-for-production-please-set-JWT_SECRET}
 
 volumes:
   hf_models_cache:

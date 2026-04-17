@@ -1,9 +1,10 @@
-// Thin fetch wrapper that talks to the FastAPI service at NEXT_PUBLIC_API_URL.
+// Thin fetch wrapper. By default it talks to the Next.js process itself
+// (relative URLs hit the in-process route handlers under src/app/**/route.js).
+// Set NEXT_PUBLIC_API_URL to point at an external service.
 // Always sends cookies (`credentials: 'include'`) since auth is JWT-via-cookie,
 // and always parses JSON when there's a body.
 
-export const API_BASE =
-    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8002';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
 async function request(method, path, body, { headers = {}, signal, server } = {}) {
     const url = path.startsWith('http') ? path : `${API_BASE}${path}`;

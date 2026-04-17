@@ -3,9 +3,11 @@
 ## Definitions
 
 - **File**: A single row representing one audio recording + transcript pair.
-- **File-org group**: A mutually-exclusive organisational group tied to a role. Each user belongs to exactly one: `reviewer-file-org`, `user-file-org`, `admin-file-org`, or `engineer-file-org`.
-- **Control member**: The persona assigned to a file-org group. Has full authority over the folder structure that every member of that group sees. Since there is exactly one persona per role, that persona is automatically the control member.
+- **File Organisation group**: A region-scoped, role-aligned group from `USER_GROUP_CATALOGUE` (see `src/services/mock_data-users.js`) that defines (a) which recordings the member can see and (b) the shared folder tree the group works in. The four canonical IDs today are `hk-user-file-organisation`, `hk-engineer-file-organisation`, `hk-reviewer-file-organisation`, `hk-admin-file-organisation`.
+- **Control member**: The persona assigned to a File Organisation group. Has full authority over the folder structure that every member of that group sees. Since there is exactly one persona per role, that persona is automatically the control member.
 - **Normal member**: Any other member of the group. Can move files into existing folders and request new folders, but cannot create folders or modify rules.
+
+> **Note — two-axis group model.** Every persona is assigned **two** groups in the new access model: one **File Organisation** group (the data-scope + folder-tree bundle described here) and one **Access Permissions** group (the action bundle — what the persona can DO once they can see the data, e.g. `MLE-generic-access-perms`, `reviewer-generic-access-perms`). This document only covers the File Organisation axis. For the Access Permissions axis and the full persona → groups mapping see `INITIAL_USER_GROUP_ASSIGNMENTS` in `src/services/mock_data-users.js` and the role-permission columns in `Project_Requirements_Document.md` (FR-U*, FR-A*, FR-M*, NFR-S02).
 
 ---
 
@@ -76,7 +78,7 @@ The control member sees these requests in a management panel and can approve (cr
 
 **Pattern**: Google Drive Shared Drives, Dropbox Team Folders.
 
-All members of a file-org group see the **same folder tree**, maintained by the control member. This is not a personal folder system; it is a shared organisational view. Changes by the control member propagate to all group members immediately.
+All members of a File Organisation group see the **same folder tree**, maintained by the control member. This is not a personal folder system; it is a shared organisational view. Changes by the control member propagate to all group members immediately.
 
 ---
 
@@ -87,7 +89,7 @@ All members of a file-org group see the **same folder tree**, maintained by the 
 Replaces the current 4-column dataset grid with a collapsible sidebar or left-panel folder tree.
 
 ```
-FOLDERS (engineer-file-org)               [+ Request] (normal) / [+ New Folder] (control)
+FOLDERS (hk-engineer-file-organisation)   [+ Request] (normal) / [+ New Folder] (control)
 ---------------------------------------------
 All Files                          (142)
 Starred                            (12)
@@ -185,7 +187,7 @@ For manual and hybrid folders, members need to move files. See detailed Google D
 Folder {
   id: string
   name: string
-  groupId: string              // e.g. "engineer-file-org"
+  groupId: string              // e.g. "hk-engineer-file-organisation"
   type: "manual" | "smart" | "hybrid"
   rules: Rule[] | null         // null for manual folders
   description: string | null
@@ -247,16 +249,16 @@ FolderRequest {
 - Existing column filters (status, date, duration, language, WER) remain and **stack** with the folder filter. E.g., selecting "Low WER" folder + filtering by "Cantonese" language = intersection.
 - Breadcrumb updates: `HOME / MY TRANSCRIPTS / [Folder Name]`.
 
-### Role Mapping to File-Org Groups
+### Role Mapping to File Organisation Groups
 
-| Existing Role | File-Org Group | Default Control Member |
-|---|---|---|
-| `generic` (user) | `user-file-org` | The `generic` persona |
-| `engineer` | `engineer-file-org` | The `engineer` persona |
-| `reviewer` | `reviewer-file-org` | The `reviewer` persona |
-| `admin` | `admin-file-org` | The `admin` persona |
+| Existing Role | File Organisation Group | Access Permissions Group | Default Control Member |
+|---|---|---|---|
+| `generic` (user) | `hk-user-file-organisation` | `user-generic-access-perms` | The `generic` persona |
+| `engineer` | `hk-engineer-file-organisation` | `MLE-generic-access-perms` | The `engineer` persona |
+| `reviewer` | `hk-reviewer-file-organisation` | `reviewer-generic-access-perms` | The `reviewer` persona |
+| `admin` | `hk-admin-file-organisation` | `hk-admin-access-perms` | The `admin` persona |
 
-Each group has its own independent folder tree. An engineer and a reviewer looking at the same files will see them organised into different folders per their group's structure.
+Each File Organisation group has its own independent folder tree. An engineer and a reviewer looking at the same files will see them organised into different folders per their group's structure. The Access Permissions column is shown for completeness — it controls actions, not folder structure, and is not in the scope of this document.
 
 ### Notification Integration
 
@@ -294,7 +296,7 @@ Folder requests should integrate with the existing notification service (`/src/s
 
 1. **Should files exist in multiple folders?** Current design assumes a file can be in multiple manual folders (like tags/labels) rather than exactly one folder (like a filesystem). Which model fits better?
 2. **What happens to existing dataset folders?** Are the current Hugging Face dataset groupings migrated into the new system as pre-created smart folders, or deprecated entirely?
-3. **Admin override**: Can the admin-file-org control member see or modify other groups' folder structures? This could be useful for org-wide consistency but may violate the mutual-exclusivity principle.
+3. **Admin override**: Can the `hk-admin-file-organisation` control member see or modify other groups' folder structures? This could be useful for org-wide consistency but may violate the mutual-exclusivity principle.
 4. **Folder ordering**: Can control members reorder folders in the sidebar, or are they always alphabetical?
 
 ---

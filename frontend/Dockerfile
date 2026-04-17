@@ -2,6 +2,9 @@
 
 FROM node:20-alpine AS deps
 WORKDIR /app
+# better-sqlite3 needs python + a C++ toolchain to build its native binding
+# against musl on Alpine (no prebuilt for alpine).
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -16,10 +19,15 @@ RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+# libstdc++ is required at runtime by the better-sqlite3 native binding.
+RUN apk add --no-cache libstdc++
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+# Default DB locations inside the container; compose mounts the host files here.
+ENV USERS_DB_PATH=/db/users.db
+ENV PLATFORM_DB_PATH=/db/platform.db
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs

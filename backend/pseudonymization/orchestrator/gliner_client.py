@@ -17,7 +17,7 @@ import httpx
 from .labels import LABEL_NAMES, THRESHOLDS
 from .masking import ModelSpan
 
-GLINER_URL = os.getenv("GLINER_URL", "http://localhost:9001")
+GLINER_URL = os.getenv("GLINER_URL", "http://localhost:5001")
 GLINER_SHARED_SECRET = os.getenv("GLINER_SHARED_SECRET", "dev-shared-secret")
 GLINER_TIMEOUT_S = float(os.getenv("GLINER_TIMEOUT_S", "30"))
 GLINER_MAX_ATTEMPTS = int(os.getenv("GLINER_MAX_ATTEMPTS", "3"))

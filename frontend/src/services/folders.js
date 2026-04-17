@@ -1,29 +1,32 @@
 // In-memory folder store for file organisation.
-// Each role maps to a file-org group. The persona for that role is the control member.
-// Control members create/rename/delete folders and manage requests.
-// Normal members move files into folders and submit folder requests.
+// Each role maps to a File Organisation group from USER_GROUP_CATALOGUE.
+// The persona for that role is the control member: creates/renames/deletes
+// folders and approves folder requests. Normal members move files into folders
+// and submit folder requests.
 
 import { MOCK_FILE_STORE } from './mock-data';
 
 // ─── Group mapping ─────────────────────────────────────────────────────────────
+// Group ids are the canonical File Organisation entries from
+// USER_GROUP_CATALOGUE (mock_data-users.js).
 
 const ROLE_TO_GROUP = {
-    generic: 'user-file-org',
-    engineer: 'engineer-file-org',
-    reviewer: 'reviewer-file-org',
-    admin: 'admin-file-org',
+    generic: 'hk-user-file-organisation',
+    engineer: 'hk-engineer-file-organisation',
+    reviewer: 'hk-reviewer-file-organisation',
+    admin: 'hk-admin-file-organisation',
 };
 
 // Each group's control member userId
 const GROUP_CONTROL_MEMBERS = {
-    'user-file-org': 'u1',
-    'engineer-file-org': 'u2',
-    'admin-file-org': 'u3',
-    'reviewer-file-org': 'u4',
+    'hk-user-file-organisation': 'u1',
+    'hk-engineer-file-organisation': 'u2',
+    'hk-admin-file-organisation': 'u3',
+    'hk-reviewer-file-organisation': 'u4',
 };
 
 export function getGroupIdForRole(role) {
-    return ROLE_TO_GROUP[role] || 'user-file-org';
+    return ROLE_TO_GROUP[role] || 'hk-user-file-organisation';
 }
 
 export function isControlMember(userId, groupId) {

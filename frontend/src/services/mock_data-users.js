@@ -13,7 +13,7 @@ export const users = [
         name: 'Generic User',
         role: 'generic',
         company: 'SELF',
-        fileOrgGroup: 'user-file-org',
+        fileOrgGroup: 'hk-user-file-organisation',
         isControlMember: true,
     },
     {
@@ -23,7 +23,7 @@ export const users = [
         name: 'Engineer User',
         role: 'engineer',
         company: 'SELF',
-        fileOrgGroup: 'engineer-file-org',
+        fileOrgGroup: 'hk-engineer-file-organisation',
         isControlMember: true,
     },
     {
@@ -33,7 +33,7 @@ export const users = [
         name: 'Admin User',
         role: 'admin',
         company: 'SELF',
-        fileOrgGroup: 'admin-file-org',
+        fileOrgGroup: 'hk-admin-file-organisation',
         isControlMember: true,
     },
     {
@@ -43,7 +43,7 @@ export const users = [
         name: 'Reviewer User',
         role: 'reviewer',
         company: 'SELF',
-        fileOrgGroup: 'reviewer-file-org',
+        fileOrgGroup: 'hk-reviewer-file-organisation',
         isControlMember: true,
     },
 ];

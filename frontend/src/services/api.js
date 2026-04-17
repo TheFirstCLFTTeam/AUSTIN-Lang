@@ -1,18 +1,22 @@
 // src/services/api.js
+//
+// Client-side API surface. All persistent reads/writes go through the
+// in-process Next.js route handlers under src/app/api/**/route.js, which are
+// backed by SQLite (`users.db` + `platform.db`). Auth uses an HttpOnly JWT
+// cookie — the sync `getCurrentUser()` cache exists only so that existing
+// synchronous call sites keep working after login.
 
-import { users, MOCK_FILE_STORE, MOCK_PROCESSING_JOBS, MOCK_USER_PROFILES } from './mock-data';
 import { addReviewNotification, addReviewActionNotification } from './notifications';
 import { assertTransition } from '../lib/statusFlow';
 import { http } from './http';
-
-// Set NEXT_PUBLIC_MOCK_API=true in .env.development to run without the backend.
-const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_API === 'true';
+import { pseudonymiseSegments } from './pseudonymisation';
+import { applyEdits, recomputeSegmentEdits } from '../lib/transcriptEdits';
 
 // ── Auth helpers ────────────────────────────────────────────────────────────
-// The JWT itself lives in an HttpOnly cookie issued by the FastAPI backend and
-// is invisible to browser JS. For sync compatibility with existing call sites
-// (hundreds of places use `getCurrentUser()` synchronously), we cache the
-// authenticated user profile in sessionStorage. The cache is populated by:
+// The JWT itself lives in an HttpOnly cookie issued by POST /auth/login and is
+// invisible to browser JS. For sync compatibility with existing call sites we
+// cache the authenticated user profile in sessionStorage. The cache is
+// populated by:
 //   1. `login()` after a successful POST /auth/login
 //   2. `bootstrapAuth()` on dashboard load (calls GET /auth/me via cookie)
 //   3. `setCachedUser()` from the server-rendered AuthHydrator component.
@@ -54,14 +58,11 @@ export async function logout() {
     try {
         await http.post('/auth/logout');
     } catch (err) {
-        // Network failure shouldn't trap the user — clear local state anyway.
         console.warn('logout: server clear failed, proceeding with local clear', err);
     }
     setCachedUser(null);
 }
 
-// Called on app load to populate the sync cache from the HttpOnly cookie.
-// Returns the user or null if unauthenticated.
 export async function bootstrapAuth() {
     try {
         const user = await http.get('/auth/me');
@@ -84,471 +85,222 @@ export function getToken() {
     return isAuthenticated() ? 'cookie' : null;
 }
 
-/*********************************
- * MOCK FILE DATABASE (imported from mock-data.js)
- *********************************/
-
-let _nextMockId = 3;
-
-// Simple auth guard for mock API calls
 function requireAuth() {
-    if (!isAuthenticated()) {
-        throw new Error('Not authenticated');
-    }
+    if (!isAuthenticated()) throw new Error('Not authenticated');
 }
 
-/*********************************
- * USER PROFILE
- *********************************/
-
+// ── User profile ───────────────────────────────────────────────────────────
 export async function fetchUserProfile() {
     requireAuth();
-    const currentUser = getCurrentUser();
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return MOCK_USER_PROFILES[currentUser?.id] || MOCK_USER_PROFILES.u1;
+    return http.get('/api/user-profile');
 }
 
-/*********************************
- * FILE API FUNCTIONS
- *********************************/
-
-// Fetch processing jobs
+// ── Processing queue ──────────────────────────────────────────────────────
 export async function fetchProcessingJobs() {
     requireAuth();
-
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        return MOCK_PROCESSING_JOBS;
-    }
-
     try {
-        const response = await fetch('http://localhost:8001/processing-jobs/');
-        if (!response.ok) {
-            throw new Error(`Failed to fetch processing jobs: ${response.status}`);
-        }
-        return await response.json();
+        return await http.get('/api/processing-jobs');
     } catch (error) {
         console.error('Error fetching processing jobs:', error);
         return [];
     }
 }
 
-// Upload audio file
+// ── Upload ─────────────────────────────────────────────────────────────────
+// Integrated path talks to the external transcription orchestrator at
+// :8001. There is no DB-backed fallback — containerize `pseudonymization/` +
+// `backend/*` and run them alongside the frontend (`docker compose up`) for
+// the upload path to work.
 export async function uploadAudio(file) {
     requireAuth();
-
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        const newId = String(_nextMockId++);
-        const segments = [
-            {
-                id: Date.now(),
-                start: 0.0,
-                end: 3.0,
-                text: 'Mock transcription for ' + file.name,
-            },
-            {
-                id: Date.now() + 1,
-                start: 3.0,
-                end: 6.0,
-                text: 'This is a placeholder transcript.',
-            },
-        ];
-        const currentUser = getCurrentUser();
-        const newFile = {
-            id: newId,
-            ownerId: currentUser?.id || 'u1',
-            ownerName: currentUser?.email || 'Unknown',
-            name: file.name,
-            audioUrl: URL.createObjectURL(file),
-            uploaded_at: new Date().toISOString(),
-            rawTranscript: {
-                id: 100 + Number(newId),
-                audio_file_id: Number(newId),
-                transcript_segments: segments,
-            },
-            edits: [],
-        };
-        MOCK_FILE_STORE.push(newFile);
-        return newFile;
-    }
-
     try {
-        // 1. Call the Orchestrator which handles upload, transcription, and DB registration
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch(
-            'http://localhost:8001/transcribe/',
-            {
-                method: 'POST',
-                body: formData,
-            },
-        );
-
+        const response = await fetch('http://localhost:8001/transcribe/', {
+            method: 'POST',
+            body: formData,
+        });
         if (!response.ok) {
-            throw new Error(
-                `Orchestrator failed: ${response.status}`,
-            );
+            throw new Error(`Orchestrator failed: ${response.status}`);
         }
-
         const data = await response.json();
-
-        // 2. Construct the file object for frontend display
-        // Using the real segments returned from Whisper
-        const newFile = {
+        return {
             id: String(data.audio_file_id),
             name: file.name,
             audioUrl: `http://localhost:8000/audio_files/${file.name}`,
             transcriptSegments: data.transcription.segments || [],
         };
-
-        return newFile;
     } catch (error) {
         console.error('Error in uploadAudio workflow:', error);
         throw error;
     }
 }
 
-// Fetch all submitted files
+// ── Audio files ────────────────────────────────────────────────────────────
 export async function fetchSubmittedFiles() {
     requireAuth();
-
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map(
-            ({ id, name, audioUrl, uploaded_at, rawTranscript, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset, status, reviewerId, submittedForReviewAt }) => {
-                const fullText = (rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
-                const words = fullText.split(/\s+/).filter(Boolean);
-                const header = words.length > 1
-                    ? words.slice(0, 50).join(' ')
-                    : fullText.slice(0, 120);
-                return {
-                    id,
-                    name,
-                    audioUrl,
-                    uploaded_at,
-                    transcriptHeader: header,
-                    duration: duration || null,
-                    wer: wer ?? null,
-                    absoluteWordErrorRate: absoluteWordErrorRate ?? null,
-                    totalNumberOfWords: totalNumberOfWords ?? null,
-                    speakerDetection: speakerDetection ?? null,
-                    detectedLanguage: detectedLanguage || null,
-                    compliance: compliance || null,
-                    dataset: dataset || null,
-                    status: status || 'needs action',
-                    reviewerId: reviewerId || null,
-                    submittedForReviewAt: submittedForReviewAt || null,
-                };
-            },
-        );
-    }
-
-    try {
-        const response = await fetch(
-            'http://localhost:8002/audio-files/',
-        ); // Call the new backend endpoint
-        if (!response.ok) {
-            throw new Error(
-                `Failed to fetch audio files: ${response.status}`,
-            );
-        }
-        const audioFiles = await response.json();
-
-        // Map the backend AudioFile array to the structure the UI expects
-        return audioFiles.map((audioFile) => ({
-            id: String(audioFile.id),
-            name: audioFile.file_name,
-            audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`,
-            transcriptSegments: [],
-            uploaded_at: audioFile.uploaded_at,
-            transcriptHeader: audioFile.transcript_header || '',
-        }));
-    } catch (error) {
-        console.error('Error fetching submitted files:', error);
-        return [];
-    }
+    return http.get('/api/audio-files?scope=submitted');
 }
 
-// Fetch soft-deleted files (trash)
 export async function fetchTrashedFiles() {
     requireAuth();
-
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        return MOCK_FILE_STORE.filter((f) => f.deleted_at).map(
-            ({ id, name, audioUrl, uploaded_at, deleted_at, deleted_by, expires_at, rawTranscript, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance, dataset }) => {
-                const fullText = (rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
-                const words = fullText.split(/\s+/).filter(Boolean);
-                const header = words.length > 1
-                    ? words.slice(0, 50).join(' ')
-                    : fullText.slice(0, 120);
-                return {
-                    id,
-                    name,
-                    audioUrl,
-                    uploaded_at,
-                    deleted_at,
-                    deleted_by: deleted_by || 'system',
-                    expires_at: expires_at || null,
-                    transcriptHeader: header,
-                    duration: duration || null,
-                    wer: wer ?? null,
-                    absoluteWordErrorRate: absoluteWordErrorRate ?? null,
-                    totalNumberOfWords: totalNumberOfWords ?? null,
-                    speakerDetection: speakerDetection ?? null,
-                    detectedLanguage: detectedLanguage || null,
-                    compliance: compliance || null,
-                    dataset: dataset || null,
-                };
-            },
-        );
-    }
-
-    return [];
+    return http.get('/api/audio-files?scope=trashed');
 }
 
-// Fetch all files with metadata only (for engineers viewing others' files)
 export async function fetchAllFilesMetadata() {
     requireAuth();
     const currentUser = getCurrentUser();
-
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map((f) => {
-            const fullText = (f.rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
-            const words = fullText.split(/\s+/).filter(Boolean);
-            const header = words.length > 1
-                ? words.slice(0, 50).join(' ')
-                : fullText.slice(0, 120);
-            return {
-                id: f.id,
-                name: f.name,
-                audioUrl: f.audioUrl || null,
-                uploaded_at: f.uploaded_at,
-                ownerId: f.ownerId,
-                ownerName: f.ownerName,
-                isOwned: f.ownerId === currentUser?.id,
-                transcriptHeader: header,
-                duration: f.duration || null,
-                wer: f.wer ?? null,
-                absoluteWordErrorRate: f.absoluteWordErrorRate ?? null,
-                totalNumberOfWords: f.totalNumberOfWords ?? null,
-                speakerDetection: f.speakerDetection ?? null,
-                detectedLanguage: f.detectedLanguage || null,
-                compliance: f.compliance || null,
-                dataset: f.dataset || null,
-                status: f.status || 'needs action',
-                reviewerId: f.reviewerId || null,
-                submittedForReviewAt: f.submittedForReviewAt || null,
-            };
-        });
-    }
-
-    // For real API, this would call a different endpoint
-    return [];
+    const rows = await http.get('/api/audio-files?scope=all');
+    return rows.map((r) => ({ ...r, isOwned: r.ownerId === currentUser?.id }));
 }
 
-// Fetch one file by ID
 export async function fetchFileDetail(id) {
     requireAuth();
-
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        return (
-            MOCK_FILE_STORE.find((f) => f.id === String(id)) || null
-        );
-    }
-
     try {
-        // 1. Fetch AudioFile
-        const audioFileResponse = await fetch(
-            `http://localhost:8002/audio-files/${id}`,
-        );
-        if (!audioFileResponse.ok) {
-            throw new Error(
-                `Failed to fetch audio file detail for ID ${id}: ${audioFileResponse.status}`,
-            );
-        }
-        const audioFile = await audioFileResponse.json();
-
-        // 2. Fetch Raw Transcript(s) for this audio_file_id
-        // Assuming one raw transcript per audio file for simplicity
-        const rawTranscriptsResponse = await fetch(
-            `http://localhost:8002/raw-transcripts/?audio_file_id=${id}`,
-        );
-        if (!rawTranscriptsResponse.ok) {
-            throw new Error(
-                `Failed to fetch raw transcripts for audio file ID ${id}: ${rawTranscriptsResponse.status}`,
-            );
-        }
-        const rawTranscripts = await rawTranscriptsResponse.json();
-        const rawTranscript =
-            rawTranscripts.length > 0 ? rawTranscripts[0] : null;
-
-        let edits = [];
-        if (rawTranscript) {
-            const editsResponse = await fetch(
-                `http://localhost:8002/audio-files/${id}/edits`,
-            );
-            if (editsResponse.ok) {
-                const body = await editsResponse.json();
-                edits = body.edits || [];
-            }
-        }
-
-        const fileDetail = {
-            id: String(audioFile.id),
-            name: audioFile.file_name,
-            audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`,
-            uploaded_at: audioFile.uploaded_at,
-            rawTranscript,
-            edits,
-        };
-
-        return fileDetail;
-    } catch (error) {
-        console.error('Error fetching file detail:', error);
+        return await http.get(`/api/audio-files/${encodeURIComponent(id)}`);
+    } catch (err) {
+        if (err?.status === 404) return null;
+        console.error('Error fetching file detail:', err);
         return null;
     }
 }
 
-// Save the edits array for a file. Edits are word-level operations against
-// the raw transcript; the server stores the array verbatim. WER and the
-// displayed transcript are derived client-side from raw + edits.
 export async function saveEdits(fileId, edits = []) {
     requireAuth();
-
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
-        if (file) file.edits = edits;
-        return { fileId: String(fileId), edits };
-    }
-
-    try {
-        const response = await fetch(
-            `http://localhost:8002/audio-files/${fileId}/edits`,
-            {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ edits }),
-            },
-        );
-        if (!response.ok) {
-            throw new Error(`Failed to save edits: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error saving edits:', error);
-        throw error;
-    }
+    return http.put(`/api/audio-files/${encodeURIComponent(fileId)}/edits`, { edits });
 }
 
-// Submit a file for review by a specific reviewer/admin.
-// Updates the file status to "in review" and sends a notification to the reviewer.
+// ── Workflow: submit / approve / request-changes ───────────────────────────
+
+async function runPseudonymisationForFile(file, currentUser) {
+    const rawSegments = file?.rawTranscript?.transcript_segments || [];
+    if (rawSegments.length === 0) {
+        return { edits: file.edits || [], summary: { spansCount: 0, segments: 0 } };
+    }
+
+    const applied = applyEdits(rawSegments, file.edits || []);
+    const payload = applied.map((s) => ({ id: String(s.id), text: s.text || '' }));
+
+    let result;
+    try {
+        result = await pseudonymiseSegments(payload);
+    } catch (err) {
+        console.warn('[pseudonymisation] skipped — orchestrator failed:', err);
+        return {
+            warning: {
+                reason: err?.message || 'Unknown error',
+                attemptedAt: new Date().toISOString(),
+                attemptedBy: currentUser?.id || null,
+            },
+        };
+    }
+
+    const maskedById = new Map(
+        (result.maskedSegments || []).map((m) => [String(m.id), m.text]),
+    );
+
+    let nextEdits = file.edits || [];
+    const editedAt = new Date().toISOString();
+    for (const seg of applied) {
+        const masked = maskedById.get(String(seg.id));
+        if (masked == null || masked === seg.text) continue;
+        nextEdits = recomputeSegmentEdits(
+            nextEdits, seg.id, seg.originalText, masked,
+            { editedAt, editedBy: 'system' },
+        );
+    }
+
+    return {
+        edits: nextEdits,
+        summary: {
+            spansCount: result.spansCount,
+            segments: maskedById.size,
+            modelVersion: result.modelVersion,
+            labelSetVersion: result.labelSetVersion,
+            appliedAt: editedAt,
+        },
+    };
+}
+
 export async function submitForReview(fileId, reviewerId) {
     requireAuth();
     const currentUser = getCurrentUser();
 
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 400));
-        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
-        if (!file) throw new Error('File not found');
-        const currentStatus = file.status || 'needs action';
-        assertTransition(currentStatus, 'in review');
-        file.status = 'in review';
-        file.reviewerId = reviewerId;
-        file.submittedForReviewAt = new Date().toISOString();
-        file.submittedBy = currentUser?.id;
+    // Fetch detail first so we can run pseudonymisation client-side before
+    // persisting the status flip.
+    const file = await fetchFileDetail(fileId);
+    if (!file) throw new Error('File not found');
+    assertTransition(file.status || 'needs action', 'in review');
 
-        // Find reviewer details for the notification
-        const reviewer = users.find((u) => u.id === reviewerId);
-        const submitterProfile = MOCK_USER_PROFILES[currentUser?.id];
-        const submitterName = submitterProfile?.name || currentUser?.email || 'A user';
-
-        addReviewNotification({
-            fileId: String(fileId),
-            fileName: file.name,
-            recipientId: reviewerId,
-            submittedBy: currentUser?.id,
-            submitterName,
-        });
-
-        return { fileId: String(fileId), status: 'in review', reviewerId };
+    const pseudoResult = await runPseudonymisationForFile(file, currentUser);
+    if (!pseudoResult.warning) {
+        await saveEdits(fileId, pseudoResult.edits);
     }
 
-    // Real API call would go here
-    throw new Error('Not implemented for real API');
+    const result = await http.post(
+        `/api/audio-files/${encodeURIComponent(fileId)}/submit-for-review`,
+        { reviewerId },
+    );
+
+    // Notifications live in the in-memory notifications service — no DB
+    // backing yet, so we fire here after the server confirms the transition.
+    addReviewNotification({
+        fileId: String(fileId),
+        fileName: file.name,
+        recipientId: reviewerId,
+        submittedBy: currentUser?.id,
+        submitterName: currentUser?.name || currentUser?.email || 'A user',
+    });
+
+    return { fileId: String(fileId), status: 'in review', reviewerId, ...result };
 }
 
-// Reviewer/admin approves a transcript — moves status from "in review" to "completed".
 export async function approveTranscript(fileId) {
     requireAuth();
     const currentUser = getCurrentUser();
 
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 400));
-        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
-        if (!file) throw new Error('File not found');
-        assertTransition(file.status, 'completed');
-        file.status = 'completed';
-        file.reviewedBy = currentUser?.id;
-        file.reviewedAt = new Date().toISOString();
+    const file = await fetchFileDetail(fileId);
+    if (!file) throw new Error('File not found');
+    assertTransition(file.status || 'in review', 'completed');
 
-        // Notify the original submitter
-        if (file.submittedBy) {
-            const reviewerProfile = MOCK_USER_PROFILES[currentUser?.id];
-            const reviewerName = reviewerProfile?.name || currentUser?.email || 'A reviewer';
-            addReviewActionNotification({
-                fileId: String(fileId),
-                fileName: file.name,
-                recipientId: file.submittedBy,
-                reviewerName,
-                action: 'approved',
-            });
-        }
+    const result = await http.post(
+        `/api/audio-files/${encodeURIComponent(fileId)}/approve`,
+    );
 
-        return { fileId: String(fileId), status: 'completed' };
-    }
+    // Best-effort: notify the original submitter via in-memory notifications.
+    addReviewActionNotification({
+        fileId: String(fileId),
+        fileName: file.name,
+        recipientId: file.ownerId,
+        reviewerName: currentUser?.name || currentUser?.email || 'A reviewer',
+        action: 'approved',
+    });
 
-    throw new Error('Not implemented for real API');
+    return { fileId: String(fileId), status: 'completed', ...result };
 }
 
-// Reviewer/admin requests changes — moves status from "in review" to "needs action".
 export async function requestChanges(fileId, reason) {
     requireAuth();
     const currentUser = getCurrentUser();
 
-    if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 400));
-        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
-        if (!file) throw new Error('File not found');
-        assertTransition(file.status, 'needs action');
-        file.status = 'needs action';
-        file.reviewerId = null;
-        file.submittedForReviewAt = null;
-        file.changeRequestReason = reason || null;
-        file.changeRequestedBy = currentUser?.id;
-        file.changeRequestedAt = new Date().toISOString();
+    const file = await fetchFileDetail(fileId);
+    if (!file) throw new Error('File not found');
+    assertTransition(file.status || 'in review', 'needs action');
 
-        // Notify the original submitter
-        if (file.submittedBy) {
-            const reviewerProfile = MOCK_USER_PROFILES[currentUser?.id];
-            const reviewerName = reviewerProfile?.name || currentUser?.email || 'A reviewer';
-            addReviewActionNotification({
-                fileId: String(fileId),
-                fileName: file.name,
-                recipientId: file.submittedBy,
-                reviewerName,
-                action: 'needs action',
-                reason: reason || null,
-            });
-        }
+    const result = await http.post(
+        `/api/audio-files/${encodeURIComponent(fileId)}/request-changes`,
+        { reason: reason || null },
+    );
 
-        return { fileId: String(fileId), status: 'needs action' };
-    }
+    addReviewActionNotification({
+        fileId: String(fileId),
+        fileName: file.name,
+        recipientId: file.ownerId,
+        reviewerName: currentUser?.name || currentUser?.email || 'A reviewer',
+        action: 'needs action',
+        reason: reason || null,
+    });
 
-    throw new Error('Not implemented for real API');
+    return { fileId: String(fileId), status: 'needs action', ...result };
 }

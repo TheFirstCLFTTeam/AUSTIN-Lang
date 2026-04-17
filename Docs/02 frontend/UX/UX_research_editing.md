@@ -19,9 +19,15 @@ reviewer immediate orientation:
 - Green = added (not originally there, now present).
 - Unchanged content stays neutral so the eye can skim straight to the deltas.
 
-This also maps cleanly onto our underlying data model. Our `edits` array is
-already a sequence of word-level `insert | delete | replace` ops against the
-raw transcript — the same primitives a diff renderer expects.
+**Storage vs view.** The persisted edit log (`transcript_edit` in
+`schema_platform.sql`) is **character-level** with two ops, `add` and
+`delete`, anchored on `start_char`. The reviewer's view, however, is
+word-level with three visual kinds — `unchanged`, `deleted`, `inserted` —
+because that's the resolution at which a human reads a transcript. A word
+swap is persisted as one `delete` + one `add` at the same `start_char`; the
+diff renderer pairs that adjacency back into a single deleted/inserted token
+sequence at view time (see §3). There is no `replace` op at the storage
+layer — the schema treats it as a derived rendering, not a primitive.
 
 ---
 
@@ -83,20 +89,23 @@ fallback pattern.
 
 ## 3. Token model
 
-A diff renderer needs an ordered list of tokens. For each segment we walk the
-raw words in order and consult the edit array:
+A diff renderer needs an ordered list of tokens. The persisted edits are
+char-level (`add` / `delete` at `start_char`); the renderer walks the raw
+text and the sorted edit list and emits word-level tokens:
 
-| Raw op       | Rendered as                                         |
-|--------------|-----------------------------------------------------|
-| (none)       | `unchanged` token, neutral color                    |
-| `delete`     | `deleted` token, red strikethrough                  |
-| `replace`    | `deleted` (the old word) then `inserted` (the new) |
-| `insert` @ i | `inserted` token placed before raw index i          |
+| Persisted situation                                             | Rendered as                                         |
+|-----------------------------------------------------------------|-----------------------------------------------------|
+| No edit overlaps this word                                      | `unchanged` token, neutral color                    |
+| `delete` covers this word's char range                          | `deleted` token, red strikethrough                  |
+| `delete` of word W immediately followed by `add` at same offset | `deleted` (old word) then `inserted` (new) — a "replace" pair |
+| `add` at offset between two words                               | `inserted` token placed at that offset              |
 
-Why emit `replace` as two tokens (delete + insert) rather than a single
-"changed" token: it lets the renderer style each side with its proper colour
-without inventing a third state. It also matches GitHub's intra-line diff
-which paints removed and added text separately even when they're adjacent.
+Why emit a delete + add pair as two tokens rather than collapsing into a
+single "changed" token: it lets the renderer style each side with its proper
+colour without inventing a third state, and it matches GitHub's intra-line
+diff which paints removed and added text separately even when they're
+adjacent. The pairing is a *view* concern only — the storage layer never
+materialises a third op.
 
 ---
 
@@ -192,13 +201,17 @@ keyboard navigation feature.
   a product decision, not a UI one.
 - **Author attribution colour-coding.** Single editor today. When multi-user
   co-editing arrives, lift the per-author colour pattern from Google Docs.
-- **Char-level diff inside a "replaced" word.** When `replace(twelve →
-  thirteen)` happens, we show `twelve` (struck) `thirteen` (added) as two
-  whole-word tokens, not `t-w-e-l-v-e` vs `t-h-i-r-t-e-e-n` letter overlap.
-  Char-level diff is technically possible (Myers algorithm at character
-  resolution) but visually noisy at typical word lengths and would
-  double-count for WER (each changed character would inflate the edit
-  count). Word resolution matches our WER definition; keep them aligned.
+- **Char-level diff inside a "replaced" word.** When `twelve → thirteen`
+  happens, we show `twelve` (struck) `thirteen` (added) as two whole-word
+  tokens, not `t-w-e-l-v-e` vs `t-h-i-r-t-e-e-n` letter overlap. Char-level
+  diff is technically possible (Myers algorithm at character resolution)
+  but visually noisy at typical word lengths.
+
+  Note: storage **is** char-level (one row per `add`/`delete` at
+  `start_char`), but the *displayed* diff coalesces those rows back into
+  word-level tokens. WER must therefore be computed from a word-level
+  Levenshtein over `raw_text` vs `applied_text` — counting persisted edit
+  rows directly would inflate WER (a one-word swap is two rows).
 - **Per-word audio highlight on inserts.** No timestamp exists for words the
   speaker never said. Faking one (e.g., interpolating from neighbours) would
   be misleading. If/when ASR provides real per-word timestamps and a real
@@ -214,6 +227,16 @@ keyboard navigation feature.
 | `src/lib/transcriptEdits.js`                  | New `buildDiffView(rawSegment, edits)` returning the token list.      |
 | `src/app/(dashboard)/files/[id]/page.jsx`     | View mode renders diff tokens; edit count chip in the speaker gutter. |
 
-No data-model changes. The existing `edits` array carries enough information
-to render a diff because we already store the raw `before` text on each
-`delete` and `replace`.
+When persistence lands, `transcriptEdits.js` will need:
+- a converter on save: word-level `insert | delete | replace` ops → char-level
+  `add | delete` rows at `start_char` (a `replace` flattens to one `delete` +
+  one `add` at the same offset);
+- a converter on load: walk `transcript_edit` rows in `start_char` order and
+  pair adjacent `delete` + `add` at the same offset back into a "replace"
+  rendering pair for the diff view;
+- a WER change: switch from `edits.length / totalRawWords` to a word-level
+  Levenshtein over raw vs applied text, since char-level row count and word
+  count are no longer 1:1.
+
+In-memory the editor can keep its existing word-level model — the schema
+only constrains what crosses the persistence boundary.
