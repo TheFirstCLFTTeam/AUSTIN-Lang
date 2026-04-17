@@ -1,0 +1,41 @@
+[
+  {
+    "id": "custom-earnings-q1",
+    "name": "Earnings Calls Q1 2026",
+    "description": "Hand-curated Q1 earnings call excerpts with dense financial NER. Stress-tests jargon recall.",
+    "createdBy": "Andreas Keller",
+    "createdAt": "2026-03-28T09:00:00Z",
+    "fileCount": 84,
+    "tags": [
+      "earnings",
+      "financial-ner",
+      "en-us"
+    ]
+  },
+  {
+    "id": "custom-canto-telephony",
+    "name": "Cantonese Telephony Edge Cases",
+    "description": "Low-bandwidth telephony audio with heavy code-switching and background noise. Failure-mining set.",
+    "createdBy": "Priya Rangan",
+    "createdAt": "2026-04-02T15:40:00Z",
+    "fileCount": 47,
+    "tags": [
+      "telephony",
+      "code-switch",
+      "noisy"
+    ]
+  },
+  {
+    "id": "custom-multispeaker-hard",
+    "name": "Multispeaker Overlap (Hard)",
+    "description": "3+ speaker meetings with ≥20% overlap. Targets diarization/WDER regressions.",
+    "createdBy": "Engineer User",
+    "createdAt": "2026-04-09T11:15:00Z",
+    "fileCount": 31,
+    "tags": [
+      "multispeaker",
+      "overlap",
+      "diarization"
+    ]
+  }
+]

@@ -1,57 +1,233 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional
-from db_client import DatabaseClient
+"""AUSTIN-Lang Database Service.
+
+FastAPI service backed by two SQLite files:
+  - users.db    identity (login, profiles, clients, local session metadata)
+  - platform.db everything else (groups, datasets, transcripts, metrics, ...)
+
+Phase 1 scope (auth pilot):
+  POST /auth/login    verify email + password against users.db, set JWT cookie
+  POST /auth/logout   clear JWT cookie
+  GET  /auth/me       return the caller's user record
+
+Transcript endpoints (pre-existing) are kept and now read from platform.db:
+  /audio-files/ ...
+  /raw-transcripts/ ...
+  /edited-transcripts/ ...
+
+JWT is issued as an HttpOnly cookie named `token` with a 12-hour expiry.
+Signing key is read from env var JWT_SECRET (fallback for dev only).
+"""
+
+from __future__ import annotations
+
 import os
-from starlette.middleware.cors import CORSMiddleware # Import CORSMiddleware
+import sqlite3
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any, Iterable, List, Optional
+
+import bcrypt
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Response, status
+from jose import JWTError, jwt
+from pydantic import BaseModel
+from starlette.middleware.cors import CORSMiddleware
+
+HERE = Path(__file__).resolve().parent
+USERS_DB = HERE / "users.db"
+PLATFORM_DB = HERE / "platform.db"
+
+JWT_SECRET = os.environ.get(
+    "JWT_SECRET",
+    "dev-only-not-for-production-please-set-JWT_SECRET",
+)
+JWT_ALGORITHM = "HS256"
+JWT_TTL = timedelta(hours=12)
+COOKIE_NAME = "token"
 
 app = FastAPI(title="AUSTIN-Lang Database Service")
 
-# Add CORS middleware
-origins = [
-    "http://localhost",
-    "http://localhost:3000",  # Allow requests from your React frontend
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["http://localhost", "http://localhost:3000"],
+    allow_credentials=True,  # required for cookie-based auth
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-db = DatabaseClient(db_path='poc.db', schema_path='schema.sql')
 
-# --- Pydantic Models ---
+# ─── Connection helpers ────────────────────────────────────────────────────
+
+@contextmanager
+def _connect(path: Path):
+    conn = sqlite3.connect(path)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+
+def fetch_all(path: Path, sql: str, params: Iterable[Any] = ()) -> List[dict]:
+    with _connect(path) as conn:
+        return [dict(r) for r in conn.execute(sql, tuple(params)).fetchall()]
+
+
+def fetch_one(path: Path, sql: str, params: Iterable[Any] = ()) -> Optional[dict]:
+    with _connect(path) as conn:
+        row = conn.execute(sql, tuple(params)).fetchone()
+        return dict(row) if row else None
+
+
+def execute(path: Path, sql: str, params: Iterable[Any] = ()) -> int:
+    with _connect(path) as conn:
+        with conn:
+            cur = conn.execute(sql, tuple(params))
+            return cur.lastrowid
+
+
+# ─── Auth ──────────────────────────────────────────────────────────────────
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class AuthUser(BaseModel):
+    id: str
+    email: str
+    name: str
+    role: str
+
+
+def _verify_password(plaintext: str, hashed: str) -> bool:
+    try:
+        return bcrypt.checkpw(plaintext.encode("utf-8"), hashed.encode("utf-8"))
+    except (ValueError, TypeError):
+        return False
+
+
+def _issue_jwt(user_id: str) -> str:
+    now = datetime.now(tz=timezone.utc)
+    payload = {
+        "sub": user_id,
+        "iat": int(now.timestamp()),
+        "exp": int((now + JWT_TTL).timestamp()),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def _decode_jwt(token: str) -> dict:
+    return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+
+
+def _load_user_by_id(user_id: str) -> Optional[dict]:
+    return fetch_one(
+        USERS_DB,
+        'SELECT id, email, name, role FROM "user" WHERE id = ?',
+        (user_id,),
+    )
+
+
+def get_current_user(token: Optional[str] = Cookie(default=None)) -> AuthUser:
+    """Dependency that verifies the JWT cookie and returns the current user."""
+    if not token:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No session")
+    try:
+        payload = _decode_jwt(token)
+    except JWTError:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid session")
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid session")
+    user = _load_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Unknown user")
+    return AuthUser(**user)
+
+
+def _set_auth_cookie(response: Response, token: str) -> None:
+    response.set_cookie(
+        key=COOKIE_NAME,
+        value=token,
+        max_age=int(JWT_TTL.total_seconds()),
+        httponly=True,
+        samesite="lax",
+        secure=False,  # dev; flip to True behind HTTPS
+        path="/",
+    )
+
+
+def _clear_auth_cookie(response: Response) -> None:
+    response.delete_cookie(key=COOKIE_NAME, path="/")
+
+
+@app.post("/auth/login", response_model=AuthUser)
+def login(data: LoginRequest, response: Response) -> AuthUser:
+    row = fetch_one(
+        USERS_DB,
+        'SELECT id, email, name, role, password_hash FROM "user" WHERE email = ?',
+        (data.email,),
+    )
+    if not row or not _verify_password(data.password, row["password_hash"]):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
+
+    token = _issue_jwt(row["id"])
+    _set_auth_cookie(response, token)
+    return AuthUser(id=row["id"], email=row["email"], name=row["name"], role=row["role"])
+
+
+@app.post("/auth/logout")
+def logout(response: Response) -> dict:
+    _clear_auth_cookie(response)
+    return {"ok": True}
+
+
+@app.get("/auth/me", response_model=AuthUser)
+def me(current_user: AuthUser = Depends(get_current_user)) -> AuthUser:
+    return current_user
+
+
+# ─── Pre-existing transcript endpoints (now on platform.db) ────────────────
+# NOTE: Kept compatible with the v1 signatures. For routes that write, auth is
+# enforced via Depends(get_current_user) so unauthenticated callers can't
+# mutate data.
 
 class AudioFileBase(BaseModel):
     file_name: str
 
+
 class AudioFileCreate(AudioFileBase):
     pass
+
 
 class AudioFile(AudioFileBase):
     id: int
     uploaded_at: str
 
+
 class RawTranscriptSegment(BaseModel):
-    id: Optional[int] = None # ID from the database for existing segments
+    id: Optional[int] = None
     start: float
     end: float
     text: str
+
 
 class RawTranscriptBase(BaseModel):
     rating: Optional[int] = None
     audio_file_id: int
     transcript_segments: List[RawTranscriptSegment]
 
+
 class RawTranscriptCreate(RawTranscriptBase):
     pass
+
 
 class RawTranscript(RawTranscriptBase):
     id: int
     created_at: str
+
 
 class TranscriptSegment(BaseModel):
     id: Optional[int] = None
@@ -59,199 +235,197 @@ class TranscriptSegment(BaseModel):
     end: float
     text: str
 
+
 class EditedTranscriptBase(BaseModel):
     raw_transcript_id: int
     transcript_segments: List[TranscriptSegment]
 
+
 class EditedTranscriptCreate(EditedTranscriptBase):
     pass
+
 
 class EditedTranscript(EditedTranscriptBase):
     id: int
     created_at: str
 
 
-# --- Endpoints: Audio Files ---
-
 @app.get("/audio-files/", response_model=List[AudioFile])
-async def get_audio_files():
-    """
-    Sample Input: None
-    Sample Output: [{"id": 1, "file_name": "meeting.wav", "uploaded_at": "2023-01-01 12:00:00"}]
-    """
-    return db.fetch_all("SELECT * FROM audio_file")
+def get_audio_files(_: AuthUser = Depends(get_current_user)) -> List[dict]:
+    return fetch_all(PLATFORM_DB, "SELECT id, file_name, uploaded_at FROM audio_file")
+
 
 @app.get("/audio-files/{file_id}", response_model=AudioFile)
-async def get_audio_file(file_id: int):
-    """
-    Sample Input: file_id=1
-    Sample Output: {"id": 1, "file_name": "meeting.wav", "uploaded_at": "2023-01-01 12:00:00"}
-    """
-    audio_file = db.fetch_one("SELECT * FROM audio_file WHERE id = ?", (file_id,))
-    if not audio_file:
-        raise HTTPException(status_code=404, detail="Audio file not found")
-    return audio_file
+def get_audio_file(file_id: int, _: AuthUser = Depends(get_current_user)) -> dict:
+    row = fetch_one(
+        PLATFORM_DB,
+        "SELECT id, file_name, uploaded_at FROM audio_file WHERE id = ?",
+        (file_id,),
+    )
+    if not row:
+        raise HTTPException(404, "Audio file not found")
+    return row
+
 
 @app.post("/audio-files/", response_model=int)
-async def create_audio_file(data: AudioFileCreate):
-    """
-    Sample Input: {"file_name": "meeting.wav"}
-    Sample Output: 1
-    """
-    return db.execute_query("INSERT INTO audio_file (file_name) VALUES (?)", (data.file_name,))
+def create_audio_file(data: AudioFileCreate, _: AuthUser = Depends(get_current_user)) -> int:
+    return execute(
+        PLATFORM_DB,
+        "INSERT INTO audio_file (file_name) VALUES (?)",
+        (data.file_name,),
+    )
+
 
 @app.put("/audio-files/{file_id}")
-async def update_audio_file(file_id: int, data: AudioFileCreate):
-    """
-    Sample Input: file_id=1, {"file_name": "updated.wav"}
-    Sample Output: {"message": "Updated successfully"}
-    """
-    db.execute_query("UPDATE audio_file SET file_name = ? WHERE id = ?", (data.file_name, file_id))
+def update_audio_file(
+    file_id: int,
+    data: AudioFileCreate,
+    _: AuthUser = Depends(get_current_user),
+) -> dict:
+    execute(
+        PLATFORM_DB,
+        "UPDATE audio_file SET file_name = ? WHERE id = ?",
+        (data.file_name, file_id),
+    )
     return {"message": "Updated successfully"}
 
-# --- Endpoints: Raw Transcripts ---
 
 @app.get("/raw-transcripts/", response_model=List[RawTranscript])
-async def get_raw_transcripts(audio_file_id: Optional[int] = None):
-    """
-    Sample Input: None or audio_file_id=1
-    Sample Output: [{"id": 1, "rating": 5, "audio_file_id": 1, "created_at": "...", "transcript_segments": [{"id": 1, "start": 0.0, "end": 1.5, "text": "Hello"}]}]
-    """
-    if audio_file_id:
-        raw_transcripts_data = db.fetch_all("SELECT * FROM raw_transcript WHERE audio_file_id = ?", (audio_file_id,))
+def get_raw_transcripts(
+    audio_file_id: Optional[int] = None,
+    _: AuthUser = Depends(get_current_user),
+) -> List[dict]:
+    if audio_file_id is not None:
+        rows = fetch_all(
+            PLATFORM_DB,
+            "SELECT * FROM raw_transcript WHERE audio_file_id = ?",
+            (audio_file_id,),
+        )
     else:
-        raw_transcripts_data = db.fetch_all("SELECT * FROM raw_transcript")
-    
-    raw_transcripts = []
-    for rt_data in raw_transcripts_data:
-        segments_data = db.fetch_all(
+        rows = fetch_all(PLATFORM_DB, "SELECT * FROM raw_transcript")
+
+    out = []
+    for rt in rows:
+        segs = fetch_all(
+            PLATFORM_DB,
             "SELECT id, start, end, text FROM raw_transcript_segment WHERE raw_transcript_id = ?",
-            (rt_data['id'],)
+            (rt["id"],),
         )
-        segments = [RawTranscriptSegment(**segment) for segment in segments_data]
-        raw_transcripts.append(
-            RawTranscript(
-                id=rt_data['id'],
-                rating=rt_data['rating'],
-                audio_file_id=rt_data['audio_file_id'],
-                created_at=rt_data['created_at'],
-                transcript_segments=segments
-            )
-        )
-    return raw_transcripts
+        out.append({**rt, "transcript_segments": segs})
+    return out
+
 
 @app.post("/raw-transcripts/", response_model=int)
-async def create_raw_transcript(data: RawTranscriptCreate):
-    """
-    Sample Input: {"audio_file_id": 1, "rating": 5, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Hello"}]}
-    Sample Output: 1
-    """
-    # Insert the main raw_transcript record
-    raw_transcript_id = db.execute_query(
+def create_raw_transcript(
+    data: RawTranscriptCreate,
+    _: AuthUser = Depends(get_current_user),
+) -> int:
+    raw_id = execute(
+        PLATFORM_DB,
         "INSERT INTO raw_transcript (rating, audio_file_id) VALUES (?, ?)",
-        (data.rating, data.audio_file_id)
+        (data.rating, data.audio_file_id),
     )
-
-    # Insert each segment
-    for segment in data.transcript_segments:
-        db.execute_query(
-            "INSERT INTO raw_transcript_segment (raw_transcript_id, start, end, text) VALUES (?, ?, ?, ?)",
-            (raw_transcript_id, segment.start, segment.end, segment.text)
+    for seg in data.transcript_segments:
+        execute(
+            PLATFORM_DB,
+            """INSERT INTO raw_transcript_segment
+               (raw_transcript_id, start, end, text) VALUES (?, ?, ?, ?)""",
+            (raw_id, seg.start, seg.end, seg.text),
         )
-    return raw_transcript_id
+    return raw_id
+
 
 @app.put("/raw-transcripts/{transcript_id}")
-async def update_raw_transcript(transcript_id: int, data: RawTranscriptCreate):
-    """
-    Sample Input: transcript_id=1, {"rating": 4, "audio_file_id": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Updated segment"}]}
-    Sample Output: {"message": "Updated successfully"}
-    """
-    # Update the main raw_transcript record (e.g., rating)
-    db.execute_query(
+def update_raw_transcript(
+    transcript_id: int,
+    data: RawTranscriptCreate,
+    _: AuthUser = Depends(get_current_user),
+) -> dict:
+    execute(
+        PLATFORM_DB,
         "UPDATE raw_transcript SET rating = ? WHERE id = ?",
-        (data.rating, transcript_id)
+        (data.rating, transcript_id),
     )
-
-    # Delete existing segments for this raw_transcript
-    db.execute_query("DELETE FROM raw_transcript_segment WHERE raw_transcript_id = ?", (transcript_id,))
-
-    # Insert new segments
-    for segment in data.transcript_segments:
-        db.execute_query(
-            "INSERT INTO raw_transcript_segment (raw_transcript_id, start, end, text) VALUES (?, ?, ?, ?)",
-            (transcript_id, segment.start, segment.end, segment.text)
+    execute(
+        PLATFORM_DB,
+        "DELETE FROM raw_transcript_segment WHERE raw_transcript_id = ?",
+        (transcript_id,),
+    )
+    for seg in data.transcript_segments:
+        execute(
+            PLATFORM_DB,
+            """INSERT INTO raw_transcript_segment
+               (raw_transcript_id, start, end, text) VALUES (?, ?, ?, ?)""",
+            (transcript_id, seg.start, seg.end, seg.text),
         )
     return {"message": "Updated successfully"}
 
-# --- Endpoints: Edited Transcripts ---
 
 @app.get("/edited-transcripts/", response_model=List[EditedTranscript])
-async def get_edited_transcripts(raw_transcript_id: Optional[int] = None):
-    """
-    Sample Input: None or raw_transcript_id=1
-    Sample Output: [{"id": 1, "raw_transcript_id": 1, "created_at": "...", "transcript_segments": [{"id": 1, "start": 0.0, "end": 1.5, "text": "Hello"}]}]
-    """
-    if raw_transcript_id:
-        edited_transcripts_data = db.fetch_all("SELECT * FROM edited_transcript WHERE raw_transcript_id = ?", (raw_transcript_id,))
+def get_edited_transcripts(
+    raw_transcript_id: Optional[int] = None,
+    _: AuthUser = Depends(get_current_user),
+) -> List[dict]:
+    if raw_transcript_id is not None:
+        rows = fetch_all(
+            PLATFORM_DB,
+            "SELECT * FROM edited_transcript WHERE raw_transcript_id = ?",
+            (raw_transcript_id,),
+        )
     else:
-        edited_transcripts_data = db.fetch_all("SELECT * FROM edited_transcript")
-    
-    edited_transcripts = []
-    for et_data in edited_transcripts_data:
-        segments_data = db.fetch_all(
+        rows = fetch_all(PLATFORM_DB, "SELECT * FROM edited_transcript")
+
+    out = []
+    for et in rows:
+        segs = fetch_all(
+            PLATFORM_DB,
             "SELECT id, start, end, text FROM edited_transcript_segment WHERE edited_transcript_id = ?",
-            (et_data['id'],)
+            (et["id"],),
         )
-        segments = [TranscriptSegment(**segment) for segment in segments_data]
-        edited_transcripts.append(
-            EditedTranscript(
-                id=et_data['id'],
-                raw_transcript_id=et_data['raw_transcript_id'],
-                created_at=et_data['created_at'],
-                transcript_segments=segments
-            )
-        )
-    return edited_transcripts
+        out.append({**et, "transcript_segments": segs})
+    return out
+
 
 @app.post("/edited-transcripts/", response_model=int)
-async def create_edited_transcript(data: EditedTranscriptCreate):
-    """
-    Sample Input: {"raw_transcript_id": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Hello"}, {"start": 2.0, "end": 3.0, "text": "World"}]}
-    Sample Output: 1
-    """
-    # Insert the main edited_transcript record
-    edited_transcript_id = db.execute_query(
+def create_edited_transcript(
+    data: EditedTranscriptCreate,
+    _: AuthUser = Depends(get_current_user),
+) -> int:
+    edited_id = execute(
+        PLATFORM_DB,
         "INSERT INTO edited_transcript (raw_transcript_id) VALUES (?)",
-        (data.raw_transcript_id,)
+        (data.raw_transcript_id,),
     )
-
-    # Insert each segment
-    for segment in data.transcript_segments:
-        db.execute_query(
-            "INSERT INTO edited_transcript_segment (edited_transcript_id, start, end, text) VALUES (?, ?, ?, ?)",
-            (edited_transcript_id, segment.start, segment.end, segment.text)
+    for seg in data.transcript_segments:
+        execute(
+            PLATFORM_DB,
+            """INSERT INTO edited_transcript_segment
+               (edited_transcript_id, start, end, text) VALUES (?, ?, ?, ?)""",
+            (edited_id, seg.start, seg.end, seg.text),
         )
-    return edited_transcript_id
+    return edited_id
+
 
 @app.put("/edited-transcripts/{transcript_id}")
-async def update_edited_transcript(transcript_id: int, data: EditedTranscriptCreate):
-    """
-    Sample Input: transcript_id=1, {"raw_transcript_id": 1, "transcript_segments": [{"start": 0.0, "end": 1.5, "text": "Updated segment"}]}
-    Sample Output: {"message": "Updated successfully"}
-    """
-    # Verify that the raw_transcript_id in the payload matches the existing one for integrity, if necessary
-    # For now, we assume the raw_transcript_id in data is the correct one to associate.
-
-    # Delete existing segments for this edited_transcript
-    db.execute_query("DELETE FROM edited_transcript_segment WHERE edited_transcript_id = ?", (transcript_id,))
-
-    # Insert new segments
-    for segment in data.transcript_segments:
-        db.execute_query(
-            "INSERT INTO edited_transcript_segment (edited_transcript_id, start, end, text) VALUES (?, ?, ?, ?)",
-            (transcript_id, segment.start, segment.end, segment.text)
+def update_edited_transcript(
+    transcript_id: int,
+    data: EditedTranscriptCreate,
+    _: AuthUser = Depends(get_current_user),
+) -> dict:
+    execute(
+        PLATFORM_DB,
+        "DELETE FROM edited_transcript_segment WHERE edited_transcript_id = ?",
+        (transcript_id,),
+    )
+    for seg in data.transcript_segments:
+        execute(
+            PLATFORM_DB,
+            """INSERT INTO edited_transcript_segment
+               (edited_transcript_id, start, end, text) VALUES (?, ?, ?, ?)""",
+            (transcript_id, seg.start, seg.end, seg.text),
         )
     return {"message": "Updated successfully"}
+
 
 if __name__ == "__main__":
     import uvicorn

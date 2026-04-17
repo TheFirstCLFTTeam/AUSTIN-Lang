@@ -2,6 +2,7 @@ import { getServerUser } from '../../services/auth-server';
 import SidebarShell from './components/SidebarShell';
 import TopBar from './components/TopBar';
 import CommandPalette from './components/CommandPalette';
+import AuthHydrator from './components/AuthHydrator';
 
 export default async function DashboardLayout({ children }) {
     const user = await getServerUser();
@@ -20,6 +21,7 @@ export default async function DashboardLayout({ children }) {
             </div>
 
             <CommandPalette />
+            <AuthHydrator user={user} />
         </div>
     );
 }

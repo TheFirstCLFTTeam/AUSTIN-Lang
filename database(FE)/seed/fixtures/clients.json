@@ -1,0 +1,61 @@
+[
+  {
+    "id": "c1",
+    "name": "Helen Tan Wei Lin",
+    "company": "United Overseas Bank (UOB)",
+    "relationship": "Institutional Banking",
+    "relationshipId": "RN-880412",
+    "region": "APAC — Singapore",
+    "languages": [
+      "English",
+      "Mandarin"
+    ],
+    "riskLevel": "standard",
+    "callFrequency": "frequent",
+    "primaryActivity": "Treasury operations, interbank settlements"
+  },
+  {
+    "id": "c2",
+    "name": "Andreas Keller",
+    "company": "BlackRock",
+    "relationship": "Institutional Asset Management",
+    "relationshipId": "RN-550738",
+    "region": "EMEA — Zurich",
+    "languages": [
+      "English",
+      "German"
+    ],
+    "riskLevel": "elevated",
+    "callFrequency": "regular",
+    "primaryActivity": "ETF rebalancing, large block trades, cross-border fund transfers"
+  },
+  {
+    "id": "c3",
+    "name": "Priya Ramanathan",
+    "company": "ByteDance",
+    "relationship": "Corporate Banking",
+    "relationshipId": "RN-220195",
+    "region": "APAC — Singapore",
+    "languages": [
+      "English",
+      "Mandarin"
+    ],
+    "riskLevel": "standard",
+    "callFrequency": "occasional",
+    "primaryActivity": "FX hedging, corporate treasury, cross-border payroll disbursements"
+  },
+  {
+    "id": "c4",
+    "name": "James Whitmore",
+    "company": "CapitaLand",
+    "relationship": "Corporate Investment Banking",
+    "relationshipId": "RN-991060",
+    "region": "APAC — Singapore",
+    "languages": [
+      "English"
+    ],
+    "riskLevel": "elevated",
+    "callFrequency": "frequent",
+    "primaryActivity": "REIT structuring, property fund acquisitions, capital market instruments"
+  }
+]

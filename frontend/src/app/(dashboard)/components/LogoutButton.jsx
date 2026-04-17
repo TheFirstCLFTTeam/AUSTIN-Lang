@@ -6,8 +6,8 @@ import { logout } from '../../../services/api';
 export default function LogoutButton() {
     const router = useRouter();
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
         router.push('/login');
     };
 

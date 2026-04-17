@@ -1,0 +1,42 @@
+[
+  {
+    "id": "u1",
+    "email": "user@example.com",
+    "password": "password123",
+    "name": "Generic User",
+    "role": "generic",
+    "company": "SELF",
+    "fileOrgGroup": "user-file-org",
+    "isControlMember": true
+  },
+  {
+    "id": "u2",
+    "email": "engineer@example.com",
+    "password": "password123",
+    "name": "Engineer User",
+    "role": "engineer",
+    "company": "SELF",
+    "fileOrgGroup": "engineer-file-org",
+    "isControlMember": true
+  },
+  {
+    "id": "u3",
+    "email": "admin@example.com",
+    "password": "password123",
+    "name": "Admin User",
+    "role": "admin",
+    "company": "SELF",
+    "fileOrgGroup": "admin-file-org",
+    "isControlMember": true
+  },
+  {
+    "id": "u4",
+    "email": "reviewer@example.com",
+    "password": "password123",
+    "name": "Reviewer User",
+    "role": "reviewer",
+    "company": "SELF",
+    "fileOrgGroup": "reviewer-file-org",
+    "isControlMember": true
+  }
+]

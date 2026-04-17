@@ -1,0 +1,58 @@
+[
+  {
+    "id": "hk-user-file-organisation",
+    "name": "HK User File Organisation",
+    "description": "Commercial-user file scope for the HK region. Each operator only sees their own uploads and any files explicitly shared with them.",
+    "category": "File Organisation",
+    "repositorySize": "2,104 recordings"
+  },
+  {
+    "id": "hk-reviewer-file-organisation",
+    "name": "HK Reviewer File Organisation",
+    "description": "Reviewer file scope for the HK region — the compliance review pool plus any recording flagged for PII or regulatory verification.",
+    "category": "File Organisation",
+    "repositorySize": "4,870 recordings"
+  },
+  {
+    "id": "hk-engineer-file-organisation",
+    "name": "HK Engineer File Organisation",
+    "description": "Green-zone file scope for HK ML engineers. CID-stripped recordings, sampled datasets, and synthetic data pairs only — no raw CID access.",
+    "category": "File Organisation",
+    "repositorySize": "12,600 recordings"
+  },
+  {
+    "id": "hk-admin-file-organisation",
+    "name": "HK Admin File Organisation",
+    "description": "Admin / verifier file scope for the HK region — all recordings, all transcripts, all zones. Used by risk team for compliance review.",
+    "category": "File Organisation",
+    "repositorySize": "19,574 recordings"
+  },
+  {
+    "id": "user-generic-access-perms",
+    "name": "User · Generic Access Permissions",
+    "description": "Baseline operator rights: upload audio, read and edit transcripts, submit for review, export. Cannot approve or flag for privacy.",
+    "category": "Access Permissions",
+    "repositorySize": "Permission bundle"
+  },
+  {
+    "id": "MLE-generic-access-perms",
+    "name": "ML Engineer · Generic Access Permissions",
+    "description": "ML engineer toolbox: curate datasets, launch training jobs, submit to the leaderboard, export green-zone artefacts. No CID access.",
+    "category": "Access Permissions",
+    "repositorySize": "Permission bundle"
+  },
+  {
+    "id": "reviewer-generic-access-perms",
+    "name": "Reviewer · Generic Access Permissions",
+    "description": "Reviewer rights: approve/reject transcripts, flag privacy concerns, apply pseudonymisation, and export verified transcripts.",
+    "category": "Access Permissions",
+    "repositorySize": "Permission bundle"
+  },
+  {
+    "id": "hk-admin-access-perms",
+    "name": "HK Admin Access Permissions",
+    "description": "Admin rights in the HK region: every operator/reviewer/engineer action plus membership management and admin consoles.",
+    "category": "Access Permissions",
+    "repositorySize": "Permission bundle"
+  }
+]

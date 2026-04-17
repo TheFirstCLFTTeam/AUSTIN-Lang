@@ -1,0 +1,10 @@
+{
+  "name": "austin-lang-db-seed",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Dumps the frontend mock ES modules into JSON fixtures consumed by the Python seeders.",
+  "scripts": {
+    "dump": "node --import ./json-loader-register.mjs dump_mocks.mjs"
+  }
+}

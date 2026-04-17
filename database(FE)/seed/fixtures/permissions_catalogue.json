@@ -1,0 +1,62 @@
+[
+  {
+    "key": "view_files",
+    "label": "View files",
+    "description": "Browse recordings in the group’s repository."
+  },
+  {
+    "key": "transcribe",
+    "label": "Transcribe",
+    "description": "Trigger transcription jobs on ingested audio."
+  },
+  {
+    "key": "edit_transcripts",
+    "label": "Edit transcripts",
+    "description": "Modify transcript text, timestamps, and speaker labels."
+  },
+  {
+    "key": "submit_for_review",
+    "label": "Submit for review",
+    "description": "Send transcripts to the review queue."
+  },
+  {
+    "key": "review",
+    "label": "Review",
+    "description": "Approve, reject, or request changes on submitted transcripts."
+  },
+  {
+    "key": "flag_privacy",
+    "label": "Flag privacy",
+    "description": "Mark recordings for PII review."
+  },
+  {
+    "key": "pseudonymise",
+    "label": "Pseudonymise",
+    "description": "Apply masking to PII spans on approved transcripts."
+  },
+  {
+    "key": "export",
+    "label": "Export",
+    "description": "Download transcripts and recordings in supported formats."
+  },
+  {
+    "key": "create_datasets",
+    "label": "Create datasets",
+    "description": "Curate file subsets into named engineer datasets."
+  },
+  {
+    "key": "train_models",
+    "label": "Train models",
+    "description": "Launch training / fine-tuning jobs against the group’s datasets."
+  },
+  {
+    "key": "submit_to_leaderboard",
+    "label": "Submit to leaderboard",
+    "description": "Enter models into the group’s leaderboard."
+  },
+  {
+    "key": "manage_group_members",
+    "label": "Manage group members",
+    "description": "Add or remove users from this group. Admin-level; off by default."
+  }
+]

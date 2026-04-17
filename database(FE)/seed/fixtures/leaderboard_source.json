@@ -1,0 +1,342 @@
+[
+  {
+    "datasetId": "mixed",
+    "id": "sub-mx-02",
+    "engineerId": "eng-priya",
+    "engineerName": "Priya Rangan",
+    "modelName": "whisper-lg-v3 + lora r32",
+    "baseFamily": "whisper",
+    "wer": 0.074,
+    "cer": 0.039,
+    "rtf": 0.41,
+    "submissionCount": 5,
+    "submittedAt": "2026-04-17T06:12:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [
+      {
+        "id": "wx-1",
+        "refText": "佢話 the deal is challa gaya 先",
+        "predText": "佢話 the deal is challenger 先",
+        "utteranceWer": 0.33
+      },
+      {
+        "id": "wx-2",
+        "refText": "EBITDA 點計啊 actually",
+        "predText": "E B T D 點計啊 actually",
+        "utteranceWer": 0.4
+      }
+    ],
+    "rank": 1
+  },
+  {
+    "datasetId": "mixed",
+    "id": "sub-mx-03",
+    "engineerId": "eng-andreas",
+    "engineerName": "Andreas Keller",
+    "modelName": "meralion v2 + EWC",
+    "baseFamily": "meralion",
+    "wer": 0.079,
+    "cer": 0.041,
+    "rtf": 0.38,
+    "submissionCount": 4,
+    "submittedAt": "2026-04-16T09:11:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [
+      {
+        "id": "wx-3",
+        "refText": "我 short 咗 Tencent 兩個點",
+        "predText": "我 short 咗 ten cent 兩個點",
+        "utteranceWer": 0.14
+      }
+    ],
+    "rank": 2
+  },
+  {
+    "datasetId": "mixed",
+    "id": "sub-mx-01",
+    "engineerId": "u2",
+    "engineerName": "Engineer User",
+    "modelName": "whisper-lg-v3 + lora r16",
+    "baseFamily": "whisper",
+    "wer": 0.081,
+    "cer": 0.042,
+    "rtf": 0.44,
+    "submissionCount": 3,
+    "submittedAt": "2026-04-17T04:30:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": false
+    },
+    "worstExamples": [],
+    "rank": 3
+  },
+  {
+    "datasetId": "mixed",
+    "id": "sub-mx-04",
+    "engineerId": "eng-james",
+    "engineerName": "James Whitmore",
+    "modelName": "wav2vec2-xls-r-300m + adapter",
+    "baseFamily": "wav2vec2",
+    "wer": 0.093,
+    "cer": 0.05,
+    "rtf": 0.29,
+    "submissionCount": 2,
+    "submittedAt": "2026-04-13T15:04:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": false,
+      "notebook": false
+    },
+    "worstExamples": [],
+    "rank": 4
+  },
+  {
+    "datasetId": "mixed",
+    "engineerId": "system-baseline",
+    "engineerName": "Competition Baseline",
+    "modelName": "whisper-lg-v3 · zero-shot (no fine-tune)",
+    "baseFamily": "baseline",
+    "submissionCount": 1,
+    "submittedAt": "2026-04-01T00:00:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [],
+    "id": "sub-mx-baseline",
+    "wer": 0.128,
+    "cer": 0.072,
+    "rtf": 0.58,
+    "rank": 5
+  },
+  {
+    "datasetId": "wordshk",
+    "id": "sub-wh-02",
+    "engineerId": "eng-priya",
+    "engineerName": "Priya Rangan",
+    "modelName": "meralion v2",
+    "baseFamily": "meralion",
+    "wer": 0.048,
+    "cer": 0.025,
+    "rtf": 0.39,
+    "submissionCount": 3,
+    "submittedAt": "2026-04-17T02:05:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [],
+    "rank": 1
+  },
+  {
+    "datasetId": "wordshk",
+    "id": "sub-wh-01",
+    "engineerId": "u2",
+    "engineerName": "Engineer User",
+    "modelName": "whisper-lg-v3 + lora r16",
+    "baseFamily": "whisper",
+    "wer": 0.054,
+    "cer": 0.028,
+    "rtf": 0.43,
+    "submissionCount": 2,
+    "submittedAt": "2026-04-16T11:20:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": false
+    },
+    "worstExamples": [],
+    "rank": 2
+  },
+  {
+    "datasetId": "wordshk",
+    "id": "sub-wh-03",
+    "engineerId": "eng-andreas",
+    "engineerName": "Andreas Keller",
+    "modelName": "whisper-lg-v3 baseline",
+    "baseFamily": "whisper",
+    "wer": 0.061,
+    "cer": 0.033,
+    "rtf": 0.42,
+    "submissionCount": 1,
+    "submittedAt": "2026-04-11T10:30:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": false,
+      "notebook": false
+    },
+    "worstExamples": [],
+    "rank": 3
+  },
+  {
+    "datasetId": "wordshk",
+    "engineerId": "system-baseline",
+    "engineerName": "Competition Baseline",
+    "modelName": "whisper-lg-v3 · zero-shot (no fine-tune)",
+    "baseFamily": "baseline",
+    "submissionCount": 1,
+    "submittedAt": "2026-04-01T00:00:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [],
+    "id": "sub-wh-baseline",
+    "wer": 0.089,
+    "cer": 0.051,
+    "rtf": 0.57,
+    "rank": 4
+  },
+  {
+    "datasetId": "alvanlii",
+    "id": "sub-al-03",
+    "engineerId": "eng-priya",
+    "engineerName": "Priya Rangan",
+    "modelName": "whisper-lg-v3 + lora r32",
+    "baseFamily": "whisper",
+    "wer": 0.097,
+    "cer": 0.051,
+    "rtf": 0.41,
+    "submissionCount": 4,
+    "submittedAt": "2026-04-17T01:48:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [],
+    "rank": 1
+  },
+  {
+    "datasetId": "alvanlii",
+    "id": "sub-al-02",
+    "engineerId": "eng-andreas",
+    "engineerName": "Andreas Keller",
+    "modelName": "meralion v2 + EWC",
+    "baseFamily": "meralion",
+    "wer": 0.102,
+    "cer": 0.055,
+    "rtf": 0.38,
+    "submissionCount": 3,
+    "submittedAt": "2026-04-15T14:22:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [],
+    "rank": 2
+  },
+  {
+    "datasetId": "alvanlii",
+    "id": "sub-al-01",
+    "engineerId": "u2",
+    "engineerName": "Engineer User",
+    "modelName": "whisper-lg-v3 + lora r16",
+    "baseFamily": "whisper",
+    "wer": 0.118,
+    "cer": 0.063,
+    "rtf": 0.45,
+    "submissionCount": 1,
+    "submittedAt": "2026-04-14T08:00:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": false
+    },
+    "worstExamples": [],
+    "rank": 3
+  },
+  {
+    "datasetId": "alvanlii",
+    "engineerId": "system-baseline",
+    "engineerName": "Competition Baseline",
+    "modelName": "whisper-lg-v3 · zero-shot (no fine-tune)",
+    "baseFamily": "baseline",
+    "submissionCount": 1,
+    "submittedAt": "2026-04-01T00:00:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [],
+    "id": "sub-al-baseline",
+    "wer": 0.156,
+    "cer": 0.089,
+    "rtf": 0.61,
+    "rank": 4
+  },
+  {
+    "datasetId": "edmund",
+    "id": "sub-ed-02",
+    "engineerId": "eng-priya",
+    "engineerName": "Priya Rangan",
+    "modelName": "meralion v2",
+    "baseFamily": "meralion",
+    "wer": 0.063,
+    "cer": 0.032,
+    "rtf": 0.39,
+    "submissionCount": 3,
+    "submittedAt": "2026-04-16T21:30:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [],
+    "rank": 1
+  },
+  {
+    "datasetId": "edmund",
+    "id": "sub-ed-01",
+    "engineerId": "u2",
+    "engineerName": "Engineer User",
+    "modelName": "whisper-lg-v3 + lora r16",
+    "baseFamily": "whisper",
+    "wer": 0.067,
+    "cer": 0.035,
+    "rtf": 0.44,
+    "submissionCount": 2,
+    "submittedAt": "2026-04-15T18:12:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": false
+    },
+    "worstExamples": [],
+    "rank": 2
+  },
+  {
+    "datasetId": "edmund",
+    "engineerId": "system-baseline",
+    "engineerName": "Competition Baseline",
+    "modelName": "whisper-lg-v3 · zero-shot (no fine-tune)",
+    "baseFamily": "baseline",
+    "submissionCount": 1,
+    "submittedAt": "2026-04-01T00:00:00Z",
+    "reproducibility": {
+      "config": true,
+      "checkpoint": true,
+      "notebook": true
+    },
+    "worstExamples": [],
+    "id": "sub-ed-baseline",
+    "wer": 0.101,
+    "cer": 0.058,
+    "rtf": 0.55,
+    "rank": 3
+  }
+]

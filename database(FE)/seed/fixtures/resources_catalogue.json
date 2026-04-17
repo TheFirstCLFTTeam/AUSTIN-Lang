@@ -1,0 +1,34 @@
+[
+  {
+    "key": "files",
+    "label": "My Transcripts"
+  },
+  {
+    "key": "processing",
+    "label": "Processing queue"
+  },
+  {
+    "key": "metrics",
+    "label": "Metrics dashboard"
+  },
+  {
+    "key": "datasets",
+    "label": "Dataset catalogue"
+  },
+  {
+    "key": "training",
+    "label": "Training jobs"
+  },
+  {
+    "key": "leaderboard",
+    "label": "Leaderboard"
+  },
+  {
+    "key": "privacy",
+    "label": "Privacy flags"
+  },
+  {
+    "key": "admin",
+    "label": "Admin consoles"
+  }
+]

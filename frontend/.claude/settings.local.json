@@ -53,7 +53,21 @@
       "mcp__ide__getDiagnostics",
       "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/platform.db\" \".schema\")",
       "Bash(python *)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "Bash(sqlite3 users.db \".schema\")",
+      "Bash(sqlite3 platform.db \".schema\")",
+      "Bash(npm run *)",
+      "Bash(pip install *)",
+      "Read(//c/tmp/**)",
+      "Bash(rm -f cookies.txt)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:8002/auth/me)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' -X POST http://127.0.0.1:8002/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@example.com\",\"password\":\"wrong\"}')",
+      "Bash(curl -s -c cookies.txt -w '\\\\n%{http_code}\\\\n' -X POST http://127.0.0.1:8002/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@example.com\",\"password\":\"password123\"}')",
+      "Bash(grep -v '^$')",
+      "Bash(curl -s -b cookies.txt -w \"\\\\n%{http_code}\\\\n\" http://127.0.0.1:8002/auth/me)",
+      "Bash(curl -s -b cookies.txt -c cookies.txt -X POST http://127.0.0.1:8002/auth/logout -w \"\\\\n%{http_code}\\\\n\")",
+      "Bash(curl -s -b cookies.txt -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:8002/auth/me)",
+      "Bash(curl -si -X POST http://127.0.0.1:8002/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@example.com\",\"password\":\"password123\"}')"
     ]
   },
   "prefersReducedMotion": true

@@ -3,71 +3,85 @@
 import { users, MOCK_FILE_STORE, MOCK_PROCESSING_JOBS, MOCK_USER_PROFILES } from './mock-data';
 import { addReviewNotification, addReviewActionNotification } from './notifications';
 import { assertTransition } from '../lib/statusFlow';
+import { http } from './http';
 
 // Set NEXT_PUBLIC_MOCK_API=true in .env.development to run without the backend.
 const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_API === 'true';
 
-// Token helpers
-const TOKEN_KEY = 'token';
+// ── Auth helpers ────────────────────────────────────────────────────────────
+// The JWT itself lives in an HttpOnly cookie issued by the FastAPI backend and
+// is invisible to browser JS. For sync compatibility with existing call sites
+// (hundreds of places use `getCurrentUser()` synchronously), we cache the
+// authenticated user profile in sessionStorage. The cache is populated by:
+//   1. `login()` after a successful POST /auth/login
+//   2. `bootstrapAuth()` on dashboard load (calls GET /auth/me via cookie)
+//   3. `setCachedUser()` from the server-rendered AuthHydrator component.
+// Cache shape: `{ id, email, name, role }`.
 
-function setTokenCookie(value) {
-    document.cookie = TOKEN_KEY + '=' + value + '; path=/; SameSite=Lax';
-}
+const USER_CACHE_KEY = 'austin.currentUser';
 
-function clearTokenCookie() {
-    document.cookie = TOKEN_KEY + '=; path=/; max-age=0';
-}
-
-export function getToken() {
-    return localStorage.getItem(TOKEN_KEY);
-}
-
-export function logout() {
-    localStorage.removeItem(TOKEN_KEY);
-    clearTokenCookie();
-}
-
-export function isAuthenticated() {
-    return !!getToken();
+export function setCachedUser(user) {
+    if (typeof window === 'undefined') return;
+    if (user) {
+        sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+    } else {
+        sessionStorage.removeItem(USER_CACHE_KEY);
+    }
 }
 
 export function getCurrentUser() {
-    const token = getToken();
-    if (!token) return null;
+    if (typeof window === 'undefined') return null;
+    const raw = sessionStorage.getItem(USER_CACHE_KEY);
+    if (!raw) return null;
     try {
-        return JSON.parse(atob(token));
+        return JSON.parse(raw);
     } catch {
         return null;
     }
 }
 
-// Mock login
+export function isAuthenticated() {
+    return !!getCurrentUser();
+}
+
 export async function login(email, password) {
-    const user = users.find(
-        (u) => u.email === email && u.password === password,
-    );
+    const user = await http.post('/auth/login', { email, password });
+    setCachedUser(user);
+    return { user };
+}
 
-    if (!user) {
-        throw new Error('Invalid email or password');
+export async function logout() {
+    try {
+        await http.post('/auth/logout');
+    } catch (err) {
+        // Network failure shouldn't trap the user — clear local state anyway.
+        console.warn('logout: server clear failed, proceeding with local clear', err);
     }
+    setCachedUser(null);
+}
 
-    // fake JWT
-    const fakeToken = btoa(
-        JSON.stringify({ id: user.id, email: user.email, role: user.role }),
-    );
+// Called on app load to populate the sync cache from the HttpOnly cookie.
+// Returns the user or null if unauthenticated.
+export async function bootstrapAuth() {
+    try {
+        const user = await http.get('/auth/me');
+        setCachedUser(user);
+        return user;
+    } catch (err) {
+        if (err?.status === 401) {
+            setCachedUser(null);
+            return null;
+        }
+        throw err;
+    }
+}
 
-    localStorage.setItem(TOKEN_KEY, fakeToken);
-    setTokenCookie(fakeToken);
-
-    return {
-        token: fakeToken,
-        user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-        },
-    };
+// Legacy shim — some call sites still call `getToken()`. With HttpOnly cookies
+// the browser can't read the JWT, so we return a sentinel based on presence of
+// a cached user. Anything that inspected the old base64 payload should be
+// switched to `getCurrentUser()` instead.
+export function getToken() {
+    return isAuthenticated() ? 'cookie' : null;
 }
 
 /*********************************

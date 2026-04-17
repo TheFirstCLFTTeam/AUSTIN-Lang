@@ -48,6 +48,31 @@ services:
     volumes:
       - "./backend/database:/app"
 
+  gliner-service:
+    build: "./pseudonymization/gliner_service"
+    ports:
+      - "${GLINER_PORT:-9001}:9001"
+    volumes:
+      - hf_models_cache:/app/models_cache
+    environment:
+      - GLINER_PORT=9001
+      - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET:-dev-shared-secret}
+
+  pseudonymisation-orchestrator:
+    build: "./pseudonymization/orchestrator"
+    ports:
+      - "${PSEUDONYM_ORCHESTRATOR_PORT:-9002}:9002"
+    depends_on:
+      - gliner-service
+    volumes:
+      - pseudonymisation_data:/app/data
+    environment:
+      - PSEUDONYM_ORCHESTRATOR_PORT=9002
+      - GLINER_URL=http://gliner-service:9001
+      - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET:-dev-shared-secret}
+      - PSEUDONYM_FERNET_KEY=${PSEUDONYM_FERNET_KEY:-}
+      - TRANSCRIPT_STATUS_URL=http://transcription-orchestrator:${TRANSCRIPTION_ORCHESTRATOR_PORT}
+
   frontend:
     build:
       context: "./frontend"
@@ -61,3 +86,4 @@ services:
 
 volumes:
   hf_models_cache:
+  pseudonymisation_data:
