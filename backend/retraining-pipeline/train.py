@@ -1,11 +1,11 @@
 import os
 import torch
-import io
-import librosa
+import gc
 import soundfile as sf
+import librosa
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
-from datasets import load_dataset, Audio
+from datasets import load_dataset, Features, Value
 from transformers import (
     WhisperProcessor, 
     WhisperForConditionalGeneration, 
@@ -13,119 +13,168 @@ from transformers import (
     Seq2SeqTrainer,
     BitsAndBytesConfig
 )
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
 from dotenv import load_dotenv
 
 load_dotenv()
 
+# --- MONKEY PATCH FOR OLDER TORCH VERSIONS ---
+if not hasattr(torch.nn.Module, "set_submodule"):
+    def set_submodule(self, target: str, module: torch.nn.Module) -> None:
+        parts = target.split(".")
+        obj = self
+        for i in range(len(parts) - 1):
+            obj = getattr(obj, parts[i])
+        setattr(obj, parts[-1], module)
+    torch.nn.Module.set_submodule = set_submodule
+    print("Applied monkey-patch for torch.nn.Module.set_submodule")
+# ---------------------------------------------
+
 # 1. Configuration
-MODEL_ID = "openai/whisper-large-v3-turbo"
-MANIFEST_PATH = os.getenv("MANIFEST_PATH", "data/manifest.jsonl")
-OUTPUT_DIR = os.getenv("OUTPUT_DIR", "adapters/meralion_v1")
-BASE_ADAPTER_PATH = os.getenv("BASE_ADAPTER_PATH", None) 
+MODEL_ID = "openai/whisper-large-v3-turbo"#os.getenv("MODEL_ID") 
+ADAPTER_NAME = "fypaudio"#os.getenv("ADAPTER_NAME")
+MANIFEST_PATH = os.path.join("data", f"{ADAPTER_NAME}_manifest.jsonl") #os.getenv("MANIFEST_PATH", "data/meralion_manifest.jsonl")
+OUTPUT_DIR = os.path.join("adapters", ADAPTER_NAME) #os.getenv("OUTPUT_DIR", "adapters/meralion_v1")
+BASE_ADAPTER_PATH = None #os.getenv("BASE_ADAPTER_PATH", None) 
+EPOCHS = 50
+BATCH_SIZE = 5
+MAX_STEPS = EPOCHS * BATCH_SIZE
 
 def train_one_round():
-    # 2. Load Dataset
-    print(f"Loading dataset from {MANIFEST_PATH}...")
-    dataset = load_dataset("json", data_files=MANIFEST_PATH, split="train")
-    # Disable automatic decoding to avoid torchcodec issues
-    dataset = dataset.cast_column("audio_path", Audio(decode=False))
+    # 0. Device Detection & Cleanup
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Detecting device: {device.upper()}")
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
+    # Define features explicitly - we keep audio_path as string to avoid torchcodec issues
+    features = Features({
+        "audio_path": Value("string"),
+        "sentence": Value("string"),
+    })
+
+    # 2. Load Dataset (Streaming Mode saves massive RAM)
+    print(f"Loading dataset in streaming mode from {MANIFEST_PATH}...")
+    dataset = load_dataset(
+        "json", 
+        data_files=MANIFEST_PATH, 
+        split="train", 
+        streaming=True,
+        features=features
+    )
+    
     processor = WhisperProcessor.from_pretrained(MODEL_ID)
-
-    def prepare_dataset(batch):
-        audio_item = batch["audio_path"]
-        
-        # If it's a dict with 'bytes', use them. If it's a string path, read it.
-        if isinstance(audio_item, dict) and audio_item.get("bytes"):
-            audio_bytes = audio_item["bytes"]
-            with io.BytesIO(audio_bytes) as b:
-                array, sampling_rate = sf.read(b)
-        elif isinstance(audio_item, str):
-            array, sampling_rate = sf.read(audio_item)
-        else:
-            # Fallback for other datasets-specific structures
-            path = audio_item.get("path") if isinstance(audio_item, dict) else audio_item
-            array, sampling_rate = sf.read(path)
-            
-        # Ensure 16kHz
-        if sampling_rate != 16000:
-            array = librosa.resample(array, orig_sr=sampling_rate, target_sr=16000)
-            
-        batch["input_features"] = processor.feature_extractor(
-            array, sampling_rate=16000
-        ).input_features[0]
-        
-        # Process labels
-        batch["labels"] = processor.tokenizer(batch["sentence"]).input_ids
-        return batch
-
-    print("Preprocessing dataset...")
-    dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names)
 
     # 3. Data Collator
     @dataclass
     class DataCollatorSpeechSeq2SeqWithPadding:
         processor: Any
-        def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
-            input_features = [{"input_features": feature["input_features"]} for feature in features]
-            batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
-            
-            label_features = [{"input_ids": feature["labels"]} for feature in features]
-            labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
-            
+        def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, torch.Tensor]:
+            # Feature extraction is now done per-batch to save RAM
+            input_features_list = []
+            label_features_list = []
+
+            for feature in features:
+                # Normalize path for the current OS
+                raw_path = feature["audio_path"].replace("\\", "/")
+                path = os.path.normpath(raw_path)
+                # path = os.path.normpath(feature["audio_path"])
+                sentence = feature["sentence"]
+
+                try:
+                    # Load and resample manually to avoid datasets.Audio issues
+                    array, sampling_rate = sf.read(path)
+                    if sampling_rate != 16000:
+                        array = librosa.resample(array, orig_sr=sampling_rate, target_sr=16000)
+
+                    input_features = self.processor.feature_extractor(
+                        array, sampling_rate=16000
+                    ).input_features[0]
+                    input_features_list.append({"input_features": input_features})
+
+                    labels = self.processor.tokenizer(sentence).input_ids
+                    label_features_list.append({"input_ids": labels})
+                except Exception as e:
+                    print(f"Error processing sample {path}: {e}")
+                    continue
+
+            if not input_features_list:
+                return {}
+
+            batch = self.processor.feature_extractor.pad(input_features_list, return_tensors="pt")
+            labels_batch = self.processor.tokenizer.pad(label_features_list, return_tensors="pt")
+
             labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
             batch["labels"] = labels
             return batch
 
     data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
 
-    # 4. Load Model with 8-bit Quantization
-    print(f"Loading model {MODEL_ID} in 8-bit...")
-    bnb_config = BitsAndBytesConfig(load_in_8bit=True)
-    model = WhisperForConditionalGeneration.from_pretrained(
-        MODEL_ID, 
-        quantization_config=bnb_config, 
-        device_map="auto"
-    )
+    # 4. Load Model
+    if device == "cuda":
+        print(f"Loading model {MODEL_ID} in 4-bit for GPU...")
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=True,
+        )
+        model = WhisperForConditionalGeneration.from_pretrained(
+            MODEL_ID, 
+            quantization_config=bnb_config, 
+            device_map="auto",
+            low_cpu_mem_usage=True
+        )
+        model = prepare_model_for_kbit_training(model)
+    else:
+        print(f"Loading model {MODEL_ID} on CPU...")
+        model = WhisperForConditionalGeneration.from_pretrained(
+            MODEL_ID,
+            device_map={"": "cpu"},
+            low_cpu_mem_usage=True
+        )
 
-    # 5. Prepare for PEFT (LoRA)
-    model = prepare_model_for_kbit_training(model)
-    
-    if BASE_ADAPTER_PATH and os.path.exists(BASE_ADAPTER_PATH):
-        print(f"Loading existing adapter from {BASE_ADAPTER_PATH} for incremental training...")
-        from peft import PeftModel
+    model.config.forced_decoder_ids = None
+    model.config.suppress_tokens = []
+
+    # 5. PEFT (LoRA) Setup
+    if BASE_ADAPTER_PATH and os.path.exists(BASE_ADAPTER_PATH) and BASE_ADAPTER_PATH != "None":
+        print(f"Loading existing adapter from {BASE_ADAPTER_PATH}...")
         model = PeftModel.from_pretrained(model, BASE_ADAPTER_PATH, is_trainable=True)
     else:
         print("Initializing fresh LoRA adapters...")
         config = LoraConfig(
-            r=32, 
-            lora_alpha=64, 
+            r=8, 
+            lora_alpha=16, 
             target_modules=["q_proj", "v_proj"], 
             lora_dropout=0.05, 
             bias="none"
         )
         model = get_peft_model(model, config)
-    
-    model.print_trainable_parameters()
 
-    # 6. Training Arguments
+    # 6. Training Arguments (Ultra-low RAM settings)
     training_args = Seq2SeqTrainingArguments(
         output_dir=OUTPUT_DIR,
-        per_device_train_batch_size=8,
-        gradient_accumulation_steps=1,
+        per_device_train_batch_size=BATCH_SIZE, 
+        gradient_accumulation_steps=1, 
         learning_rate=1e-3,
         warmup_steps=5,
-        max_steps=50, # Set low for a quick "1 round" test
-        fp16=True,
+        max_steps=MAX_STEPS, 
+        fp16=(device == "cuda"),
+        optim="paged_adamw_8bit" if device == "cuda" else "adamw_torch",
+        gradient_checkpointing=False, 
         eval_strategy="no",
         save_strategy="steps",
         save_steps=50,
+        save_total_limit=1,
         logging_steps=10,
         report_to=["tensorboard"],
         remove_unused_columns=False,
         push_to_hub=False,
         label_names=["labels"],
+        dataloader_num_workers=0,
+        dataloader_pin_memory=False
     )
 
     # 7. Start Training
@@ -141,7 +190,7 @@ def train_one_round():
     model.config.use_cache = False
     trainer.train()
 
-    # 8. Save the adapters
+    # 8. Save
     print(f"Saving LoRA adapters to {OUTPUT_DIR}...")
     model.save_pretrained(OUTPUT_DIR)
     processor.save_pretrained(OUTPUT_DIR)

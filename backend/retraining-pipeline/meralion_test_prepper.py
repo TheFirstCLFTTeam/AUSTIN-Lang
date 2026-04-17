@@ -90,7 +90,7 @@ def prepare_meralion():
             continue
         
         manifest.append({
-            "audio_path": str(audio_path.absolute()),
+            "audio_path": f"data/meralion_audio/{audio_filename}",
             "sentence": cleaned_text
         })
         

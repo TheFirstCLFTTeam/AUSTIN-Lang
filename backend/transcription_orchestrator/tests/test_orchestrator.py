@@ -5,7 +5,7 @@ import requests
 
 
 def test_transcribe_full_success(client, monkeypatch):
-    """Test the complete successful orchestration workflow."""
+    """Test the complete successful orchestration workflow with timestamps and early registration."""
     monkeypatch.setenv("SKIP_TRANSCRIPTION_SERVER", "false")
 
     # 1. Setup mock responses
@@ -16,6 +16,10 @@ def test_transcribe_full_success(client, monkeypatch):
         "message": "Success",
     }
 
+    mock_db_file_resp = MagicMock()
+    mock_db_file_resp.status_code = 200
+    mock_db_file_resp.json.return_value = 1
+
     mock_transcription_resp = MagicMock()
     mock_transcription_resp.status_code = 200
     mock_transcription_resp.json.return_value = {
@@ -23,10 +27,6 @@ def test_transcribe_full_success(client, monkeypatch):
         "language": "en",
         "segments": [{"start": 0.0, "end": 1.0, "text": "Hello world"}],
     }
-
-    mock_db_file_resp = MagicMock()
-    mock_db_file_resp.status_code = 200
-    mock_db_file_resp.json.return_value = 1
 
     mock_db_raw_resp = MagicMock()
     mock_db_raw_resp.status_code = 200
@@ -39,8 +39,8 @@ def test_transcribe_full_success(client, monkeypatch):
     with patch("transcription_orchestrator.requests.post") as mock_post:
         mock_post.side_effect = [
             mock_submission_resp,
+            mock_db_file_resp,        # Now registered before transcription
             mock_transcription_resp,
-            mock_db_file_resp,
             mock_db_raw_resp,
             mock_db_edited_resp,
         ]
@@ -54,6 +54,21 @@ def test_transcribe_full_success(client, monkeypatch):
         assert data["audio_file_id"] == 1
         assert data["raw_transcript_id"] == 10
         assert data["edited_transcript_id"] == 100
+
+        # Verify call order and payloads
+        calls = mock_post.call_args_list
+        # Call 1: Submission
+        assert "upload-audio" in calls[0].args[0]
+        # Call 2: DB Audio File (Early)
+        assert "audio-files" in calls[1].args[0]
+        # Call 3: Transcription
+        assert "transcribe" in calls[2].args[0]
+        # Call 4: DB Raw Transcript (with timestamps)
+        assert "raw-transcripts" in calls[3].args[0]
+        payload = calls[3].kwargs["json"]
+        assert "transcription_started_at" in payload
+        assert "transcription_ended_at" in payload
+        assert payload["transcription_started_at"] is not None
 
 
 def test_transcribe_submission_client_error(client):
@@ -100,12 +115,13 @@ def test_transcribe_missing_segments(client, monkeypatch):
     m1 = MagicMock(status_code=200)
     m1.json.return_value = {"message": "ok"}
 
-    # Transcription response WITHOUT 'segments' key
     m2 = MagicMock(status_code=200)
-    m2.json.return_value = {"text": "Just text, no segments"}
+    m2.json.return_value = 1  # audio_file_id (Early Registration)
 
+    # Transcription response WITHOUT 'segments' key
     m3 = MagicMock(status_code=200)
-    m3.json.return_value = 1
+    m3.json.return_value = {"text": "Just text, no segments"}
+
     m4 = MagicMock(status_code=200)
     m4.json.return_value = 10
     m5 = MagicMock(status_code=200)
@@ -123,17 +139,17 @@ def test_transcribe_missing_segments(client, monkeypatch):
 
 
 def test_transcribe_raw_transcript_registration_failure(client, monkeypatch):
-    """Test failure specifically at the raw transcript registration step (step 3b)."""
+    """Test failure specifically at the raw transcript registration step (step 4a)."""
     monkeypatch.setenv("SKIP_TRANSCRIPTION_SERVER", "false")
 
     m1 = MagicMock(status_code=200)
     m1.json.return_value = {"message": "ok"}
     m2 = MagicMock(status_code=200)
-    m2.json.return_value = {"text": "ok", "segments": []}
+    m2.json.return_value = 1  # audio_file_id (Early Registration)
     m3 = MagicMock(status_code=200)
-    m3.json.return_value = 1  # audio_file_id success
+    m3.json.return_value = {"text": "ok", "segments": []}
 
-    # 3b. Raw Transcript FAILURE
+    # 4a. Raw Transcript FAILURE
     m4 = MagicMock(status_code=500)
     m4.raise_for_status.side_effect = requests.exceptions.HTTPError("DB Error")
 

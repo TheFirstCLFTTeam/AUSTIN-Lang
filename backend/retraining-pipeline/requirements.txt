@@ -3,7 +3,7 @@ peft
 bitsandbytes
 datasets
 evaluate
-torch
+torch==2.4.1
 accelerate
 librosa
 jiwer

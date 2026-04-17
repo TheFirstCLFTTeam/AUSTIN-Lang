@@ -33,13 +33,13 @@ services:
   transcription-service-2:
     build: "./transcription-service-2"
     ports:
-      - "${TRANSCRIPTION_SERVICE_2_PORT}:8005"
+      - "${TRANSCRIPTION_SERVICE_2_PORT}:${TRANSCRIPTION_SERVICE_2_PORT}"
     volumes:
       - "./transcription-service-2:/app"
       - "./retraining-pipeline/adapters:/app/adapters"
       - hf_models_cache:/app/models_cache
     environment:
-      - TRANSCRIPTION_PORT=8005
+      - TRANSCRIPTION_PORT=${TRANSCRIPTION_SERVICE_2_PORT}
 
   database:
     build: "./database"
@@ -47,6 +47,16 @@ services:
       - "${DATABASE_PORT}:${DATABASE_PORT}"
     volumes:
       - "./database:/app"
+
+  metrics-service:
+    build: "./metrics_service"
+    ports:
+      - "${METRICS_SERVICE_PORT}:${METRICS_SERVICE_PORT}"
+    environment:
+      - DATABASE_URL=http://database:${DATABASE_PORT}
+      - METRICS_SERVICE_PORT=${METRICS_SERVICE_PORT}
+    depends_on:
+      - database
 
 volumes:
   hf_models_cache:
