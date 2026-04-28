@@ -134,6 +134,19 @@ services:
       # docs/06 server/metrics-service-module.md §5.3.
       - SEED_ON_BOOT=${METRICS_SEED_ON_BOOT:-true}
 
+  financial-terms-dictionary:
+    build: "./backend/Financial_terms_dictionary"
+    ports:
+      - "${FINANCIAL_TERMS_PORT:-8009}:8009"
+    volumes:
+      - "./backend/Financial_terms_dictionary:/app"
+      - financial_terms_data:/app/data
+    environment:
+      - PORT=8009
+      - DB_PATH=/app/data/financial_terms.db
+      - SEED_CSV_PATH=/app/financialTerms.csv
+      - SEED_ON_BOOT=${FINANCIAL_TERMS_SEED_ON_BOOT:-true}
+
   pseudonymisation-orchestrator:
     build: "./backend/pseudonymization/orchestrator"
     ports:
@@ -168,6 +181,7 @@ services:
       - training-orchestrator
       - redis
       - meeting-webhooks
+      - financial-terms-dictionary
     volumes:
       # Mounted so the real-mode build can read/write the seeded SQLite files.
       # Ignored at runtime by the mock-mode build.
@@ -184,6 +198,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - MEETING_WEBHOOKS_URL=http://meeting-webhooks:8007
       - MEETING_WEBHOOKS_INGEST_SECRET=${MEETING_WEBHOOKS_INGEST_SECRET}
+      - FINANCIAL_TERMS_URL=http://financial-terms-dictionary:8009
 
 volumes:
   hf_models_cache:
@@ -191,3 +206,4 @@ volumes:
   meeting_webhooks_data:
   metrics_data:
   training_orchestrator_data:
+  financial_terms_data:

@@ -14,3 +14,4 @@ backend/retraining-pipeline/adapters
 !.env.example
 node_modules
 .mypy_cache/
+*.mp3
