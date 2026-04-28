@@ -145,11 +145,22 @@ CREATE TABLE audio_file (
     -- store that the retraining pipeline reads from.
     backend_audio_file_id        INTEGER,
     backend_raw_transcript_id    INTEGER,
-    backend_edited_transcript_id INTEGER
+    backend_edited_transcript_id INTEGER,
+    -- Provider attribution for webhook-ingested recordings.
+    -- 'manual' (or NULL) for human uploads, 'zoom' / 'teams' / 'google_meet'
+    -- / 'generic' / … for things ingested via meeting-webhooks. The unique
+    -- index below gates webhook dedupe.
+    source_provider     TEXT,
+    source_recording_id TEXT,
+    source_meeting_id   TEXT,
+    source_organiser    TEXT
 );
 
 CREATE INDEX ix_audio_file_dataset ON audio_file(dataset_id);
 CREATE INDEX ix_audio_file_external ON audio_file(external_id);
+CREATE UNIQUE INDEX ux_audio_file_provider_rec
+    ON audio_file(source_provider, source_recording_id)
+    WHERE source_provider IS NOT NULL AND source_recording_id IS NOT NULL;
 
 CREATE TABLE raw_transcript (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,

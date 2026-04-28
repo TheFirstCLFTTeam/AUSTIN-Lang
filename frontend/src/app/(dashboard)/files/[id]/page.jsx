@@ -1025,6 +1025,23 @@ export default function FileDetailPage() {
                             ⚠ AUTO-MASKING SKIPPED
                         </span>
                     )}
+                    {fileData.source?.provider && (
+                        <span
+                            title={
+                                fileData.source.organiser
+                                    ? `Ingested via ${fileData.source.provider} — organised by ${fileData.source.organiser}`
+                                    : `Ingested via ${fileData.source.provider}`
+                            }
+                            className="inline-block px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider"
+                            style={{
+                                backgroundColor: ({ zoom: 'rgba(45, 140, 255, 0.10)', teams: 'rgba(80, 89, 201, 0.10)', google_meet: 'rgba(26, 127, 55, 0.10)', generic: 'rgba(122, 117, 116, 0.10)' })[fileData.source.provider] || 'rgba(122, 117, 116, 0.10)',
+                                color:           ({ zoom: '#2d8cff',                  teams: '#5059c9',                  google_meet: '#1a7f37',                  generic: '#7a7574' })[fileData.source.provider] || '#7a7574',
+                                borderRadius: '0px',
+                            }}
+                        >
+                            SOURCE: {fileData.source.provider.toUpperCase().replace('_', ' ')}
+                        </span>
+                    )}
                     <TranscriptVersioning
                         fileId={id}
                         onAfterRestore={() => {

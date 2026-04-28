@@ -17,6 +17,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from real_worker import start_real_worker
 from storage import JobError, JobStore, TrainingJobRecord
 from worker import (
     DEFAULT_POLL_INTERVAL_SECONDS,
@@ -49,20 +50,56 @@ def _truthy(env_value: Optional[str]) -> bool:
 
 @app.on_event("startup")
 def _maybe_start_worker() -> None:
-    """Spawn the simulated worker on a daemon thread when WORKER_ENABLED.
+    """Spawn a worker on a daemon thread when WORKER_ENABLED.
 
-    Default ON in dev so the LAUNCH button drives a visibly-progressing
-    job; flip OFF in prod (or when a real worker container is taking the
-    queue) via `WORKER_ENABLED=false`. See worker.py module docstring.
+    Two modes, switched via WORKER_MODE:
+
+    - "simulated" (default): walks jobs through the state machine in ~30s
+      with no real training. Closes the orchestrator loop end-to-end so
+      the LAUNCH button → detail page render path is exercisable in dev /
+      tests. See worker.py module docstring.
+
+    - "real": invokes backend/retraining-pipeline/cloud_train_sync.sh as a
+      subprocess; parses stdout for state markers + HF Trainer progress;
+      terminates the subprocess on cancel. Requires the orchestrator
+      container to have an SSH key + outbound network so the script can
+      reach the GPU box. See real_worker.py.
+
+    Flip WORKER_ENABLED=false to disable both — useful when a separate
+    worker container takes over the queue.
     """
     global _worker
     if not _truthy(os.getenv("WORKER_ENABLED", "true")):
         return
+
+    mode = (os.getenv("WORKER_MODE", "simulated") or "simulated").strip().lower()
+    poll = float(os.getenv("WORKER_POLL_INTERVAL_SECONDS", DEFAULT_POLL_INTERVAL_SECONDS))
+
+    if mode == "real":
+        _worker = start_real_worker(
+            store,
+            script_path=os.getenv(
+                "TRAINING_SCRIPT_PATH",
+                "/app/retraining-pipeline/cloud_train_sync.sh",
+            ),
+            working_dir=os.getenv(
+                "TRAINING_SCRIPT_CWD",
+                "/app/retraining-pipeline",
+            ),
+            log_dir=os.getenv("TRAINING_LOG_DIR", "/app/data/logs"),
+            poll_interval_seconds=poll,
+        )
+        return
+
+    if mode != "simulated":
+        # Unknown mode — fail loudly rather than silently fall through.
+        raise RuntimeError(
+            f"unknown WORKER_MODE={mode!r}; expected 'simulated' or 'real'"
+        )
+
     _worker = start_background_worker(
         store,
-        poll_interval_seconds=float(
-            os.getenv("WORKER_POLL_INTERVAL_SECONDS", DEFAULT_POLL_INTERVAL_SECONDS)
-        ),
+        poll_interval_seconds=poll,
         simulated_duration_seconds=float(
             os.getenv("WORKER_SIMULATED_DURATION_SECONDS", DEFAULT_SIMULATED_DURATION_SECONDS)
         ),

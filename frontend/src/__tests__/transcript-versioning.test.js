@@ -66,7 +66,11 @@ function buildSchema(db) {
             uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
             backend_audio_file_id INTEGER,
             backend_raw_transcript_id INTEGER,
-            backend_edited_transcript_id INTEGER
+            backend_edited_transcript_id INTEGER,
+            source_provider TEXT,
+            source_recording_id TEXT,
+            source_meeting_id TEXT,
+            source_organiser TEXT
         );
         CREATE TABLE raw_transcript (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

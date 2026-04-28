@@ -19,7 +19,7 @@ from typing import List, Optional, Tuple
 from dotenv import load_dotenv
 from huggingface_hub import login
 
-from utils.hf_data_loader import download_random_audio_sample
+from backend.dataset_loader.utils.hf_data_loader import download_random_audio_sample
 
 
 SOURCE_DIR = "Source"

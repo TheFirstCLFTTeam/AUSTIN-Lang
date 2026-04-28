@@ -2,14 +2,17 @@
 set -e          # Stop immediately if a command fails
 set -o pipefail # Catch errors in piped commands
 
-# --- CONFIGURATION (UPDATED FROM YOUR DETAILS) ---
-CLOUD_USER="root" 
-CLOUD_IP="157.157.221.29" 
-CLOUD_PORT="32255"
-SSH_KEY_PATH="~/.ssh/runpod_ed25519"
-CLOUD_REPO_PATH="~/AUSTIN-Lang" 
-MANIFEST_NAME="manifest.jsonl" 
-ADAPTER_NAME="cloud_meralion_v1"
+# --- CONFIGURATION ---
+# Defaults reflect the runpod box this script was first authored against.
+# The training-orchestrator overrides these per job via env_json so a
+# single script binary serves every queued job — see real_worker.py.
+CLOUD_USER="${CLOUD_USER:-root}"
+CLOUD_IP="${CLOUD_IP:-157.157.221.29}"
+CLOUD_PORT="${CLOUD_PORT:-32255}"
+SSH_KEY_PATH="${SSH_KEY_PATH:-~/.ssh/runpod_ed25519}"
+CLOUD_REPO_PATH="${CLOUD_REPO_PATH:-~/AUSTIN-Lang}"
+MANIFEST_NAME="${MANIFEST_NAME:-manifest.jsonl}"
+ADAPTER_NAME="${ADAPTER_NAME:-cloud_meralion_v1}"
 # ------------------------------------
 
 # Colors for output

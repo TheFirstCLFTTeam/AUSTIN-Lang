@@ -49,6 +49,7 @@ function rowToListItem(row, ownerNames) {
         dataset: row.dataset_id || null,
         status: row.status || 'needs action',
         stage: row.stage || null,
+        sourceProvider: row.source_provider || null,
         // UI slots that have no DB column yet. Null keeps the component happy
         // without making up fake numbers.
         wer: null,
@@ -67,7 +68,7 @@ export function listAudioFiles() {
         .prepare(
             `SELECT id, external_id, file_name, display_name, uploaded_at, owner_id,
                     duration_sec, duration_label, detected_language, dataset_id,
-                    status, stage, audio_rel_path
+                    status, stage, audio_rel_path, source_provider
                FROM audio_file
               ORDER BY uploaded_at DESC`
         )
@@ -106,7 +107,9 @@ export function getAudioFileDetail(externalOrIntId) {
         .prepare(
             `SELECT id, external_id, file_name, display_name, uploaded_at, owner_id,
                     duration_sec, duration_label, detected_language, dataset_id,
-                    status, stage, audio_rel_path
+                    status, stage, audio_rel_path,
+                    source_provider, source_recording_id, source_meeting_id,
+                    source_organiser
                FROM audio_file
               WHERE external_id = ? OR id = ?`
         )
@@ -174,6 +177,12 @@ export function getAudioFileDetail(externalOrIntId) {
               }
             : null,
         edits,
+        source: row.source_provider ? {
+            provider: row.source_provider,
+            recordingId: row.source_recording_id,
+            meetingId: row.source_meeting_id,
+            organiser: row.source_organiser,
+        } : null,
     };
 }
 
@@ -181,16 +190,36 @@ export function getAudioFileDetail(externalOrIntId) {
 // already persisted the raw transcript to poc.db at :8002 and handed us back
 // the integer IDs; we stash those on the platform row so subsequent edits
 // can be pushed back to the canonical store.
+//
+// `source` is optional provider attribution for webhook-ingested recordings
+// (Zoom / Teams / google_meet / generic / …). When present + a row already
+// exists for the same (provider, recording_id), we treat it as a duplicate
+// webhook delivery and return the existing detail rather than re-inserting.
 export function registerUploadedFile({
     fileName,
     owner,
     backend,
     segments,
     detectedLanguage,
+    source = null,
 }) {
     const db = platformDb();
     const externalId = `upl-${backend.audioFileId}`;
     const audioRelPath = `http://localhost:8000/audio_files/${fileName}`;
+
+    // Webhook idempotency: if we've already mirrored this exact (provider,
+    // recording_id), return the existing detail rather than re-inserting.
+    // The unique index ux_audio_file_provider_rec also enforces this at the
+    // SQL layer; the early exit lets us return a usable payload to the caller.
+    if (source?.provider && source?.recordingId) {
+        const existing = db.prepare(
+            `SELECT external_id FROM audio_file
+              WHERE source_provider = ? AND source_recording_id = ?`
+        ).get(source.provider, String(source.recordingId));
+        if (existing?.external_id) {
+            return getAudioFileDetail(existing.external_id);
+        }
+    }
 
     const insert = db.transaction(() => {
         const afInfo = db
@@ -199,9 +228,11 @@ export function registerUploadedFile({
                      file_name, external_id, display_name, owner_id,
                      detected_language, audio_rel_path, status, stage,
                      backend_audio_file_id, backend_raw_transcript_id,
-                     backend_edited_transcript_id
+                     backend_edited_transcript_id,
+                     source_provider, source_recording_id,
+                     source_meeting_id, source_organiser
                  )
-                 VALUES (?, ?, ?, ?, ?, ?, 'needs action', 'uploaded', ?, ?, ?)`
+                 VALUES (?, ?, ?, ?, ?, ?, 'needs action', 'uploaded', ?, ?, ?, ?, ?, ?, ?)`
             )
             .run(
                 fileName,
@@ -213,6 +244,10 @@ export function registerUploadedFile({
                 backend.audioFileId,
                 backend.rawTranscriptId,
                 backend.editedTranscriptId,
+                source?.provider || null,
+                source?.recordingId ? String(source.recordingId) : null,
+                source?.meetingId  ? String(source.meetingId)  : null,
+                source?.organiser  || null,
             );
         const audioFileId = afInfo.lastInsertRowid;
 

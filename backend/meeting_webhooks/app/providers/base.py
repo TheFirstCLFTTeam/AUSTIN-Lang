@@ -111,6 +111,19 @@ class BaseProvider(ABC):
     ) -> AsyncIterator[bytes]:
         """Async iterator of audio bytes. Stream — never buffer the whole MP4."""
 
+    # ── Subscription lifecycle (override only if the provider has them) ──
+
+    async def renew_subscription(self, subscription_external_id: str) -> str:
+        """Extend a long-lived subscription. Returns the new ISO expiry.
+
+        Default: providers without server-side subscriptions (Zoom S2S,
+        generic, Google Meet via push channel re-creation) raise
+        NotImplementedError and the renewal cron skips them.
+        """
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support subscription renewal"
+        )
+
 
 # ── Registry ────────────────────────────────────────────────────────────────
 

@@ -208,6 +208,15 @@ def list_subscriptions_for_renewal(*, provider: str) -> list[sqlite3.Row]:
     ).fetchall()
 
 
+def list_providers_with_subscriptions() -> list[str]:
+    """Distinct provider ids that have at least one subscription row.
+    Used by the renewal cron to skip providers we know don't have any."""
+    rows = get_db().execute(
+        "SELECT DISTINCT provider FROM subscription"
+    ).fetchall()
+    return [r["provider"] for r in rows]
+
+
 # ── dedupe ─────────────────────────────────────────────────────────────────
 
 def has_seen_recording(provider: str, external_id: str) -> bool:

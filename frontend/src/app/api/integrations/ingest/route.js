@@ -29,15 +29,23 @@ export async function POST(request) {
         return NextResponse.json({ detail: 'invalid JSON' }, { status: 400 });
     }
 
-    const { transcription, filename, owner_id, provider } = body || {};
+    const {
+        transcription, filename, owner_id, provider,
+        external_recording_id, external_meeting_id, organiser_email,
+    } = body || {};
     if (!transcription || !filename) {
         return NextResponse.json({ detail: 'transcription + filename required' }, { status: 400 });
     }
 
     // Resolve the internal user. The backend service gives us its own
     // user_id; that's already an internal id when the ingest came from a
-    // user we know. For provider-side identifiers we'd map here.
-    const owner = owner_id ? loadUser(owner_id) : null;
+    // user we know. Provider-side identity (Zoom host_email, AAD object
+    // id) → internal user is best-effort: try email lookup first, fall
+    // back to the explicit owner_id from the worker.
+    let owner = owner_id ? loadUser(owner_id) : null;
+    if (!owner && organiser_email) {
+        owner = loadUserByEmail(organiser_email);
+    }
 
     const mirrored = registerUploadedFile({
         fileName: filename,
@@ -49,12 +57,24 @@ export async function POST(request) {
         },
         segments: transcription.transcription?.segments || [],
         detectedLanguage: transcription.transcription?.language || null,
+        source: provider ? {
+            provider,
+            recordingId: external_recording_id || null,
+            meetingId: external_meeting_id || null,
+            organiser: organiser_email || null,
+        } : null,
     });
 
     return NextResponse.json({
         mirrored,
         provider,
     });
+}
+
+function loadUserByEmail(email) {
+    return usersDb()
+        .prepare(`SELECT id, email, name, role FROM "user" WHERE email = ?`)
+        .get(email) || null;
 }
 
 function loadUser(id) {

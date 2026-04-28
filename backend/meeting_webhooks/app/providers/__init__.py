@@ -27,3 +27,5 @@ from .base import (  # noqa: F401  (re-export)
 # eager imports register the concrete providers
 from . import teams  # noqa: F401
 from . import zoom  # noqa: F401
+from . import google_meet  # noqa: F401
+from . import generic  # noqa: F401

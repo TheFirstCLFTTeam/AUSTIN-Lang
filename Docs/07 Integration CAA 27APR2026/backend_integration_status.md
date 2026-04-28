@@ -15,11 +15,12 @@ Master status board for everything wired (or planned to be wired) across the Nex
 | Security baseline — Wave 1 (15 fixes) | ✅ shipped this branch | FE + BE + Infra | [`fix-implementation-log.md`](fix-implementation-log.md) §1 |
 | Metrics → Dashboard | ✅ shipped this branch (live series in render path) | FE + BE | this doc §3.1, [`../06 server/metrics-service-module.md`](../06%20server/metrics-service-module.md) |
 | Leaderboard | 🟡 stubbed (no BE) | FE + BE | this doc §3.2 |
-| Retraining / Training Jobs | 🟡 in progress (orchestrator skeleton landing) | FE + BE | this doc §3.3, [`training-job-pipeline.md`](training-job-pipeline.md) |
+| Retraining / Training Jobs | 🟡 in progress (orchestrator + simulated + real CLI-driven worker shipped; heartbeat/log SSE + base-model registry pending) | FE + BE | this doc §3.3, [`training-job-pipeline.md`](training-job-pipeline.md) |
 | User profile sync | 🟡 stubbed (decision pending) | FE + BE | this doc §3.4 |
 | Redis cache middleware | ✅ shipped this branch (read-through file detail + per-user recents + invalidation hooks) | FE + Infra | [`redis-cache-integration.md`](redis-cache-integration.md) |
 | Transcript edit versioning | ✅ shipped this branch (data model + write/read refactor + endpoints + UI + restore-with-no-hanging-drafts) | FE + BE | [`transcript-versioning-plan.md`](transcript-versioning-plan.md) |
-| Meeting webhook ingestion (Zoom + Teams) | 📐 specced, not built | new BE service | [`meeting_recording_webhooks.md`](meeting_recording_webhooks.md) |
+| Meeting webhook ingestion (Teams + Zoom + Generic + Google Meet stub) | ✅ shipped this branch (factory pattern; Teams + Zoom + Generic ready, Google Meet pattern stub) | new BE service | [`meeting_recording_webhooks.md`](meeting_recording_webhooks.md) |
+| Financial terms dictionary | 📐 specced, not built | new BE service + FE admin page | [`financial-terms-dictionary.md`](financial-terms-dictionary.md) |
 | Security baseline — Wave 2 (CSRF token + prod CSP) | ✅ shipped this branch | FE | [`fix-implementation-log.md`](fix-implementation-log.md) §1 |
 | FL / DP enablement (Wave 3) | ⏸ deferred (governance) | BE + Governance | [`fl-dp-risk-assessment.md`](fl-dp-risk-assessment.md), [`fix-triage-frontend-vs-backend.md`](fix-triage-frontend-vs-backend.md) Wave 3 |
 | Cloud move (Wave 4 — Azure) | ⏸ deferred (infra) | Infra | [`azure-deployment-requirements.md`](azure-deployment-requirements.md) |
@@ -146,7 +147,7 @@ End-to-end loop: `train.py` → `post_train_hook` → `POST /evaluations/run` �
 
 **Pending (not in this slice):**
 
-1. **Real-training worker.** The simulated worker proves the loop closes; a real worker still needs to land — design open question 1 in [`training-job-pipeline.md`](training-job-pipeline.md) §6 (orchestrator-owned subprocess vs CLI-driven where the orchestrator just records). The `target='cloud'` SSH path in `backend/retraining-pipeline/cloud_train_sync.sh` already trains real models; wiring it under the orchestrator transitions is the natural next slice.
+1. ~~**Real-training worker.**~~ _Done 2026-04-28._ `backend/training_orchestrator/real_worker.py` invokes `cloud_train_sync.sh` as a subprocess, parses stdout for state markers (Step 4 → running, Step 5 → evaluating) + HF Trainer progress (`{'loss': …} step/total` regex), drives `JobStore.transition()` end-to-end. Open Q1 resolved: **CLI-driven mode** (orchestrator records state while the script SSHes to the GPU box). `WORKER_MODE=simulated|real` env flag picks worker; default stays simulated for backwards compat. **Cancel = terminate-on-cancel** — SIGTERM with 10 s grace, SIGKILL fallback. `cloud_train_sync.sh` + `train.py` parametrised so per-job `env_json` (ADAPTER_NAME, MANIFEST_NAME, EPOCHS, BATCH_SIZE, …) drives the run without script edits. New `JobStore.update_progress()` writes `progress_pct` without touching status (closes the running→running gap the simulated worker noted). 15 new pytest cases on top of the existing 39 — all 54 orchestrator tests green.
 2. **Heartbeat + log SSE** for the detail page — replaces `MOCK_COMPLETION_DELAY_MS = 8000` and `getTrainingLogs()`. ([`training-job-pipeline.md`](training-job-pipeline.md) §4.5)
 3. **Script upload** (`POST /jobs/{id}/script`) — multipart, size-capped, MIME-sniffed (same harness as F6).
 4. **`base_model` + `training_artifact` registry tables** + **architecture-deviation check** ([`training-job-pipeline.md`](training-job-pipeline.md) §4.3). The fingerprint must be computed orchestrator-side, never trust the worker's claim.
@@ -194,16 +195,45 @@ Replaces today's destructive `DELETE-then-INSERT` write path with an append-only
 - **New endpoints:** `GET /versions`, `GET /versions/{vNo}`, `GET /versions/{a}/diff/{b}`, `POST /versions/{vNo}/restore`.
 - **Cross-cuts:** every freeze / restore must call `cache.invalidateDetail()` from §4.1; `audio-to-edit-pipeline.md` §6 needs an update once the new write path lands.
 
-### 4.3 Meeting recording webhooks (Zoom + Teams) — [`meeting_recording_webhooks.md`](meeting_recording_webhooks.md)
+### 4.3 Meeting recording webhooks (factory pattern; Teams + Zoom + Generic + Google Meet) — [`meeting_recording_webhooks.md`](meeting_recording_webhooks.md)
 
-New public-HTTPS service `meeting-webhook-receiver` plus a `meeting-recording-worker` that subscribes to Zoom `recording.completed` and Microsoft Graph `callRecording` events, downloads the media, and POSTs to the existing `transcription-orchestrator:8001/transcribe/` — i.e. the same contract `/api/upload` already uses. Receiver and worker are split because Zoom retries non-2xx 3× with a 3 s timeout, then drops the event (no DLQ); the receiver must 200 immediately and the multi-MB download happens in the worker.
+**Shipped this branch (2026-04-28).** The `backend/meeting_webhooks` FastAPI service is now end-to-end functional and structured around a factory/registry pattern so adding Slack, Discord, Webex, etc. is one new file + one import line — no changes to routes, dedupe, the renewal cron, or the transcription handoff.
 
-- **Schema additions on `audio_file`:** `source_provider` (`'manual' | 'zoom' | 'teams'`), `source_recording_id`, `source_meeting_id`, `source_organiser`. Unique index `(source_provider, source_recording_id)` doubles as the dedupe gate.
-- **Renewal cron required for Teams** — `callRecording` subscriptions max out at 3 days; a half-life renewer (~36 h) is mandatory infra, not optional.
-- **Mapping** organiser → internal user via email (Zoom) or AAD object id (Teams); falls back to a system "external/unmapped" user with an admin re-attribution view.
-- **Provider-context column + UI badge** lets the file list show "Source: Zoom" / "Source: Teams" alongside the existing manual uploads.
+What landed:
 
-### 4.4 Training-job pipeline (sidebar → leaderboard) — [`training-job-pipeline.md`](training-job-pipeline.md)
+- **Factory + registry** in `backend/meeting_webhooks/app/providers/base.py`. Concrete providers subclass `BaseProvider`, decorate with `@register_provider`, and the eager imports in `providers/__init__.py` populate the registry at FastAPI startup. The catalogue endpoint (`GET /providers`) iterates the registry, so the integrations page picks up new providers automatically.
+- **Four providers ship in this branch:**
+  - `teams.py` — full implementation (admin-consent OAuth, Graph subscription create + renew, validation handshake, clientState enforcement, app-only token refresh, streaming download).
+  - `zoom.py` — full implementation (Marketplace S2S OAuth instructions, URL-validation handshake, HMAC-SHA256 + 5-min replay-window check, `recording_files[]` walk filtered to `M4A` + `status=completed`, streaming download with Bearer `download_token` and S2S `access_token` fallback).
+  - `generic.py` — pluggable HMAC-signed webhook for any platform that can POST JSON. Body `{ recording_id, audio_url, organiser_email?, audio_url_auth?, … }` signed `v0:{ts}:{rawBody}` keyed by `GENERIC_WEBHOOK_SECRET`. The intended landing pad for Slack Huddles / Discord recording bots / Lambda forwarders / internal services.
+  - `google_meet.py` — pattern stub demonstrating the contract; every required method is present, raising `NotImplementedError` with inline comments pointing at the Drive Activity / Drive v3 endpoints to fill in.
+- **Schema migration** `database(FE)/seed/migrations/platform/0002_add_source_attribution.sql` — `audio_file` gains `source_provider`, `source_recording_id`, `source_meeting_id`, `source_organiser`, plus a partial unique index `ux_audio_file_provider_rec ON (source_provider, source_recording_id) WHERE source_provider IS NOT NULL` that doubles as the webhook dedupe gate. `schema_platform.sql` updated for fresh-seed parity.
+- **`registerUploadedFile` + `/api/integrations/ingest`** thread provider attribution through. Idempotent — re-delivery of the same `(provider, recording_id)` returns the existing detail rather than re-inserting. The ingest route also resolves `organiser_email → users.db user.id` so webhook-ingested files end up under the right owner when the host's email is registered.
+- **`getAudioFileDetail`** returns `source: { provider, recordingId, meetingId, organiser } | null`. The file detail page renders a `SOURCE: ZOOM/TEAMS/GOOGLE MEET/GENERIC` badge next to the status badge with provider-tinted colours.
+- **Proactive renewal cron** in `app/renewal.py` — asyncio task on FastAPI startup, scans `subscription` for rows expiring within 36 h every 30 min and PATCHes via `provider.renew_subscription`. Provider-agnostic via a `BaseProvider.renew_subscription` default that raises `NotImplementedError`; providers that don't have long-lived subscriptions (Zoom, generic, Google Meet) are skipped silently. Disabled via `WEBHOOK_RENEWAL_ENABLED=false` for tests.
+- **Mock mode** preserved across all four providers — leaving creds blank with `ALLOW_MOCK_CONNECT=true` lets the integrations page exercise Connect → Disconnect end-to-end.
+- **Tests** — 16 stdlib `unittest` cases in `backend/meeting_webhooks/tests/test_providers.py`: registry duplicates rejected, Zoom URL-validation handshake, Zoom signature pass + replay-window fail + tamper detection, Zoom event extraction (M4A filter + status filter + non-recording events), generic HMAC pass + tampered body + missing headers, generic event extraction with extension inference, and renewal-cron `renew_subscription` override detection.
+- **README** rewritten with a full "Adding a provider" walkthrough using a hypothetical `SlackHuddleProvider` as the worked example, plus reference-implementation notes pointing at each existing provider's strengths.
+
+**Pending follow-ups (not blocking today):**
+
+1. Teams `includeResourceData: true` — X.509 keypair plumbing for sub-second resource fetch instead of the current resource-path follow-up GET.
+2. Background queue — swap FastAPI `BackgroundTasks` for Celery/RQ once we want durable retries beyond a single process restart.
+3. KMS-wrap `connection.credentials_json` at rest — currently plain JSON; fine for SQLite-on-trusted-volume, not for Azure.
+4. Fill in Google Meet's `extract_recording_events` + `download_recording` against Drive Activity / Drive v3 when we prioritise that platform.
+
+### 4.4 Financial terms dictionary — [`financial-terms-dictionary.md`](financial-terms-dictionary.md)
+
+New `backend/Financial_terms_dictionary/` FastAPI microservice on port **8009**. Replaces the in-repo `financialTerms.csv` (6,318 rows, single column, mixed-quality) with a SQLite-backed user-curated dictionary. Reviewers submit terms while editing transcripts (explicit "💼 Add to dictionary" affordance + implicit auto-trail when correcting words the model got wrong); admins moderate via a queue; ML engineers consume the approved list at eval-manifest build time and at training-data packaging time. Drives the `financial_term_accuracy` strategy in [`../06 server/metrics-service-module.md`](../06%20server/metrics-service-module.md).
+
+- **New service:** `backend/Financial_terms_dictionary/` (FastAPI, port 8009, sibling pattern to `meeting_webhooks` + `training_orchestrator`).
+- **Schema:** `financial_term` (mutable; `pending` → `approved` / `rejected` / `retired` lifecycle, unique `term_normalized`, submitter + approver attribution, optional category + definition-as-URL); `financial_term_occurrence` (append-only ledger of where terms appeared in real transcripts and whether the model got each one right).
+- **Endpoints:** `GET/POST /terms`, `PATCH /terms/{id}` (admin moderate), `POST /terms/bulk-import` (CSV cleaner with quarantine-as-pending for likely-noise rows), `POST /occurrences`, `GET /occurrences/stats` (trending + top-wrong), `GET /dictionary/snapshot` (versioned bulk approved-list for manifest-time stamping).
+- **Cross-cuts:** `metrics-service` reads `/dictionary/snapshot` once per eval run and pre-stamps `Sample.tags.critical_terms`; `retraining-pipeline/dataset_builder.py` does the same when building manifests; `frontend/src/server/audio-files.js::writeEditsForFile` adds an auto-trail hook that writes occurrences with `correctly_transcribed=0` when a reviewer corrects a word that's in the dictionary.
+- **FE impact:** new `/admin/financial-terms` page (pending / approved / **top wrong terms** tabs — the last is the genuinely valuable surface for engineering prioritisation), inline "💼 Add to dictionary" affordance on the existing edit popover at `/files/[id]/page.jsx`.
+- **Research summary:** dictionary-maintenance patterns from MeSH/SNOMED (heavyweight curation — skipped), Wiktionary/Wikidata (moderation backbone — stolen), Loughran-McDonald (static seed source — stolen), Google/Azure Speech `phrase hints` (snapshot-at-eval-time — stolen). Detail in `financial-terms-dictionary.md` §4.
+
+### 4.5 Training-job pipeline (sidebar → leaderboard) — [`training-job-pipeline.md`](training-job-pipeline.md)
 
 New `training-orchestrator` service (port 8007) sits between the `/training` page's "New Train Job" dialog and the existing `retraining-pipeline/train.py`, owning the full lifecycle: submission → script + env-var capture → resource pull → training → architecture-deviation check → post-train metrics hook → leaderboard publish. Schema adds three tables (`training_job`, `base_model`, `training_artifact`) — none exist today; `database/main.py` only models audio/transcripts. The eight-step user flow (sidebar → dialog → script upload → resource → derived-base spawn → progress page → metrics fan-out → leaderboard) is not implemented end-to-end and was not designed end-to-end before this branch.
 
@@ -301,13 +331,23 @@ Not part of FL/DP and not blocked on cloud move, but listed deferred in [`fix-im
 | `TRAINING_ORCHESTRATOR_URL` | training-orchestrator:8008 (FE proxy target) | ✅ wired |
 | `TRAINING_ORCHESTRATOR_PORT` | training-orchestrator listen port (8008 — `8007` was already taken by `meeting-webhooks`) | ✅ wired |
 | `TRAINING_DB_PATH` | training-orchestrator's SQLite path inside the container | ✅ wired |
-| `WORKER_ENABLED` | dev convenience: spawn the simulated worker on boot (default `true`; set `false` when a real worker takes the queue) | ✅ wired |
-| `WORKER_POLL_INTERVAL_SECONDS` | how often the simulated worker checks for queued jobs (default 2.0) | ✅ wired |
-| `WORKER_SIMULATED_DURATION_SECONDS` | total simulated training duration per job (default 30.0) | ✅ wired |
+| `WORKER_ENABLED` | spawn either worker on boot (default `true`; set `false` when an external worker container takes the queue) | ✅ wired |
+| `WORKER_MODE` | `simulated` (default) or `real` — picks `worker.py` vs `real_worker.py` | ✅ wired |
+| `WORKER_POLL_INTERVAL_SECONDS` | how often the worker checks for queued jobs (default 2.0) | ✅ wired |
+| `WORKER_SIMULATED_DURATION_SECONDS` | total simulated training duration per job (default 30.0; simulated mode only) | ✅ wired |
+| `TRAINING_SCRIPT_PATH` | path to `cloud_train_sync.sh` inside the orchestrator container (real mode) | ✅ wired |
+| `TRAINING_SCRIPT_CWD` | working directory for the script invocation (real mode) | ✅ wired |
+| `TRAINING_LOG_DIR` | where the real worker streams subprocess stdout, one file per job (default `/app/data/logs`) | ✅ wired |
 | `REDIS_URL` | `redis://redis:6379` — read-through file-detail cache + per-user recents | ✅ wired |
 | `REDIS_PORT` | host port for the redis container (default 6379) | ✅ wired |
-| `ZOOM_WEBHOOK_SECRET_TOKEN`, Zoom S2S OAuth client id/secret | webhook ingestion | ❌ pending §4.3 |
-| Teams: tenant id, app client id/secret, encryption cert id/thumbprint | webhook ingestion | ❌ pending §4.3 |
+| `ZOOM_WEBHOOK_SECRET_TOKEN`, Zoom S2S OAuth client id/secret | webhook ingestion | ✅ wired (set per-tenant) |
+| Teams: tenant id, app client id/secret | webhook ingestion (resource-data encryption deferred) | ✅ wired (set per-tenant) |
+| `GENERIC_WEBHOOK_SECRET` | generic-provider HMAC signing for Slack/Discord/etc bots | ✅ wired |
+| `WEBHOOK_RENEWAL_ENABLED`, `WEBHOOK_RENEWAL_INTERVAL_SECONDS` | proactive Graph subscription renewal cron (defaults true / 1800) | ✅ wired |
+| `FINANCIAL_TERMS_URL` | financial-terms-dictionary:8009 (FE proxy + metrics + retraining-pipeline target) | ❌ pending §4.4 |
+| `FINANCIAL_TERMS_PORT` | financial-terms-dictionary listen port (default 8009) | ❌ pending §4.4 |
+| `FINANCIAL_TERMS_DB_PATH` | SQLite path inside the container (default `/app/data/financial_terms.db`) | ❌ pending §4.4 |
+| `FINANCIAL_TERMS_SEED_ON_BOOT` | seed from `financialTerms.csv` on first boot of an empty DB (default `true`) | ❌ pending §4.4 |
 | `DP_ENABLED` | gates 4-bit quantisation in `train.py` (F23) | ❌ pending Wave 3 |
 
 ---
@@ -335,7 +375,7 @@ Reconciles the four "waves" from [`fix-triage-frontend-vs-backend.md`](fix-triag
    - ~~§4.1 Redis cache (depends on §4.2's invalidation hooks landing in the same PR series, but the Redis container + module skeleton can land independently).~~ _Done 2026-04-28._
    - §3.1 metrics → dashboard (low effort, backend ready, immediate user-visible win).
    - §3.3 retraining orchestration (largest design work; unblocks `/training` and the leaderboard refresh story).
-3. **Webhook ingestion (§4.3)** — phase 1 (Zoom-only, no resource-data encryption) is a self-contained land; Teams phase 2 adds the X.509 cert + renewal cron.
+3. ~~**Webhook ingestion (§4.3)** — phase 1 (Zoom-only, no resource-data encryption) is a self-contained land; Teams phase 2 adds the X.509 cert + renewal cron.~~ _Done 2026-04-28 — factory pattern with Teams + Zoom + Generic shipping; Google Meet stub demonstrating the pattern; renewal cron live; Teams `includeResourceData` deferred per pending follow-up 1._
 4. **Wave 3 — FL / DP** — only after F21 (ε decision) and F25 (framework choice) governance artefacts exist. F22 / F23 / F20 / F26 then sequence under those.
 5. **Wave 4 — Cloud move** — F12, F14, F15, F16, F18, F27 align with the [`azure-deployment-requirements.md`](azure-deployment-requirements.md) workstream.
 
@@ -350,6 +390,7 @@ Every doc in this folder, with what to read it for:
 | [`audio-to-edit-pipeline.md`](audio-to-edit-pipeline.md) | The current end-to-end upload-to-editable-transcript pipeline (six stages + the tables touched matrix). Source of truth for the existing write path that §4.2 replaces. |
 | [`azure-deployment-requirements.md`](azure-deployment-requirements.md) | Azure target architecture — Container Apps, AML, two-VNet red/green zones, ACR Premium for the restricted FL/DP image, 7-day Blob lifecycle, SQLite→Postgres cutover. |
 | [`file_viewing_pipeline.md`](file_viewing_pipeline.md) | Click-to-render path on the dashboard — selection model, route transition, mock-vs-real branching, where things break. |
+| [`financial-terms-dictionary.md`](financial-terms-dictionary.md) | User-curated financial-terms microservice — schema, moderation lifecycle, snapshot pattern for eval-manifest stamping, auto-trail occurrence ledger, term-match algorithm, slice plan. Replaces the in-repo `financialTerms.csv`. |
 | [`fix-implementation-log.md`](fix-implementation-log.md) | What landed on this branch (Wave 1, 15 fixes), what's partial, what's deferred and why, and the verification checklist. |
 | [`fix-triage-frontend-vs-backend.md`](fix-triage-frontend-vs-backend.md) | Master triage of all 30 security/privacy fixes, FE-vs-BE-vs-Infra-vs-Governance ownership, four-wave sequencing. |
 | [`fl-dp-risk-assessment.md`](fl-dp-risk-assessment.md) | The honest case for *what FL and DP do not protect against* — gradient leakage, membership inference, model poisoning, ε opacity, group privacy, quantisation-vs-DP, library bugs. P1–P12 mapped to current code. |

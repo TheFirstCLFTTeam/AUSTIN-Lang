@@ -34,14 +34,17 @@ if not hasattr(torch.nn.Module, "set_submodule"):
 # ---------------------------------------------
 
 # 1. Configuration
-MODEL_ID = "openai/whisper-large-v3-turbo"#os.getenv("MODEL_ID") 
-ADAPTER_NAME = "fypaudio"#os.getenv("ADAPTER_NAME")
-MANIFEST_PATH = os.path.join("data", f"{ADAPTER_NAME}_manifest.jsonl") #os.getenv("MANIFEST_PATH", "data/meralion_manifest.jsonl")
-OUTPUT_DIR = os.path.join("adapters", ADAPTER_NAME) #os.getenv("OUTPUT_DIR", "adapters/meralion_v1")
-BASE_ADAPTER_PATH = None #os.getenv("BASE_ADAPTER_PATH", None) 
-EPOCHS = 50
-BATCH_SIZE = 5
-MAX_STEPS = EPOCHS * BATCH_SIZE
+# Env-var first, hardcoded fallback for ad-hoc local runs. The training
+# orchestrator (backend/training_orchestrator/real_worker.py) drives every
+# field below by exporting env vars before invoking cloud_train_sync.sh.
+MODEL_ID          = os.getenv("MODEL_ID",      "openai/whisper-large-v3-turbo")
+ADAPTER_NAME      = os.getenv("ADAPTER_NAME",  "fypaudio")
+MANIFEST_PATH     = os.getenv("MANIFEST_PATH", os.path.join("data", f"{ADAPTER_NAME}_manifest.jsonl"))
+OUTPUT_DIR        = os.getenv("OUTPUT_DIR",    os.path.join("adapters", ADAPTER_NAME))
+BASE_ADAPTER_PATH = os.getenv("BASE_ADAPTER_PATH") or None
+EPOCHS            = int(os.getenv("EPOCHS",     "50"))
+BATCH_SIZE        = int(os.getenv("BATCH_SIZE", "5"))
+MAX_STEPS         = EPOCHS * BATCH_SIZE
 
 def train_one_round():
     # 0. Device Detection & Cleanup

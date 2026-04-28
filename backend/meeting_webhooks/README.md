@@ -22,32 +22,93 @@ app/
 ├── routes_connect.py  # frontend-facing: list / connect / disconnect
 ├── routes_webhook.py  # provider-facing: POST /webhooks/{provider}
 ├── routes_lifecycle.py# Graph subscription lifecycle
+├── renewal.py        # asyncio task: renews Graph subscriptions at half-life
 └── providers/
     ├── base.py        # abstract BaseProvider + registry
     ├── teams.py       # Microsoft Teams (Graph callRecording)
-    └── zoom.py        # Zoom (signature/handshake done; ingest TODO)
+    ├── zoom.py        # Zoom (Marketplace S2S OAuth + recording.completed)
+    ├── google_meet.py # Google Meet — pattern stub, raises 501 on the unimplemented bits
+    └── generic.py     # Pluggable HMAC-signed webhook for any platform that can POST JSON
 ```
 
 ## Adding a provider
 
+The factory pattern: subclass `BaseProvider`, decorate with
+`@register_provider`, add a one-line import. Routes, dedupe, the renewal
+cron, and the transcription handoff all pick the new provider up
+automatically.
+
 ```python
-from .base import BaseProvider, register_provider
+# app/providers/slack_huddle.py
+from .base import BaseProvider, ConnectInitResponse, RecordingEvent, WebhookVerification, register_provider
+
 
 @register_provider
-class GoogleMeetProvider(BaseProvider):
-    id = "google_meet"
-    display_name = "Google Meet"
+class SlackHuddleProvider(BaseProvider):
+    id = "slack_huddle"
+    display_name = "Slack Huddles"
     supports_oauth_redirect = True
 
-    async def start_connect(self, *, user_id, redirect_uri): ...
-    async def complete_connect(self, *, user_id, params): ...
-    async def verify_webhook(self, request): ...
-    async def extract_recording_events(self, payload): ...
-    async def download_recording(self, *, connection_credentials, event): ...
+    async def start_connect(self, *, user_id, redirect_uri):
+        # Return ConnectInitResponse(redirect_url=…) for OAuth, or
+        # ConnectInitResponse(instructions="…") for admin-only flows.
+        ...
+
+    async def complete_connect(self, *, user_id, params):
+        # Persist the connection via app.db.upsert_connection.
+        ...
+
+    async def verify_webhook(self, request):
+        # Inspect headers + signature, return WebhookVerification(ok=True, payload=…)
+        # or fail with WebhookVerification(ok=False, response_status=401, error="…").
+        # Slack uses an X-Slack-Signature header — easy to mirror the Zoom
+        # implementation.
+        ...
+
+    async def extract_recording_events(self, payload):
+        # Walk the verified payload and emit one RecordingEvent per audio
+        # asset. Set fetch_context to whatever download_recording needs.
+        return []
+
+    async def download_recording(self, *, connection_credentials, event):
+        # async generator — yield audio bytes in chunks. Never buffer.
+        async for chunk in some_streaming_client.iter():
+            yield chunk
+
+    # Optional. Override only if your platform has long-lived subscriptions
+    # that need PATCH-renewal (Graph callRecording, Drive push channels, …).
+    # Default impl raises NotImplementedError and the renewal cron skips it.
+    # async def renew_subscription(self, subscription_external_id): ...
 ```
 
-Then add `from . import google_meet` to `app/providers/__init__.py`. Routes,
-dedupe, and the transcription handoff need no changes.
+Then add the import:
+
+```python
+# app/providers/__init__.py
+from . import slack_huddle  # noqa: F401
+```
+
+That's it. The frontend integrations page will list it on next load
+(the catalogue is `GET /providers` — it iterates the registry); webhook
+deliveries land at `/webhooks/slack_huddle`; the worker dedupes by
+`(provider="slack_huddle", external_recording_id=…)`.
+
+### Reference implementations
+
+- **Real, full pipeline:** `providers/teams.py` — admin-consent OAuth, Graph
+  subscription create + renew, validation handshake, clientState
+  enforcement, app-only token refresh, streaming download.
+- **Real, single-secret signing:** `providers/zoom.py` — Marketplace S2S
+  OAuth, URL-validation handshake, HMAC-SHA256 + replay-window check,
+  per-event Bearer download with S2S fallback.
+- **Generic / "I just want to ingest a URL":** `providers/generic.py` — for
+  Slack/Discord bots, internal recording services, Lambda forwarders. The
+  upstream client signs `v0:{ts}:{rawBody}` with a shared secret; body is
+  `{ recording_id, audio_url, organiser_email?, … }`. Set
+  `GENERIC_WEBHOOK_SECRET` to enable.
+- **Stub demonstrating the pattern:** `providers/google_meet.py` — every
+  required method is present, raising `NotImplementedError` with inline
+  comments pointing at the Drive Activity / Drive v3 endpoints to fill in.
 
 ## Endpoints
 
@@ -83,6 +144,13 @@ ZOOM_ACCOUNT_ID=
 ZOOM_CLIENT_ID=
 ZOOM_CLIENT_SECRET=
 ZOOM_WEBHOOK_SECRET_TOKEN=
+
+# Generic provider (Slack bots / Discord bots / custom forwarders)
+GENERIC_WEBHOOK_SECRET=
+
+# Renewal cron — disable to run renewal externally as a sidecar instead
+WEBHOOK_RENEWAL_ENABLED=true
+WEBHOOK_RENEWAL_INTERVAL_SECONDS=1800
 ```
 
 ## Mock mode
@@ -107,19 +175,29 @@ For real-tenant Teams testing point `PUBLIC_BASE_URL` at an HTTPS tunnel
 subscription's `notificationUrl` (the service does this automatically on
 `POST /connect/teams/complete`).
 
+## Tests
+
+```bash
+cd backend/meeting_webhooks
+python -m unittest discover -s tests
+```
+
+16 stdlib `unittest` cases covering: registry duplicate-id rejection, Zoom
+URL-validation handshake, Zoom signature pass / replay-window fail / signature
+mismatch, Zoom recording-event extraction (M4A filter, status filter,
+non-recording events), generic-provider HMAC signing (pass / tampered body /
+missing headers), generic-provider event extraction, and renewal-cron
+override detection.
+
 ## What still has to happen for production
 
 - **Teams**: encrypted resource data (`includeResourceData: true`) — wire an
   X.509 keypair through `app/config.py` and the cert path inside
   `providers/teams.py::create_subscription`.
-- **Teams**: a renewal cron — there's a query helper
-  (`db.list_subscriptions_for_renewal`) ready, but no scheduler runs it yet.
-  Pick a cron container (or APScheduler on FastAPI startup) and have it
-  call `MicrosoftTeamsProvider.renew_subscription` every ~6 h.
-- **Zoom**: implement `extract_recording_events` and `download_recording`
-  in `providers/zoom.py` — handshake + signature verification are already
-  done.
 - **Background queue**: replace FastAPI `BackgroundTasks` in
   `routes_webhook.py` with Celery/RQ for durable retries.
 - **Token at rest**: the `connection.credentials_json` column is
   base64/JSON. KMS-wrap it in production.
+- **Google Meet**: fill in the methods marked `NotImplementedError` in
+  `providers/google_meet.py` against the Drive Activity / Drive v3 APIs
+  when prioritized.

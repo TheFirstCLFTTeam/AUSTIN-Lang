@@ -11,6 +11,7 @@ registers the class into the registry.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 
@@ -20,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import providers as _providers  # noqa: F401  — eager registration
 from .config import settings
 from .db import get_db
+from .renewal import renewal_loop
 from .routes_connect import router as connect_router
 from .routes_lifecycle import router as lifecycle_router
 from .routes_webhook import router as webhook_router
@@ -44,10 +46,32 @@ app.include_router(webhook_router)
 app.include_router(lifecycle_router)
 
 
+_stop_event: asyncio.Event | None = None
+_renewal_task: asyncio.Task | None = None
+
+
 @app.on_event("startup")
-def _startup() -> None:
+async def _startup() -> None:
     # Eager DB open so the schema is created at boot, not on first request.
     get_db()
+    # Spin up the proactive subscription-renewal loop as a daemon task.
+    # Disabled when WEBHOOK_RENEWAL_ENABLED=false — useful for tests and for
+    # operators who want to run renewal as a sidecar cron instead.
+    if os.getenv("WEBHOOK_RENEWAL_ENABLED", "true").lower() != "false":
+        global _stop_event, _renewal_task
+        _stop_event = asyncio.Event()
+        _renewal_task = asyncio.create_task(renewal_loop(_stop_event))
+
+
+@app.on_event("shutdown")
+async def _shutdown() -> None:
+    if _stop_event is not None:
+        _stop_event.set()
+    if _renewal_task is not None:
+        try:
+            await asyncio.wait_for(_renewal_task, timeout=5)
+        except asyncio.TimeoutError:
+            _renewal_task.cancel()
 
 
 @app.get("/healthz")

@@ -234,6 +234,30 @@ class JobStore:
     def cancel(self, job_id: str) -> TrainingJobRecord:
         return self.transition(job_id, "cancelled")
 
+    def update_progress(self, job_id: str, progress_pct: float) -> TrainingJobRecord:
+        """Set progress_pct without changing status. Used by the real
+        worker to stream training progress between status transitions —
+        transition() rejects no-op state changes (running→running) on
+        purpose, but progress is a "nice-to-have" that should land
+        whenever the job is in a state that can have it."""
+        record = self.get(job_id)
+        if record is None:
+            raise JobError(f"job {job_id!r} not found", status_code=404)
+        # Only meaningful while the job is doing work. Silently no-op
+        # when the job is terminal so a late-arriving stdout line can't
+        # corrupt a finalised record.
+        if record.status in TERMINAL_STATES:
+            return record
+        with self._conn() as conn:
+            with conn:
+                conn.execute(
+                    "UPDATE training_job SET progress_pct = ? WHERE id = ?",
+                    (float(progress_pct), job_id),
+                )
+        updated = self.get(job_id)
+        assert updated is not None
+        return updated
+
 
 def _row_to_record(row: sqlite3.Row) -> TrainingJobRecord:
     env_raw = row["env_json"] or "{}"
