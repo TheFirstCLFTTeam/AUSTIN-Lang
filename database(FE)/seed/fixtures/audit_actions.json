@@ -70,5 +70,23 @@
     "verb": "exported the transcript",
     "category": "Access",
     "color": "#7a7574"
+  },
+  "login_succeeded": {
+    "label": "Login succeeded",
+    "verb": "signed in",
+    "category": "Auth",
+    "color": "#1a7f37"
+  },
+  "login_failed": {
+    "label": "Login failed",
+    "verb": "tried to sign in with the wrong credentials",
+    "category": "Auth",
+    "color": "#b20100"
+  },
+  "logout": {
+    "label": "Logout",
+    "verb": "signed out",
+    "category": "Auth",
+    "color": "#7a7574"
   }
 }

@@ -75,6 +75,62 @@ function FileIcon() {
   );
 }
 
+// Inline spinner for the busy/navigating state on file rows. Uses an inline
+// <style> for the keyframe so the page stays self-contained — Tailwind's
+// animate-spin would also work but isn't currently configured.
+function RowSpinner({ size = 14, color = "#635bff" }) {
+  return (
+    <span
+      role="status"
+      aria-label="Opening file"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "9999px",
+        border: `2px solid ${color}33`,
+        borderTopColor: color,
+        display: "inline-block",
+        animation: "fileRowSpin 0.7s linear infinite",
+      }}
+    >
+      <style>{`@keyframes fileRowSpin { to { transform: rotate(360deg); } }`}</style>
+    </span>
+  );
+}
+
+// "Click to open" affordance shown on the currently-selected row. Slides in
+// from the right edge so a user discovers the second-click shortcut without
+// having to read documentation. Inspired by the React-Bits-style row hint
+// chips and the macOS Finder selection-then-Enter affordance.
+function OpenHint({ variant = "row" }) {
+  const compact = variant === "row";
+  return (
+    <span
+      aria-hidden
+      className="inline-flex items-center gap-1 select-none"
+      style={{
+        fontSize: compact ? "0.625rem" : "0.6875rem",
+        fontWeight: 600,
+        letterSpacing: "0.04em",
+        color: "#635bff",
+        backgroundColor: "rgba(99, 91, 255, 0.08)",
+        border: "1px solid rgba(99, 91, 255, 0.25)",
+        borderRadius: "9999px",
+        padding: compact ? "1px 6px" : "2px 8px",
+        animation: "openHintSlide 0.22s ease-out",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <style>{`@keyframes openHintSlide { from { opacity: 0; transform: translateX(4px); } to { opacity: 1; transform: translateX(0); } }`}</style>
+      <span>Click to open</span>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 12h14" />
+        <path d="m13 5 7 7-7 7" />
+      </svg>
+    </span>
+  );
+}
+
 function StarIcon({ filled, size = 14 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "#f5a623" : "none"} stroke={filled ? "#f5a623" : "#7a7574"} strokeWidth="1.5" strokeLinejoin="round">
@@ -865,6 +921,11 @@ export default function FilesPage() {
   const [selected, setSelected] = useState(null);
   const [viewMode, setViewMode] = useState("list");
   const [loading, setLoading] = useState(true);
+  // Set on the row whose double-click kicked off navigation. Cleared on
+  // unmount automatically; we also clear it if the user dbl-clicks a different
+  // row mid-navigation so only one row ever shows the busy state.
+  const [navigatingId, setNavigatingId] = useState(null);
+  const [tappedId, setTappedId] = useState(null); // brief single-click ack
   const router = useRouter();
   const user = getCurrentUser();
   const userRole = user?.role || "generic";
@@ -1271,28 +1332,75 @@ export default function FilesPage() {
     }
   }
 
+  // Single source of truth for opening a file: tags the row as busy and
+  // routes to the detail page. Used by row activation (tap on selected row,
+  // double-click, or Enter) on both list rows and grid cards.
+  const openFile = (file) => {
+    if (isSelectMode) return;
+    if (navigatingId) return; // already opening something
+    if (!(file.isOwned || userRole === "admin")) return;
+    setNavigatingId(file.id);
+    router.push(`/files/${file.id}`);
+  };
+
+  // Two-tap activation, mirroring the Stripe Dashboard / Finder convention
+  // (and React Aria's `onAction` + `selectionBehavior="replace"` model):
+  //
+  //   1st tap on an unselected row → select only (right-hand preview updates)
+  //   2nd tap on the same selected row → activate (open the detail page)
+  //   double-click → activate immediately (power-user path, preserved)
+  //   Enter on a focused row → activate
+  //
+  // The brief inset-ring "tap" pulse confirms the click registered before
+  // selection bg paint. Auto-clears in 180 ms.
+  const handleRowTap = (file) => {
+    if (isSelectMode) { toggleChecked(file.id); return; }
+    const alreadySelected = selected?.id === file.id;
+    setTappedId(file.id);
+    setTimeout(() => setTappedId((cur) => (cur === file.id ? null : cur)), 180);
+    if (alreadySelected) {
+      openFile(file);
+      return;
+    }
+    setSelected(file);
+  };
+
   const renderListRow = (file) => {
     const isSelected = selected?.id === file.id;
     const isFav = favorites.has(file.id);
     const isPinned = pinnedSet.has(file.id);
     const isChecked = checkedFiles.has(file.id);
+    const isNavigating = navigatingId === file.id;
+    const isTapped = tappedId === file.id;
     return (
       <div
         key={file.id}
-        onClick={() => isSelectMode ? toggleChecked(file.id) : setSelected(file)}
-        onDoubleClick={() => {
-          if (!isSelectMode && (file.isOwned || userRole === "admin")) router.push(`/files/${file.id}`);
+        role="button"
+        tabIndex={0}
+        aria-selected={isSelected}
+        aria-busy={isNavigating}
+        onClick={() => handleRowTap(file)}
+        onDoubleClick={() => openFile(file)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !isSelectMode) { e.preventDefault(); openFile(file); }
         }}
-        className="group flex items-center px-4 py-3 cursor-pointer transition-colors"
+        className="group flex items-center px-4 py-3 transition-all"
         style={{
+          cursor: isNavigating ? "progress" : "pointer",
+          pointerEvents: isNavigating ? "none" : "auto",
+          opacity: isNavigating ? 0.7 : 1,
+          transform: isTapped ? "scale(0.997)" : "scale(1)",
           backgroundColor: isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff",
           borderBottom: "1px solid #f0edec",
+          boxShadow: isTapped ? "inset 0 0 0 1px rgba(99, 91, 255, 0.35)" : "none",
         }}
-        onMouseEnter={(e) => { const base = isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff"; if (e.currentTarget.style.backgroundColor === base) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+        onMouseEnter={(e) => { if (isNavigating) return; const base = isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff"; if (e.currentTarget.style.backgroundColor === base) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff"; }}
       >
         <div className="w-8 flex justify-center">
-          {isSelectMode ? (
+          {isNavigating ? (
+            <RowSpinner />
+          ) : isSelectMode ? (
             <SelectCheckbox checked={isChecked} onClick={() => toggleChecked(file.id)} />
           ) : (
             <StarButton active={isFav} onClick={() => toggleFavorite(file.id)} />
@@ -1321,7 +1429,14 @@ export default function FilesPage() {
         <div className="w-20 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{file.duration || "\u2014"}</div>
         <div className="w-24 text-center text-[0.8125rem]" style={{ color: "#7a7574" }}>{file.detectedLanguage || "\u2014"}</div>
         <div className="w-16 text-center text-[0.8125rem]" style={{ color: file.wer != null && file.wer !== 'NA' ? "#b20100" : "#7a7574" }}>{file.wer != null && file.wer !== 'NA' ? `${file.wer}%` : "\u2014"}</div>
-        <div className="w-8 flex justify-center">
+        <div className="w-8 flex justify-center relative">
+          {isSelected && !isSelectMode && !isNavigating && (file.isOwned || userRole === "admin") && (
+            <span
+              className="absolute right-full top-1/2 -translate-y-1/2 mr-2 pointer-events-none"
+            >
+              <OpenHint />
+            </span>
+          )}
           <RowMenu items={[
             { label: isPinned ? "Unpin" : "Pin to top", icon: <PinIcon active={isPinned} size={12} />, onClick: () => togglePin(file.id) },
             { label: isFav ? "Remove star" : "Star", icon: <StarIcon filled={isFav} size={12} />, onClick: () => toggleFavorite(file.id) },
@@ -1337,22 +1452,46 @@ export default function FilesPage() {
     const isFav = favorites.has(file.id);
     const isPinned = pinnedSet.has(file.id);
     const isChecked = checkedFiles.has(file.id);
+    const isNavigating = navigatingId === file.id;
+    const isTapped = tappedId === file.id;
     return (
       <div
         key={file.id}
-        onClick={() => isSelectMode ? toggleChecked(file.id) : setSelected(file)}
-        onDoubleClick={() => {
-          if (!isSelectMode && (file.isOwned || userRole === "admin")) router.push(`/files/${file.id}`);
+        role="button"
+        tabIndex={0}
+        aria-selected={isSelected}
+        aria-busy={isNavigating}
+        onClick={() => handleRowTap(file)}
+        onDoubleClick={() => openFile(file)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !isSelectMode) { e.preventDefault(); openFile(file); }
         }}
-        className="group cursor-pointer transition-colors overflow-hidden relative"
+        className="group transition-all overflow-hidden relative"
         style={{
+          cursor: isNavigating ? "progress" : "pointer",
+          pointerEvents: isNavigating ? "none" : "auto",
+          opacity: isNavigating ? 0.75 : 1,
+          transform: isTapped ? "scale(0.985)" : "scale(1)",
           backgroundColor: isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff",
           borderRadius: "8px",
           border: isSelectMode && isChecked ? "2px solid #b20100" : isSelected && !isSelectMode ? "2px solid #b20100" : "1px solid #e8e4e3",
         }}
-        onMouseEnter={(e) => { if (!isSelected || isSelectMode) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
+        onMouseEnter={(e) => { if (isNavigating) return; if (!isSelected || isSelectMode) e.currentTarget.style.backgroundColor = "#f6f3f2"; }}
         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isSelectMode && isChecked ? "rgba(178, 1, 0, 0.04)" : isSelected && !isSelectMode ? "#eef0fc" : "#ffffff"; }}
       >
+        {isNavigating && (
+          <div
+            className="absolute inset-0 flex items-center justify-center z-20"
+            style={{ backgroundColor: "rgba(255, 255, 255, 0.55)", backdropFilter: "blur(2px)" }}
+          >
+            <RowSpinner size={20} />
+          </div>
+        )}
+        {isSelected && !isSelectMode && !isNavigating && (file.isOwned || userRole === "admin") && (
+          <div className="absolute top-2 left-2 z-10 pointer-events-none">
+            <OpenHint variant="card" />
+          </div>
+        )}
         <div className="absolute top-2 right-2 z-10" style={{ backgroundColor: (isFav || isChecked) ? "rgba(255,255,255,0.9)" : "transparent", borderRadius: "9999px" }}>
           {isSelectMode ? (
             <SelectCheckbox checked={isChecked} onClick={() => toggleChecked(file.id)} />
@@ -1401,7 +1540,7 @@ export default function FilesPage() {
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
           <DotLottieReact
-            src="https://lottie.host/c0dd85b9-4b16-423a-acc1-a99b7db2fa8b/JTRJuIh54G.lottie"
+            src="/loading.lottie"
             loop autoplay style={{ width: 200, height: 200 }}
           />
           <p className="text-[0.875rem] font-medium" style={{ color: "#7a7574" }}>Loading...</p>
@@ -1894,12 +2033,16 @@ export default function FilesPage() {
             {(selected.isOwned || userRole === "admin") ? (
               <>
                 <button
-                  onClick={() => router.push(`/files/${selected.id}`)}
+                  onClick={() => openFile(selected)}
                   className="w-full py-2.5 text-[0.8125rem] font-semibold cursor-pointer"
                   style={{ background: "linear-gradient(135deg, #b20100, #e10000)", color: "#ffffff", border: "none", borderRadius: "6px" }}
+                  title="Click the row again, press Enter, or use this button"
                 >
                   OPEN TRANSCRIPT
                 </button>
+                <p className="text-[0.6875rem] text-center" style={{ color: "#9a9694" }}>
+                  Tip: click the selected row again, or press <kbd style={{ fontFamily: "ui-monospace, monospace", padding: "0 4px", border: "1px solid #d4d4d4", borderRadius: "3px", backgroundColor: "#f6f3f2" }}>Enter</kbd>
+                </p>
                 <button
                   onClick={() => router.push(`/files/${selected.id}/audit`)}
                   className="w-full py-2.5 text-[0.8125rem] font-medium cursor-pointer"

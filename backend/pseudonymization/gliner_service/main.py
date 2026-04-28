@@ -23,7 +23,17 @@ from pydantic import BaseModel, Field
 from gliner import GLiNER
 
 MODEL_ID = os.getenv("GLINER_MODEL_ID", "urchade/gliner_medium-v2.1")
-SHARED_SECRET = os.getenv("GLINER_SHARED_SECRET", "dev-shared-secret")
+
+_IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
+SHARED_SECRET = os.getenv("GLINER_SHARED_SECRET")
+if not SHARED_SECRET:
+    if _IS_PRODUCTION:
+        # Refuse to boot rather than accept any caller. See
+        # docs/07 Integration CAA 27APR2026/security overview.md §13.
+        raise RuntimeError(
+            "GLINER_SHARED_SECRET must be set in production. Refusing to boot."
+        )
+    SHARED_SECRET = "dev-shared-secret"
 
 app = FastAPI(
     title="AUSTIN-Lang gliner Service",
@@ -31,12 +41,19 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# gliner runs inside the enclave VNet; in dev no browser ever calls it directly.
+# The shared-secret header check below is the actual auth — CORS is just hygiene.
+# See docs/07 Integration CAA 27APR2026/security overview.md §1.
+_gliner_allowed_origins = [
+    o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_gliner_allowed_origins,
     allow_credentials=False,
     allow_methods=["POST", "GET"],
-    allow_headers=["*"],
+    allow_headers=["Content-Type", "X-Shared-Secret"],
 )
 
 print(f"Loading {MODEL_ID}...")

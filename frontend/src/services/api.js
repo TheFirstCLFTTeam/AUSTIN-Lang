@@ -1,28 +1,48 @@
 // src/services/api.js
 //
-// Client-side API surface. All persistent reads/writes go through the
-// in-process Next.js route handlers under src/app/api/**/route.js, which are
-// backed by SQLite (`users.db` + `platform.db`). Auth uses an HttpOnly JWT
-// cookie — the sync `getCurrentUser()` cache exists only so that existing
-// synchronous call sites keep working after login.
+// Client-side API surface with two modes, controlled by NEXT_PUBLIC_MOCK_API:
+//
+//   mock mode (true):
+//     - reads/writes use in-memory fixtures from mock-data.js
+//     - login accepts the seeded mock users with their plaintext passwords
+//       and sets a readable 'token' cookie so the middleware lets pages through
+//     - no server round-trips, no DB required
+//
+//   real mode (false, default):
+//     - reads/writes hit in-process Next.js route handlers under
+//       src/app/{auth,api}/** which are backed by SQLite (users.db + platform.db)
+//     - auth is an HttpOnly JWT cookie signed server-side
+//
+// Switch with the `dev:mock` / `dev:real` scripts in package.json. Because
+// NEXT_PUBLIC_* is inlined at build time, changing modes requires a rebuild.
 
+import { users, MOCK_FILE_STORE, MOCK_PROCESSING_JOBS, MOCK_USER_PROFILES } from './mock-data';
 import { addReviewNotification, addReviewActionNotification } from './notifications';
 import { assertTransition } from '../lib/statusFlow';
 import { http } from './http';
-import { pseudonymiseSegments } from './pseudonymisation';
+import { pseudonymiseSegments, triggerPseudonymisationRun } from './pseudonymisation';
+import { refreshMetricsCache } from './metrics';
 import { applyEdits, recomputeSegmentEdits } from '../lib/transcriptEdits';
 
+// Fire-and-forget; the metrics service caches for 60s so invalidating after
+// an edit/approve keeps the dashboard honest. Failures are non-fatal.
+function invalidateMetricsCache() {
+    refreshMetricsCache().catch((err) => {
+        console.warn('metrics cache refresh failed', err);
+    });
+}
+
+const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_API === 'true';
+
 // ── Auth helpers ────────────────────────────────────────────────────────────
-// The JWT itself lives in an HttpOnly cookie issued by POST /auth/login and is
-// invisible to browser JS. For sync compatibility with existing call sites we
-// cache the authenticated user profile in sessionStorage. The cache is
-// populated by:
-//   1. `login()` after a successful POST /auth/login
-//   2. `bootstrapAuth()` on dashboard load (calls GET /auth/me via cookie)
-//   3. `setCachedUser()` from the server-rendered AuthHydrator component.
-// Cache shape: `{ id, email, name, role }`.
+// In both modes we keep a synchronous sessionStorage cache of the currently
+// authenticated user so pages that expect getCurrentUser() to return
+// immediately (there are many) still work. In real mode the HttpOnly JWT
+// cookie is the actual source of truth; in mock mode we also drop a
+// non-HttpOnly 'token' cookie so the proxy middleware lets pages through.
 
 const USER_CACHE_KEY = 'austin.currentUser';
+const MOCK_COOKIE_NAME = 'token';
 
 export function setCachedUser(user) {
     if (typeof window === 'undefined') return;
@@ -48,13 +68,36 @@ export function isAuthenticated() {
     return !!getCurrentUser();
 }
 
+function setMockCookie(userId) {
+    if (typeof document === 'undefined') return;
+    document.cookie = `${MOCK_COOKIE_NAME}=MOCK-${userId}; path=/; SameSite=Lax`;
+}
+
+function clearMockCookie() {
+    if (typeof document === 'undefined') return;
+    document.cookie = `${MOCK_COOKIE_NAME}=; path=/; max-age=0`;
+}
+
 export async function login(email, password) {
+    if (MOCK_MODE) {
+        const user = users.find((u) => u.email === email && u.password === password);
+        if (!user) throw new Error('Invalid email or password');
+        const shape = { id: user.id, email: user.email, name: user.name, role: user.role };
+        setMockCookie(user.id);
+        setCachedUser(shape);
+        return { user: shape };
+    }
     const user = await http.post('/auth/login', { email, password });
     setCachedUser(user);
     return { user };
 }
 
 export async function logout() {
+    if (MOCK_MODE) {
+        clearMockCookie();
+        setCachedUser(null);
+        return;
+    }
     try {
         await http.post('/auth/logout');
     } catch (err) {
@@ -63,7 +106,11 @@ export async function logout() {
     setCachedUser(null);
 }
 
+// Called on app load to populate the sync cache.
 export async function bootstrapAuth() {
+    if (MOCK_MODE) {
+        return getCurrentUser();
+    }
     try {
         const user = await http.get('/auth/me');
         setCachedUser(user);
@@ -77,10 +124,7 @@ export async function bootstrapAuth() {
     }
 }
 
-// Legacy shim — some call sites still call `getToken()`. With HttpOnly cookies
-// the browser can't read the JWT, so we return a sentinel based on presence of
-// a cached user. Anything that inspected the old base64 payload should be
-// switched to `getCurrentUser()` instead.
+// Legacy shim for call sites that still ask for a raw token.
 export function getToken() {
     return isAuthenticated() ? 'cookie' : null;
 }
@@ -89,15 +133,51 @@ function requireAuth() {
     if (!isAuthenticated()) throw new Error('Not authenticated');
 }
 
+// Helpers used only by the mock branches below.
+let _nextMockId = 3;
+
+function listShapeFromMockFile(f) {
+    const fullText = (f.rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
+    const words = fullText.split(/\s+/).filter(Boolean);
+    const header = words.length > 1 ? words.slice(0, 50).join(' ') : fullText.slice(0, 120);
+    return {
+        id: f.id,
+        name: f.name,
+        audioUrl: f.audioUrl,
+        uploaded_at: f.uploaded_at,
+        transcriptHeader: header,
+        duration: f.duration || null,
+        wer: f.wer ?? null,
+        absoluteWordErrorRate: f.absoluteWordErrorRate ?? null,
+        totalNumberOfWords: f.totalNumberOfWords ?? null,
+        speakerDetection: f.speakerDetection ?? null,
+        detectedLanguage: f.detectedLanguage || null,
+        compliance: f.compliance || null,
+        dataset: f.dataset || null,
+        status: f.status || 'needs action',
+        reviewerId: f.reviewerId || null,
+        submittedForReviewAt: f.submittedForReviewAt || null,
+    };
+}
+
 // ── User profile ───────────────────────────────────────────────────────────
 export async function fetchUserProfile() {
     requireAuth();
+    if (MOCK_MODE) {
+        const currentUser = getCurrentUser();
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_USER_PROFILES[currentUser?.id] || MOCK_USER_PROFILES.u1;
+    }
     return http.get('/api/user-profile');
 }
 
-// ── Processing queue ──────────────────────────────────────────────────────
+// ── Processing queue ───────────────────────────────────────────────────────
 export async function fetchProcessingJobs() {
     requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_PROCESSING_JOBS;
+    }
     try {
         return await http.get('/api/processing-jobs');
     } catch (error) {
@@ -107,30 +187,67 @@ export async function fetchProcessingJobs() {
 }
 
 // ── Upload ─────────────────────────────────────────────────────────────────
-// Integrated path talks to the external transcription orchestrator at
-// :8001. There is no DB-backed fallback — containerize `pseudonymization/` +
-// `backend/*` and run them alongside the frontend (`docker compose up`) for
-// the upload path to work.
-export async function uploadAudio(file) {
+export async function fetchAdapters() {
+    if (MOCK_MODE) {
+        return { adapters: ['base', 'meralion_v1'] };
+    }
+    try {
+        return await http.get('/api/adapters');
+    } catch (err) {
+        console.warn('fetchAdapters: falling back to base only', err);
+        return { adapters: ['base'] };
+    }
+}
+
+export async function uploadAudio(file, { domain, language } = {}) {
     requireAuth();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const newId = String(_nextMockId++);
+        const segments = [
+            { id: Date.now(),     start: 0.0, end: 3.0, text: 'Mock transcription for ' + file.name },
+            { id: Date.now() + 1, start: 3.0, end: 6.0, text: 'This is a placeholder transcript.' },
+        ];
+        const currentUser = getCurrentUser();
+        const newFile = {
+            id: newId,
+            ownerId: currentUser?.id || 'u1',
+            ownerName: currentUser?.email || 'Unknown',
+            name: file.name,
+            audioUrl: URL.createObjectURL(file),
+            uploaded_at: new Date().toISOString(),
+            rawTranscript: {
+                id: 100 + Number(newId),
+                audio_file_id: Number(newId),
+                transcript_segments: segments,
+            },
+            edits: [],
+        };
+        MOCK_FILE_STORE.push(newFile);
+        return newFile;
+    }
+
+    // Real mode posts to the Next.js /api/upload route. That route proxies
+    // the audio to the transcription orchestrator and mirrors the resulting
+    // rows into platform.db, stashing the backend transcript IDs so later
+    // edits can co-write to poc.db at :8002 (where the retraining pipeline
+    // reads from).
     try {
         const formData = new FormData();
         formData.append('file', file);
-
-        const response = await fetch('http://localhost:8001/transcribe/', {
+        if (domain && domain !== 'base') formData.append('domain', domain);
+        if (language) formData.append('language', language);
+        const response = await fetch('/api/upload', {
             method: 'POST',
+            credentials: 'include',
             body: formData,
         });
         if (!response.ok) {
-            throw new Error(`Orchestrator failed: ${response.status}`);
+            const text = await response.text().catch(() => '');
+            throw new Error(`Upload failed: ${response.status} ${text}`);
         }
-        const data = await response.json();
-        return {
-            id: String(data.audio_file_id),
-            name: file.name,
-            audioUrl: `http://localhost:8000/audio_files/${file.name}`,
-            transcriptSegments: data.transcription.segments || [],
-        };
+        return await response.json();
     } catch (error) {
         console.error('Error in uploadAudio workflow:', error);
         throw error;
@@ -140,23 +257,51 @@ export async function uploadAudio(file) {
 // ── Audio files ────────────────────────────────────────────────────────────
 export async function fetchSubmittedFiles() {
     requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map(listShapeFromMockFile);
+    }
     return http.get('/api/audio-files?scope=submitted');
 }
 
 export async function fetchTrashedFiles() {
     requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_FILE_STORE.filter((f) => f.deleted_at).map((f) => ({
+            ...listShapeFromMockFile(f),
+            deleted_at: f.deleted_at,
+            deleted_by: f.deleted_by || 'system',
+            expires_at: f.expires_at || null,
+        }));
+    }
     return http.get('/api/audio-files?scope=trashed');
 }
 
 export async function fetchAllFilesMetadata() {
     requireAuth();
     const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map((f) => ({
+            ...listShapeFromMockFile(f),
+            ownerId: f.ownerId,
+            ownerName: f.ownerName,
+            isOwned: f.ownerId === currentUser?.id,
+        }));
+    }
+
     const rows = await http.get('/api/audio-files?scope=all');
     return rows.map((r) => ({ ...r, isOwned: r.ownerId === currentUser?.id }));
 }
 
 export async function fetchFileDetail(id) {
     requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_FILE_STORE.find((f) => f.id === String(id)) || null;
+    }
     try {
         return await http.get(`/api/audio-files/${encodeURIComponent(id)}`);
     } catch (err) {
@@ -168,11 +313,18 @@ export async function fetchFileDetail(id) {
 
 export async function saveEdits(fileId, edits = []) {
     requireAuth();
-    return http.put(`/api/audio-files/${encodeURIComponent(fileId)}/edits`, { edits });
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (file) file.edits = edits;
+        return { fileId: String(fileId), edits };
+    }
+    const result = await http.put(`/api/audio-files/${encodeURIComponent(fileId)}/edits`, { edits });
+    invalidateMetricsCache();
+    return result;
 }
 
 // ── Workflow: submit / approve / request-changes ───────────────────────────
-
 async function runPseudonymisationForFile(file, currentUser) {
     const rawSegments = file?.rawTranscript?.transcript_segments || [];
     if (rawSegments.length === 0) {
@@ -227,24 +379,58 @@ export async function submitForReview(fileId, reviewerId) {
     requireAuth();
     const currentUser = getCurrentUser();
 
-    // Fetch detail first so we can run pseudonymisation client-side before
-    // persisting the status flip.
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        assertTransition(file.status || 'needs action', 'in review');
+
+        const pseudoResult = await runPseudonymisationForFile(file, currentUser);
+        if (pseudoResult.warning) {
+            file.pseudonymisationWarning = pseudoResult.warning;
+        } else {
+            file.pseudonymisationWarning = null;
+            file.edits = pseudoResult.edits;
+            file.pseudonymisationApplied = pseudoResult.summary;
+        }
+
+        file.status = 'in review';
+        file.reviewerId = reviewerId;
+        file.submittedForReviewAt = new Date().toISOString();
+        file.submittedBy = currentUser?.id;
+
+        const submitterProfile = MOCK_USER_PROFILES[currentUser?.id];
+        const submitterName = submitterProfile?.name || currentUser?.email || 'A user';
+        addReviewNotification({
+            fileId: String(fileId),
+            fileName: file.name,
+            recipientId: reviewerId,
+            submittedBy: currentUser?.id,
+            submitterName,
+        });
+
+        return { fileId: String(fileId), status: 'in review', reviewerId };
+    }
+
     const file = await fetchFileDetail(fileId);
     if (!file) throw new Error('File not found');
     assertTransition(file.status || 'needs action', 'in review');
 
     const pseudoResult = await runPseudonymisationForFile(file, currentUser);
-    if (!pseudoResult.warning) {
-        await saveEdits(fileId, pseudoResult.edits);
-    }
+    if (!pseudoResult.warning) await saveEdits(fileId, pseudoResult.edits);
 
     const result = await http.post(
         `/api/audio-files/${encodeURIComponent(fileId)}/submit-for-review`,
         { reviewerId },
     );
 
-    // Notifications live in the in-memory notifications service — no DB
-    // backing yet, so we fire here after the server confirms the transition.
+    // Fire off a stateful pseudonymisation run so the reviewer has spans to
+    // decide on when they open the file. Fire-and-forget: the reviewer panel
+    // polls anyway, and a failed run shouldn't block the submit.
+    triggerPseudonymisationRun(fileId, reviewerId).catch((err) =>
+        console.warn('[pseudonymisation] auto-run failed:', err?.message),
+    );
+
     addReviewNotification({
         fileId: String(fileId),
         fileName: file.name,
@@ -260,15 +446,37 @@ export async function approveTranscript(fileId) {
     requireAuth();
     const currentUser = getCurrentUser();
 
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        assertTransition(file.status, 'completed');
+        file.status = 'completed';
+        file.reviewedBy = currentUser?.id;
+        file.reviewedAt = new Date().toISOString();
+
+        if (file.submittedBy) {
+            const reviewerProfile = MOCK_USER_PROFILES[currentUser?.id];
+            const reviewerName = reviewerProfile?.name || currentUser?.email || 'A reviewer';
+            addReviewActionNotification({
+                fileId: String(fileId),
+                fileName: file.name,
+                recipientId: file.submittedBy,
+                reviewerName,
+                action: 'approved',
+            });
+        }
+
+        return { fileId: String(fileId), status: 'completed' };
+    }
+
     const file = await fetchFileDetail(fileId);
     if (!file) throw new Error('File not found');
     assertTransition(file.status || 'in review', 'completed');
 
-    const result = await http.post(
-        `/api/audio-files/${encodeURIComponent(fileId)}/approve`,
-    );
+    const result = await http.post(`/api/audio-files/${encodeURIComponent(fileId)}/approve`);
+    invalidateMetricsCache();
 
-    // Best-effort: notify the original submitter via in-memory notifications.
     addReviewActionNotification({
         fileId: String(fileId),
         fileName: file.name,
@@ -283,6 +491,34 @@ export async function approveTranscript(fileId) {
 export async function requestChanges(fileId, reason) {
     requireAuth();
     const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        assertTransition(file.status, 'needs action');
+        file.status = 'needs action';
+        file.reviewerId = null;
+        file.submittedForReviewAt = null;
+        file.changeRequestReason = reason || null;
+        file.changeRequestedBy = currentUser?.id;
+        file.changeRequestedAt = new Date().toISOString();
+
+        if (file.submittedBy) {
+            const reviewerProfile = MOCK_USER_PROFILES[currentUser?.id];
+            const reviewerName = reviewerProfile?.name || currentUser?.email || 'A reviewer';
+            addReviewActionNotification({
+                fileId: String(fileId),
+                fileName: file.name,
+                recipientId: file.submittedBy,
+                reviewerName,
+                action: 'needs action',
+                reason: reason || null,
+            });
+        }
+
+        return { fileId: String(fileId), status: 'needs action' };
+    }
 
     const file = await fetchFileDetail(fileId);
     if (!file) throw new Error('File not found');

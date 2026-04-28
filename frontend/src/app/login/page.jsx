@@ -8,7 +8,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false);
   const router = useRouter();
   const canvasRef = useRef(null);
   const mouseRef = useRef({ x: -1000, y: -1000 });
@@ -138,13 +139,24 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(null);
 
     try {
       await login(email, password);
       router.push("/");
     } catch (err) {
-      setError(err.message || "Login failed");
+      // err.status / err.body come from services/http.js; surface the kind so
+      // the user sees a useful next step instead of a generic "Login failed".
+      const status = err?.status;
+      const code = err?.body?.code;
+      const detail = err?.body?.detail || err?.message || "Login failed";
+      let kind;
+      if (status === 401) kind = "credentials";
+      else if (status === 503 || code === "DB_FILE_MISSING" || code === "DB_BINDING_BROKEN") kind = "infra";
+      else if (status === 500) kind = "server";
+      else if (!status) kind = "network"; // fetch threw before getting a response
+      else kind = "server"; // 400 / 4xx other than 401 — rare, treat as server-side
+      setError({ kind, detail, code, status });
     }
   };
 
@@ -219,9 +231,7 @@ export default function LoginPage() {
             </h1>
 
             {error && (
-              <p className="mb-4 text-sm" style={{ color: "#ba1a1a" }}>
-                {error}
-              </p>
+              <LoginErrorBanner error={error} onToggleHelp={() => setShowTroubleshoot((v) => !v)} expanded={showTroubleshoot} />
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -326,9 +336,21 @@ export default function LoginPage() {
             <p className="text-[0.8125rem]" style={{ color: "#7a7574" }}>
               New to AUSTIN-Lang?{" "}
               <button type="button" className="font-semibold bg-transparent border-none cursor-pointer" style={{ color: "#635bff" }}>
-                 Request an account 
+                 Request an account
               </button>
             </p>
+            <p className="text-[0.75rem] mt-2" style={{ color: "#9a9694" }}>
+              Trouble signing in?{" "}
+              <button
+                type="button"
+                onClick={() => setShowTroubleshoot((v) => !v)}
+                className="bg-transparent border-none cursor-pointer underline"
+                style={{ color: "#7a7574" }}
+              >
+                {showTroubleshoot ? "Hide troubleshooting" : "Show troubleshooting"}
+              </button>
+            </p>
+            {showTroubleshoot && <TroubleshootingPanel />}
           </div>
         </div>
 
@@ -346,6 +368,101 @@ export default function LoginPage() {
           <button type="button" className="bg-transparent border-none cursor-pointer text-[0.75rem]" style={{ color: "rgba(120, 120, 120, 0.8)" }}>Help</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function LoginErrorBanner({ error, onToggleHelp, expanded }) {
+  const palette = error.kind === "credentials"
+    ? { bg: "#fff1f2", border: "#ffd5d8", fg: "#ba1a1a" }
+    : { bg: "#fff7ed", border: "#fed7aa", fg: "#9a3412" };
+
+  const headline = (
+    {
+      credentials: "Invalid email or password",
+      infra: "Login service is unavailable",
+      server: "Login failed unexpectedly",
+      network: "Can't reach the login service",
+    }[error.kind]
+  ) || "Login failed";
+
+  const hint = (
+    {
+      credentials: "Check the email and password and try again.",
+      infra: "The auth backend is up but a dependency isn't ready. See troubleshooting below.",
+      server: "Server returned a 500. Check the dev server console for the stack trace.",
+      network: "The dev server may not be running, or the API URL is misconfigured.",
+    }[error.kind]
+  ) || "";
+
+  return (
+    <div
+      className="mb-4 px-3.5 py-3 text-[0.8125rem]"
+      style={{ backgroundColor: palette.bg, border: `1px solid ${palette.border}`, borderRadius: "6px", color: palette.fg }}
+      role="alert"
+    >
+      <p className="font-semibold mb-1">{headline}</p>
+      <p style={{ color: "#1c1b1b" }}>{hint}</p>
+      <p className="mt-1.5 text-[0.75rem]" style={{ color: "#666" }}>
+        <span style={{ fontFamily: "ui-monospace, monospace" }}>{error.detail}</span>
+        {error.status ? <span> · HTTP {error.status}</span> : null}
+        {error.code ? <span> · {error.code}</span> : null}
+      </p>
+      {error.kind !== "credentials" && (
+        <button
+          type="button"
+          onClick={onToggleHelp}
+          className="mt-1.5 bg-transparent border-none cursor-pointer underline text-[0.75rem]"
+          style={{ color: palette.fg }}
+        >
+          {expanded ? "Hide troubleshooting" : "How do I fix this?"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function TroubleshootingPanel() {
+  const Item = ({ title, body, code }) => (
+    <li className="mb-3 last:mb-0">
+      <p className="font-semibold text-[0.8125rem]" style={{ color: "#1c1b1b" }}>{title}</p>
+      <p className="text-[0.75rem]" style={{ color: "#555" }}>{body}</p>
+      {code && (
+        <pre
+          className="mt-1 px-2 py-1.5 text-[0.7rem] overflow-x-auto"
+          style={{ backgroundColor: "#1c1b1b", color: "#e8e8e8", borderRadius: "4px", fontFamily: "ui-monospace, monospace" }}
+        >{code}</pre>
+      )}
+    </li>
+  );
+  return (
+    <div className="mt-3 px-4 py-3 text-left" style={{ backgroundColor: "#ffffff", border: "1px solid #e0e0e0", borderRadius: "6px" }}>
+      <p className="text-[0.8125rem] font-semibold mb-2" style={{ color: "#1c1b1b" }}>Troubleshooting</p>
+      <ol className="list-decimal pl-5">
+        <Item
+          title="Wrong mode? (most common)"
+          body="The login form on this page only works in real mode. The dev server defaults to mock mode (NEXT_PUBLIC_MOCK_API=true) where you sign in with a seeded user and any password matching the fixtures. Switch modes by restarting:"
+          code={"npm run dev:real    # talks to users.db / JWT cookie\nnpm run dev:mock    # in-memory users from mock-data.js"}
+        />
+        <Item
+          title="Identity DB missing or unseeded"
+          body="The users.db SQLite file lives at database(FE)/users.db. Re-seed it from the fixtures:"
+          code={"python \"database(FE)/seed/seed_users_db.py\""}
+        />
+        <Item
+          title="better-sqlite3 native binding broken"
+          body="If you upgraded Node, the native module needs to match. Rebuild from frontend/:"
+          code={"npm rebuild better-sqlite3\n# or, if that fails, reinstall:\nnpm install better-sqlite3"}
+        />
+        <Item
+          title="Dev server not running / wrong API URL"
+          body="A network-level failure (no HTTP status at all) means /auth/login never reached a server. Confirm the Next.js dev server is up and that NEXT_PUBLIC_API_URL is empty or points at it."
+        />
+        <Item
+          title="Still stuck?"
+          body="Check the terminal running next dev — the route logs the underlying error to the server console with the prefix [auth/login]."
+        />
+      </ol>
     </div>
   );
 }

@@ -16,8 +16,28 @@ let _users = null;
 let _platform = null;
 
 function open(file) {
-    const db = new Database(file, { fileMustExist: true });
-    db.pragma('journal_mode = WAL');
+    let db;
+    try {
+        db = new Database(file, { fileMustExist: true });
+    } catch (err) {
+        // Surface the two common operator failures with a tag the route layer
+        // can map to a useful HTTP status + message instead of a bare 500.
+        if (err && err.code === 'SQLITE_CANTOPEN') {
+            const e = new Error(`SQLite file not found at ${file}. Run \`python database(FE)/seed/seed_users_db.py\` to create it, or set USERS_DB_PATH.`);
+            e.code = 'DB_FILE_MISSING';
+            throw e;
+        }
+        if (err && /bindings file|NODE_MODULE_VERSION/i.test(err.message || '')) {
+            const e = new Error(`better-sqlite3 native binding failed to load for Node ${process.version}. Run \`npm rebuild better-sqlite3\` from frontend/.`);
+            e.code = 'DB_BINDING_BROKEN';
+            throw e;
+        }
+        throw err;
+    }
+    // WAL mode misbehaves on Windows→Linux Docker Desktop bind mounts — writes
+    // go to an in-memory WAL that never flushes back to disk. Stick with the
+    // classic rollback journal — it's correct on every filesystem.
+    db.pragma('journal_mode = DELETE');
     db.pragma('foreign_keys = ON');
     return db;
 }

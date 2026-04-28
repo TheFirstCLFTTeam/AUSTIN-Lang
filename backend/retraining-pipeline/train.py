@@ -1,4 +1,5 @@
 import os
+import shutil
 import torch
 import gc
 import soundfile as sf
@@ -194,6 +195,45 @@ def train_one_round():
     print(f"Saving LoRA adapters to {OUTPUT_DIR}...")
     model.save_pretrained(OUTPUT_DIR)
     processor.save_pretrained(OUTPUT_DIR)
+
+    # 9. Strip hyperparameter / training-state artifacts before the adapter dir
+    # is consumed by downstream services. These leak hyperparameters chosen on
+    # private data — see fl-dp-risk-assessment.md §4.5 / P5.
+    _strip_published_artifacts(OUTPUT_DIR)
+
+
+# Anything not in this allow-list is removed from a saved adapter directory.
+_PUBLISHED_ARTIFACT_ALLOWLIST = {
+    "adapter_config.json",
+    "adapter_model.safetensors",
+    "preprocessor_config.json",
+    "processor_config.json",
+    "tokenizer.json",
+    "tokenizer_config.json",
+    "special_tokens_map.json",
+    "added_tokens.json",
+    "vocab.json",
+    "merges.txt",
+    "normalizer.json",
+    "generation_config.json",
+}
+
+
+def _strip_published_artifacts(adapter_dir: str) -> None:
+    if not os.path.isdir(adapter_dir):
+        return
+    for entry in os.listdir(adapter_dir):
+        if entry in _PUBLISHED_ARTIFACT_ALLOWLIST:
+            continue
+        path = os.path.join(adapter_dir, entry)
+        try:
+            if os.path.isdir(path):
+                shutil.rmtree(path)
+            else:
+                os.remove(path)
+            print(f"Stripped non-published artifact: {entry}")
+        except OSError as err:
+            print(f"WARN: could not strip {entry}: {err}")
 
 if __name__ == "__main__":
     train_one_round()

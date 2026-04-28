@@ -71,6 +71,19 @@ export function getGroupById(groupId) {
     return USER_GROUP_CATALOGUE.find((g) => g.id === groupId) || null;
 }
 
+// Returns the user's Access Permissions group id (the action bundle axis),
+// or null if they have none assigned. Callers that need to scope a surface
+// by "what you're allowed to do" — e.g. the leaderboard — use this axis
+// rather than File Organisation, which only controls file visibility.
+export function getAccessPermsGroupForUser(userId) {
+    const assigned = _assignments[userId] || [];
+    for (const id of assigned) {
+        const group = USER_GROUP_CATALOGUE.find((g) => g.id === id);
+        if (group && group.category === 'Access Permissions') return id;
+    }
+    return null;
+}
+
 // Reset helper — exposed mainly for test / demo resets. Not wired into the UI.
 export function resetAssignments() {
     _assignments = { ...INITIAL_USER_GROUP_ASSIGNMENTS };

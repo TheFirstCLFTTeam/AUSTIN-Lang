@@ -7,11 +7,29 @@ import { platformDb } from './db';
 // FK into the `audit_action` catalog. Free-form per-action data goes into
 // details_json so each event is a self-describing string of user activity.
 //
-// Caller is responsible for ensuring `actionKey` exists in audit_action — the
-// FK will throw otherwise. Catalog keys (as seeded):
-//   uploaded, transcribed, viewed, edited, submitted_for_review, approved,
-//   requested_changes, privacy_flagged, pseudonymised, access_granted,
-//   added_to_dataset, exported
+// Catalog keys live in database(FE)/seed/fixtures/audit_actions.json and are
+// loaded by the seed script. The auth-event keys (login_succeeded /
+// login_failed / logout) are also upserted at module load so login can be
+// audited even on DBs seeded before those keys existed.
+
+const AUTH_EVENT_KEYS = [
+    { key: 'login_succeeded', label: 'Login succeeded', verb: 'signed in', category: 'Auth', color: '#1a7f37' },
+    { key: 'login_failed', label: 'Login failed', verb: 'tried to sign in with the wrong credentials', category: 'Auth', color: '#b20100' },
+    { key: 'logout', label: 'Logout', verb: 'signed out', category: 'Auth', color: '#7a7574' },
+];
+
+let _catalogEnsured = false;
+function ensureAuthCatalog() {
+    if (_catalogEnsured) return;
+    const stmt = platformDb().prepare(
+        `INSERT OR IGNORE INTO audit_action (key, label, verb, category, color)
+         VALUES (?, ?, ?, ?, ?)`
+    );
+    for (const a of AUTH_EVENT_KEYS) {
+        stmt.run(a.key, a.label, a.verb, a.category, a.color);
+    }
+    _catalogEnsured = true;
+}
 
 const insertStmtCache = new Map();
 
@@ -56,6 +74,7 @@ export function recordAuditEvent({
     details = null,
 }) {
     if (!actionKey) throw new Error('recordAuditEvent: actionKey required');
+    ensureAuthCatalog();
     const id = nextId(fileId);
     const timestamp = new Date().toISOString();
     const actorId = actor?.id ?? 'system';

@@ -42,8 +42,18 @@ def rebuild_schema(conn: sqlite3.Connection) -> None:
 
 
 def seed_users(conn: sqlite3.Connection, users: list[dict]) -> None:
+    # Login-disabled users (e.g. leaderboard peer engineers seeded purely so
+    # the leaderboard's group-scope filter has competitors to surface) carry
+    # `loginEnabled: false` and have null email/password. They live in
+    # platform.db.user_group_membership via a cross-database soft FK and do
+    # NOT need a row in users.db — skip them so the NOT NULL constraints on
+    # email + password_hash hold.
     rows = []
     for u in users:
+        if u.get("loginEnabled") is False:
+            continue
+        if u.get("email") is None or u.get("password") is None:
+            continue
         rows.append((
             u["id"],
             u["email"],

@@ -46,6 +46,46 @@ export const users = [
         fileOrgGroup: 'hk-reviewer-file-organisation',
         isControlMember: true,
     },
+    // ── Leaderboard peer engineers (login disabled) ─────────────────────────
+    // These users exist so that the leaderboard's "scoped to your engineering
+    // group" filter has real peers for u2 to be ranked against. They share the
+    // same Access Permissions group (MLE-generic-access-perms) and File
+    // Organisation group (hk-engineer-file-organisation) as u2, so the group
+    // membership lookup returns them. They are NOT control members and have
+    // no email/password — login attempts must reject them at the auth layer.
+    {
+        id: 'eng-priya',
+        email: null,
+        password: null,
+        name: 'Priya Rangan',
+        role: 'engineer',
+        company: 'SELF',
+        fileOrgGroup: 'hk-engineer-file-organisation',
+        isControlMember: false,
+        loginEnabled: false,
+    },
+    {
+        id: 'eng-andreas',
+        email: null,
+        password: null,
+        name: 'Andreas Keller',
+        role: 'engineer',
+        company: 'SELF',
+        fileOrgGroup: 'hk-engineer-file-organisation',
+        isControlMember: false,
+        loginEnabled: false,
+    },
+    {
+        id: 'eng-james',
+        email: null,
+        password: null,
+        name: 'James Whitmore',
+        role: 'engineer',
+        company: 'SELF',
+        fileOrgGroup: 'hk-engineer-file-organisation',
+        isControlMember: false,
+        loginEnabled: false,
+    },
 ];
 
 // ─── Client accounts (non-login) ────────────────────────────────────────────
@@ -361,6 +401,19 @@ export const USER_GROUP_CATALOGUE = [
     },
 ];
 
+// ─── Engineer directory (non-login) ──────────────────────────────────────────
+// Engineers whose submissions appear on the leaderboard but who don't log in
+// through this instance. They need identities + group membership so the
+// leaderboard can scope rows by the viewer's access-perms group; without them,
+// the "You" badge only ever lights up for u2 and group scoping has nothing to
+// filter against.
+
+export const ENGINEER_DIRECTORY = [
+    { id: 'eng-priya',   name: 'Priya Rangan',    role: 'engineer' },
+    { id: 'eng-andreas', name: 'Andreas Keller',  role: 'engineer' },
+    { id: 'eng-james',   name: 'James Whitmore',  role: 'engineer' },
+];
+
 // Persona → groups. Each persona gets one File Organisation group (data scope)
 // plus one Access Permissions group (action bundle). The user-groups service
 // loads these on first run and then persists admin edits to localStorage.
@@ -369,4 +422,7 @@ export const INITIAL_USER_GROUP_ASSIGNMENTS = {
     u2: ['hk-engineer-file-organisation', 'MLE-generic-access-perms'],
     u3: ['hk-admin-file-organisation', 'hk-admin-access-perms'],
     u4: ['hk-reviewer-file-organisation', 'reviewer-generic-access-perms'],
+    'eng-priya':   ['hk-engineer-file-organisation', 'MLE-generic-access-perms'],
+    'eng-andreas': ['hk-engineer-file-organisation', 'MLE-generic-access-perms'],
+    'eng-james':   ['hk-engineer-file-organisation', 'MLE-generic-access-perms'],
 };

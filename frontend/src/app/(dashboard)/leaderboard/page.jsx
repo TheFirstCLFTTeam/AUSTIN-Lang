@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getCurrentUser } from '@/services/api';
 import { SAMPLED_DATASET_FOLDERS } from '@/services/sampled-datasets';
 import { getDatasets, subscribeDatasets } from '@/services/datasets';
+import { getAccessPermsGroupForUser, getGroupsForUser } from '@/services/user-groups';
 import {
   formatPercent,
   formatRelative,
@@ -204,6 +205,18 @@ export default function LeaderboardPage() {
     return allOptions.find((o) => o.id === datasetId) || null;
   }, [allOptions, datasetId]);
 
+  // Scope rows to the viewer's Access Permissions group. Admins bypass
+  // scoping (they supervise every group); engineers see their own group plus
+  // the baseline reference line they're trying to beat; anyone else sees
+  // nothing (nav gating should prevent this, but we enforce defence-in-depth).
+  const viewerAccessGroup = useMemo(() => {
+    if (!currentUser) return null;
+    return getAccessPermsGroupForUser(currentUser.id);
+  }, [currentUser]);
+
+  const isEngineerView = viewerAccessGroup === 'MLE-generic-access-perms';
+  const isAdminView = viewerAccessGroup === 'hk-admin-access-perms';
+
   const rows = useMemo(() => {
     if (!datasetId) return [];
     const sourceIds = new Set(getLeaderboardDatasets());
@@ -211,18 +224,47 @@ export default function LeaderboardPage() {
     if (sourceIds.has(datasetId)) all = getLeaderboard(datasetId);
     else if (hasCustomMockLeaderboard(datasetId)) all = getCustomMockLeaderboard(datasetId);
     else all = []; // real user-curated → no submissions yet
-    if (familyFilter === 'all') return all;
-    return all.filter((r) => r.baseFamily === familyFilter);
-  }, [datasetId, familyFilter]);
 
+    let scoped;
+    if (isAdminView) {
+      scoped = all;
+    } else if (isEngineerView) {
+      scoped = all.filter((r) => {
+        if (r.engineerId === 'system-baseline') return true;
+        return getGroupsForUser(r.engineerId).includes(viewerAccessGroup);
+      });
+    } else {
+      scoped = [];
+    }
+
+    if (familyFilter === 'all') return scoped;
+    return scoped.filter((r) => r.baseFamily === familyFilter);
+  }, [datasetId, familyFilter, viewerAccessGroup, isAdminView, isEngineerView]);
+
+  // Family chips are derived from the already-scoped rows (ignoring the active
+  // family filter so all chips stay visible once one is selected), so a family
+  // with no rows in the viewer's group doesn't render as an empty chip.
   const familyOptions = useMemo(() => {
     if (!datasetId) return [];
     const sourceIds = new Set(getLeaderboardDatasets());
     let all = [];
     if (sourceIds.has(datasetId)) all = getLeaderboard(datasetId);
     else if (hasCustomMockLeaderboard(datasetId)) all = getCustomMockLeaderboard(datasetId);
-    return Array.from(new Set(all.map((r) => r.baseFamily)));
-  }, [datasetId]);
+
+    let scoped;
+    if (isAdminView) {
+      scoped = all;
+    } else if (isEngineerView) {
+      scoped = all.filter((r) => {
+        if (r.engineerId === 'system-baseline') return true;
+        return getGroupsForUser(r.engineerId).includes(viewerAccessGroup);
+      });
+    } else {
+      scoped = [];
+    }
+
+    return Array.from(new Set(scoped.map((r) => r.baseFamily)));
+  }, [datasetId, viewerAccessGroup, isAdminView, isEngineerView]);
 
   const yourRow = useMemo(() => {
     if (!currentUser || rows.length === 0) return null;
@@ -248,7 +290,13 @@ export default function LeaderboardPage() {
             Leaderboard
           </h1>
           <p className="text-[0.6875rem] font-semibold uppercase tracking-widest mt-4" style={{ color: '#7a7574' }}>
-            {rows.length} Engineer{rows.length === 1 ? '' : 's'} &middot; {totalSubmissions} total submissions &middot; Scoped to your engineering group
+            {rows.length} Engineer{rows.length === 1 ? '' : 's'} &middot; {totalSubmissions} total submissions &middot; {
+              isAdminView
+                ? 'All engineering groups (admin view)'
+                : isEngineerView
+                  ? 'Scoped to your engineering group'
+                  : 'No leaderboard access'
+            }
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -407,14 +455,27 @@ export default function LeaderboardPage() {
 
         {rows.length === 0 ? (
           <div className="p-10 text-center">
-            <p className="text-[0.875rem] mb-1" style={{ color: '#1c1b1b' }}>
-              No submissions on <strong>{datasetMeta?.label || 'this dataset'}</strong> yet.
-            </p>
-            <p className="text-[0.75rem]" style={{ color: '#7a7574' }}>
-              {isUserCurated
-                ? 'This dataset was curated by your group but no one has submitted a model against it yet.'
-                : 'Be the first — submit a model to claim rank 1.'}
-            </p>
+            {!isEngineerView && !isAdminView ? (
+              <>
+                <p className="text-[0.875rem] mb-1" style={{ color: '#1c1b1b' }}>
+                  The leaderboard is scoped to the engineering group.
+                </p>
+                <p className="text-[0.75rem]" style={{ color: '#7a7574' }}>
+                  Your account isn&apos;t a member of <strong>MLE · Generic Access Permissions</strong>, so no submissions are visible here.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[0.875rem] mb-1" style={{ color: '#1c1b1b' }}>
+                  No submissions on <strong>{datasetMeta?.label || 'this dataset'}</strong> yet.
+                </p>
+                <p className="text-[0.75rem]" style={{ color: '#7a7574' }}>
+                  {isUserCurated
+                    ? 'This dataset was curated by your group but no one has submitted a model against it yet.'
+                    : 'Be the first — submit a model to claim rank 1.'}
+                </p>
+              </>
+            )}
           </div>
         ) : (
           rows.map((row) => {

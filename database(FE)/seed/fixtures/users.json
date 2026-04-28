@@ -38,5 +38,38 @@
     "company": "SELF",
     "fileOrgGroup": "hk-reviewer-file-organisation",
     "isControlMember": true
+  },
+  {
+    "id": "eng-priya",
+    "email": null,
+    "password": null,
+    "name": "Priya Rangan",
+    "role": "engineer",
+    "company": "SELF",
+    "fileOrgGroup": "hk-engineer-file-organisation",
+    "isControlMember": false,
+    "loginEnabled": false
+  },
+  {
+    "id": "eng-andreas",
+    "email": null,
+    "password": null,
+    "name": "Andreas Keller",
+    "role": "engineer",
+    "company": "SELF",
+    "fileOrgGroup": "hk-engineer-file-organisation",
+    "isControlMember": false,
+    "loginEnabled": false
+  },
+  {
+    "id": "eng-james",
+    "email": null,
+    "password": null,
+    "name": "James Whitmore",
+    "role": "engineer",
+    "company": "SELF",
+    "fileOrgGroup": "hk-engineer-file-organisation",
+    "isControlMember": false,
+    "loginEnabled": false
   }
 ]

@@ -16,18 +16,23 @@ async def integrity_exception_handler(request, exc):
         content={"detail": f"Database integrity error: {str(exc)}"},
     )
 
-# Add CORS middleware
-origins = [
-    "http://localhost",
-    "http://localhost:3000",  # Allow requests from your React frontend
+# CORS: the only browser-facing client of this service is the Next.js frontend,
+# and most calls actually come from the frontend's server-side route handlers
+# (which don't trigger CORS at all). Keep the allow-list narrow and enumerate
+# methods explicitly. ALLOWED_ORIGINS lets ops widen the list per environment
+# without code changes. See docs/07 Integration CAA 27APR2026/security overview.md §1.
+_default_origins = "http://localhost:3000"
+_allowed_origins = [
+    o.strip() for o in os.getenv("ALLOWED_ORIGINS", _default_origins).split(",")
+    if o.strip()
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=_allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
 
 db = DatabaseClient(db_path='poc.db', schema_path='schema.sql')

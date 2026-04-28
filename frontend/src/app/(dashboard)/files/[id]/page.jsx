@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import AudioPlayer from '../../../../components/AudioPlayer';
 import Dialog from '../../components/Dialog';
+import PseudonymisationPanel from '../../components/PseudonymisationPanel';
 import SpeakerPickerSection from '../../components/SpeakerPickerSection';
 import {
     fetchFileDetail,
@@ -891,7 +892,7 @@ export default function FileDetailPage() {
             <div className="flex items-center justify-center py-20">
                 <div className="flex flex-col items-center gap-4">
                     <DotLottieReact
-                        src="https://lottie.host/c0dd85b9-4b16-423a-acc1-a99b7db2fa8b/JTRJuIh54G.lottie"
+                        src="/loading.lottie"
                         loop
                         autoplay
                         style={{ width: 200, height: 200 }}
@@ -1175,6 +1176,12 @@ export default function FileDetailPage() {
                     }}
                 >
                     Transcript updated successfully.
+                </div>
+            )}
+
+            {canApprove && (
+                <div className="mb-6">
+                    <PseudonymisationPanel fileId={id} role={userRole} />
                 </div>
             )}
 

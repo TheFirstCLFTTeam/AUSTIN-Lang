@@ -247,7 +247,7 @@ export default function DashboardPage() {
     <div className="flex items-center justify-center py-20">
       <div className="flex flex-col items-center gap-4">
         <DotLottieReact
-          src="https://lottie.host/c0dd85b9-4b16-423a-acc1-a99b7db2fa8b/JTRJuIh54G.lottie"
+          src="/loading.lottie"
           loop
           autoplay
           style={{ width: 200, height: 200 }}

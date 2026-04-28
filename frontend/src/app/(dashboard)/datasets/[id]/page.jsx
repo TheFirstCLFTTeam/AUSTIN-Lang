@@ -9,7 +9,15 @@ import {
     ROOT_LEVEL_SAMPLED_FILES,
 } from '@/services/sampled-datasets';
 import { SOURCE_DATASET_META } from '@/services/mock_data-dataset';
-import { getDatasetById, subscribeDatasets, updateDatasetUnseen } from '@/services/datasets';
+import { getDatasetById, subscribeDatasets } from '@/services/datasets';
+import {
+    getHoldoutForDataset,
+    setHoldoutForDataset,
+    toggleHoldoutMember,
+    clearHoldoutForDataset,
+    subscribe as subscribeHoldouts,
+} from '@/services/holdouts';
+import { hasPermission } from '@/services/permissions';
 import { getCurrentUser } from '@/services/api';
 import { users } from '@/services/mock_data-users';
 import { getTrainingJobs } from '@/services/training-jobs';
@@ -206,6 +214,7 @@ export default function DatasetDetailPage() {
     const [customDataset, setCustomDataset] = useState(null);
     const [customLoaded, setCustomLoaded] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [holdoutTick, setHoldoutTick] = useState(0);
     const [exportOpen, setExportOpen] = useState(false);
     const [exportTarget, setExportTarget] = useState('vm');
     const [exportPhase, setExportPhase] = useState('select');
@@ -229,11 +238,14 @@ export default function DatasetDetailPage() {
         return subscribeDatasets(refresh);
     }, [datasetId]);
 
-    // Current user drives the hold-out editability check — only the dataset
-    // creator can mark files as unseen.
+    // Current user drives the hold-out editability check.
     useEffect(() => {
         setCurrentUser(getCurrentUser() || null);
     }, []);
+
+    // Re-render whenever the holdouts service updates (ticks the local
+    // counter so memos / derived sets recompute against the latest state).
+    useEffect(() => subscribeHoldouts(() => setHoldoutTick((n) => n + 1)), []);
 
     // Resolve source dataset (static). Memoised so downstream memos are stable.
     const sourceDataset = useMemo(
@@ -357,34 +369,42 @@ export default function DatasetDetailPage() {
     const tags = isSource ? meta.tags || [] : customDataset.tags || [];
     const statusLabel = isSource ? meta.status || 'Active' : 'Curated';
 
-    // Only the dataset creator can toggle hold-out membership. createdBy may
-    // be a user id (e.g. "u2") or a full name (e.g. "Engineer User"), so
-    // accept either format.
+    // Holdout editability:
+    //   - Source datasets: any user with `manage_holdout` (i.e. an engineer or
+    //     admin via group policies) can edit. The selection is shared across
+    //     all engineers — last edit wins; provenance lives in the audit trail.
+    //   - Custom datasets: the dataset creator can edit. createdBy may be a
+    //     user id (e.g. "u2") or a full name (e.g. "Engineer User").
+    //   - Everyone else: read-only.
+    // `holdoutTick` is referenced so `canEdit` recomputes when policies change.
+    void holdoutTick;
     const canEdit = (() => {
-        if (!isCustom || !currentUser) return false;
-        const owner = customDataset.createdBy;
-        if (!owner) return false;
-        if (owner === currentUser.id) return true;
-        if (owner === currentUser.name) return true;
-        const u = users.find((x) => x.name === owner);
-        return u?.id === currentUser.id;
+        if (!currentUser) return false;
+        if (!hasPermission(currentUser, 'manage_holdout')) return false;
+        if (isSource) return true;
+        if (isCustom) {
+            const owner = customDataset.createdBy;
+            if (!owner) return false;
+            if (owner === currentUser.id) return true;
+            if (owner === currentUser.name) return true;
+            const u = users.find((x) => x.name === owner);
+            return u?.id === currentUser.id;
+        }
+        return false;
     })();
-    const unseenSet = new Set(isCustom ? customDataset.unseenFileIds || [] : []);
+    const unseenSet = getHoldoutForDataset(datasetId);
     const unseenCount = unseenSet.size;
 
     const toggleUnseen = (fileId) => {
         if (!canEdit) return;
-        const next = new Set(unseenSet);
-        if (next.has(fileId)) next.delete(fileId);
-        else next.add(fileId);
-        updateDatasetUnseen(datasetId, [...next]);
+        toggleHoldoutMember(datasetId, fileId, currentUser?.id);
     };
 
     const toggleAllUnseen = () => {
         if (!canEdit) return;
         const allIds = files.map((f) => f.id);
         const allMarked = allIds.every((fid) => unseenSet.has(fid));
-        updateDatasetUnseen(datasetId, allMarked ? [] : allIds);
+        setHoldoutForDataset(datasetId, allMarked ? [] : allIds, currentUser?.id);
     };
     const allUnseen = files.length > 0 && files.every((f) => unseenSet.has(f.id));
 
@@ -647,11 +667,13 @@ export default function DatasetDetailPage() {
                             className="text-[0.6875rem] uppercase tracking-widest mt-1"
                             style={{ color: '#7a7574' }}
                         >
-                            {isCustom
-                                ? canEdit
-                                    ? 'Tick the hold-out box to reserve a recording for the competition evaluation \u2014 held-out files are withheld from training.'
-                                    : 'Only the dataset creator can adjust the hold-out selection.'
-                                : 'Read-only preview \u00b7 Use the file browser for playback, editing & curation'}
+                            {canEdit
+                                ? (isSource
+                                    ? 'Tick the hold-out box to reserve a recording for the benching evaluation \u2014 the selection is shared across all engineers.'
+                                    : 'Tick the hold-out box to reserve a recording for the competition evaluation \u2014 held-out files are withheld from training.')
+                                : (isSource
+                                    ? 'Read-only \u00b7 Engineer & admin roles can edit the holdout selection.'
+                                    : 'Only the dataset creator can adjust the hold-out selection.')}
                         </p>
                     </div>
                     <Link
@@ -663,7 +685,7 @@ export default function DatasetDetailPage() {
                     </Link>
                 </div>
 
-                {isCustom && files.length > 0 && (
+                {files.length > 0 && (canEdit || unseenCount > 0) && (
                     <div
                         className="flex items-center justify-between px-5 py-3 mb-3"
                         style={{
@@ -680,7 +702,7 @@ export default function DatasetDetailPage() {
                                 className="text-[0.6875rem] uppercase tracking-widest truncate"
                                 style={{ color: unseenCount > 0 ? 'rgba(255,255,255,0.7)' : '#7a7574' }}
                             >
-                                {unseenCount.toLocaleString()} of {files.length.toLocaleString()} recordings reserved for competition evaluation
+                                {unseenCount.toLocaleString()} of {files.length.toLocaleString()} recordings reserved for {isSource ? 'benching evaluation' : 'competition evaluation'}
                                 {unseenCount > 0 && ` \u00b7 ${(files.length - unseenCount).toLocaleString()} available for training`}
                             </span>
                         </div>
@@ -689,7 +711,7 @@ export default function DatasetDetailPage() {
                                 {unseenCount > 0 && (
                                     <button
                                         type="button"
-                                        onClick={() => updateDatasetUnseen(datasetId, [])}
+                                        onClick={() => clearHoldoutForDataset(datasetId, currentUser?.id)}
                                         className="px-3 py-1.5 text-[0.625rem] font-semibold uppercase tracking-widest cursor-pointer"
                                         style={{
                                             backgroundColor: 'transparent',
@@ -741,26 +763,24 @@ export default function DatasetDetailPage() {
                                 borderBottom: '1px solid rgba(233, 188, 181, 0.25)',
                             }}
                         >
-                            {isCustom && (
-                                <div className="w-10 flex items-center" title={canEdit ? 'Mark all as unseen hold-out' : 'Hold-out column (read-only)'}>
-                                    <input
-                                        type="checkbox"
-                                        disabled={!canEdit}
-                                        checked={allUnseen}
-                                        ref={(el) => {
-                                            if (el) el.indeterminate = unseenCount > 0 && !allUnseen;
-                                        }}
-                                        onChange={toggleAllUnseen}
-                                        aria-label="Mark all files as unseen"
-                                        style={{
-                                            accentColor: '#b20100',
-                                            cursor: canEdit ? 'pointer' : 'not-allowed',
-                                            width: '1rem',
-                                            height: '1rem',
-                                        }}
-                                    />
-                                </div>
-                            )}
+                            <div className="w-10 flex items-center" title={canEdit ? 'Mark all as unseen hold-out' : 'Hold-out column (read-only)'}>
+                                <input
+                                    type="checkbox"
+                                    disabled={!canEdit}
+                                    checked={allUnseen}
+                                    ref={(el) => {
+                                        if (el) el.indeterminate = unseenCount > 0 && !allUnseen;
+                                    }}
+                                    onChange={toggleAllUnseen}
+                                    aria-label="Mark all files as unseen"
+                                    style={{
+                                        accentColor: '#b20100',
+                                        cursor: canEdit ? 'pointer' : 'not-allowed',
+                                        width: '1rem',
+                                        height: '1rem',
+                                    }}
+                                />
+                            </div>
                             <div className="w-8" />
                             <div className="flex-1">Recording</div>
                             <div className="w-32 text-center">Owner</div>
@@ -783,26 +803,24 @@ export default function DatasetDetailPage() {
                                     boxShadow: isUnseen ? 'inset 3px 0 0 0 #b20100' : 'none',
                                 }}
                             >
-                                {isCustom && (
-                                    <div className="w-10 flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            disabled={!canEdit}
-                                            checked={isUnseen}
-                                            onChange={() => toggleUnseen(file.id)}
-                                            aria-label={`Mark ${file.name} as unseen hold-out`}
-                                            title={canEdit
-                                                ? (isUnseen ? 'Remove from hold-out' : 'Reserve for competition evaluation')
-                                                : 'Only the dataset creator can change hold-out'}
-                                            style={{
-                                                accentColor: '#b20100',
-                                                cursor: canEdit ? 'pointer' : 'not-allowed',
-                                                width: '1rem',
-                                                height: '1rem',
-                                            }}
-                                        />
-                                    </div>
-                                )}
+                                <div className="w-10 flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        disabled={!canEdit}
+                                        checked={isUnseen}
+                                        onChange={() => toggleUnseen(file.id)}
+                                        aria-label={`Mark ${file.name} as unseen hold-out`}
+                                        title={canEdit
+                                            ? (isUnseen ? 'Remove from hold-out' : (isSource ? 'Reserve for benching evaluation' : 'Reserve for competition evaluation'))
+                                            : (isSource ? 'Only engineers and admins can change holdout' : 'Only the dataset creator can change hold-out')}
+                                        style={{
+                                            accentColor: '#b20100',
+                                            cursor: canEdit ? 'pointer' : 'not-allowed',
+                                            width: '1rem',
+                                            height: '1rem',
+                                        }}
+                                    />
+                                </div>
                                 <div className="w-8 flex justify-center">
                                     <FileIcon />
                                 </div>

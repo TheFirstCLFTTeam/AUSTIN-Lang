@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS audit_event;
 DROP TABLE IF EXISTS audit_action;
 DROP TABLE IF EXISTS leaderboard_worst_example;
 DROP TABLE IF EXISTS leaderboard_submission;
+DROP TABLE IF EXISTS holdout_membership;
 DROP TABLE IF EXISTS accuracy_log;
 DROP TABLE IF EXISTS critical_term_failure;
 DROP TABLE IF EXISTS selected_metric;
@@ -137,7 +138,13 @@ CREATE TABLE audio_file (
     duration_label    TEXT,
     audio_rel_path    TEXT,
     status            TEXT,
-    stage             TEXT
+    stage             TEXT,
+    -- IDs of the matching rows in the backend database service (poc.db at :8002).
+    -- Populated on upload so saveEdits can co-write corrections to the canonical
+    -- store that the retraining pipeline reads from.
+    backend_audio_file_id        INTEGER,
+    backend_raw_transcript_id    INTEGER,
+    backend_edited_transcript_id INTEGER
 );
 
 CREATE INDEX ix_audio_file_dataset ON audio_file(dataset_id);
@@ -325,20 +332,24 @@ CREATE TABLE accuracy_log (
 -- ---------------------------------------------------------------------------
 
 CREATE TABLE leaderboard_submission (
-    id                TEXT PRIMARY KEY,
-    dataset_id        TEXT NOT NULL REFERENCES dataset(id) ON DELETE CASCADE,
-    engineer_id       TEXT,                            -- string ref to users.db
-    engineer_name     TEXT,
-    model_name        TEXT NOT NULL,
-    base_family       TEXT,
-    wer               REAL,
-    cer               REAL,
-    rtf               REAL,
-    submission_count  INTEGER DEFAULT 1,
-    submitted_at      TEXT,
-    config_stored     INTEGER NOT NULL DEFAULT 0,
-    checkpoint_stored INTEGER NOT NULL DEFAULT 0,
-    notebook_stored   INTEGER NOT NULL DEFAULT 0
+    id                         TEXT PRIMARY KEY,
+    dataset_id                 TEXT NOT NULL REFERENCES dataset(id) ON DELETE CASCADE,
+    engineer_id                TEXT,                            -- string ref to users.db
+    engineer_name              TEXT,
+    model_name                 TEXT NOT NULL,
+    base_family                TEXT,
+    wer                        REAL,
+    cer                        REAL,
+    rtf                        REAL,
+    submission_count           INTEGER DEFAULT 1,
+    submitted_at               TEXT,
+    config_stored              INTEGER NOT NULL DEFAULT 0,
+    checkpoint_stored          INTEGER NOT NULL DEFAULT 0,
+    notebook_stored            INTEGER NOT NULL DEFAULT 0,
+    -- Cardinality of the dataset's holdout_membership at submission time.
+    -- Snapshot-of-set is deferred; this is the lightweight transparency surface
+    -- so the leaderboard UI can show "scored on N recordings" without a join.
+    evaluated_recording_count  INTEGER
 );
 
 CREATE TABLE leaderboard_worst_example (
@@ -350,6 +361,26 @@ CREATE TABLE leaderboard_worst_example (
 );
 
 CREATE INDEX ix_leaderboard_dataset ON leaderboard_submission(dataset_id);
+
+-- Per-dataset holdout selection. A row marks one recording as part of the
+-- benching evaluation set for that dataset. The benching/leaderboard pipeline
+-- reads this table to decide which recordings to score new model submissions
+-- on. The same recording can appear in multiple datasets (engineer custom
+-- sets reuse files from the source pool by reference) so membership lives in
+-- a junction rather than a boolean on audio_file.
+--
+-- audio_file_external_id matches audio_file.external_id; cross-database FKs
+-- aren't supported by SQLite so the join is enforced at the application layer
+-- (same convention as recording.* and audit_event.file_id).
+CREATE TABLE holdout_membership (
+    dataset_id              TEXT NOT NULL REFERENCES dataset(id) ON DELETE CASCADE,
+    audio_file_external_id  TEXT NOT NULL,
+    marked_by               TEXT NOT NULL,                 -- string ref to users.db user.id
+    marked_at               TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (dataset_id, audio_file_external_id)
+);
+
+CREATE INDEX ix_holdout_membership_file ON holdout_membership(audio_file_external_id);
 
 -- ---------------------------------------------------------------------------
 -- Audit trail

@@ -2,6 +2,13 @@ import 'server-only';
 
 import { platformDb, usersDb } from './db';
 import { recordAuditEvent } from './audit';
+import { applyEdits } from '../lib/transcriptEdits';
+
+// URL of the backend database service (poc.db, FastAPI at :8002). It's the
+// canonical transcript store that the retraining pipeline reads from, so
+// edits MUST reach it — not just platform.db.
+const BACKEND_DB_URL =
+    process.env.BACKEND_DB_URL || 'http://database:8002';
 
 // Build the UI-facing file shape from a platform.db `audio_file` row.
 // Owner names come from users.db (separate SQLite file — no cross-DB JOIN).
@@ -155,15 +162,129 @@ export function getAudioFileDetail(externalOrIntId) {
     };
 }
 
+// Mirrors a freshly uploaded file into platform.db. The orchestrator has
+// already persisted the raw transcript to poc.db at :8002 and handed us back
+// the integer IDs; we stash those on the platform row so subsequent edits
+// can be pushed back to the canonical store.
+export function registerUploadedFile({
+    fileName,
+    owner,
+    backend,
+    segments,
+    detectedLanguage,
+}) {
+    const db = platformDb();
+    const externalId = `upl-${backend.audioFileId}`;
+    const audioRelPath = `http://localhost:8000/audio_files/${fileName}`;
+
+    const insert = db.transaction(() => {
+        const afInfo = db
+            .prepare(
+                `INSERT INTO audio_file (
+                     file_name, external_id, display_name, owner_id,
+                     detected_language, audio_rel_path, status, stage,
+                     backend_audio_file_id, backend_raw_transcript_id,
+                     backend_edited_transcript_id
+                 )
+                 VALUES (?, ?, ?, ?, ?, ?, 'needs action', 'uploaded', ?, ?, ?)`
+            )
+            .run(
+                fileName,
+                externalId,
+                fileName,
+                owner?.id || null,
+                detectedLanguage,
+                audioRelPath,
+                backend.audioFileId,
+                backend.rawTranscriptId,
+                backend.editedTranscriptId,
+            );
+        const audioFileId = afInfo.lastInsertRowid;
+
+        const rtInfo = db
+            .prepare(
+                `INSERT INTO raw_transcript (audio_file_id, rating) VALUES (?, 0)`
+            )
+            .run(audioFileId);
+        const rawTranscriptId = rtInfo.lastInsertRowid;
+
+        const segIns = db.prepare(
+            `INSERT INTO raw_transcript_segment (raw_transcript_id, start, end, text)
+             VALUES (?, ?, ?, ?)`
+        );
+        for (const seg of segments) {
+            segIns.run(
+                rawTranscriptId,
+                Number(seg.start ?? 0),
+                Number(seg.end ?? 0),
+                String(seg.text ?? ''),
+            );
+        }
+
+        return audioFileId;
+    });
+
+    insert();
+
+    recordAuditEvent({
+        fileId: externalId,
+        actor: owner,
+        actionKey: 'uploaded',
+        details: { fileName },
+    });
+
+    return getAudioFileDetail(externalId);
+}
+
+// Pushes the edited segments back to the backend database service so the
+// retraining pipeline sees them. Non-fatal on failure: platform.db remains
+// the source of truth for the UI; a failed co-write just means retraining
+// will miss this round of corrections.
+async function coWriteEditedTranscriptToBackend(
+    backendRawTranscriptId,
+    backendEditedTranscriptId,
+    editedSegments,
+) {
+    if (!backendEditedTranscriptId || !backendRawTranscriptId) return;
+    const payload = {
+        raw_transcript_id: backendRawTranscriptId,
+        is_user_edited: 1,
+        transcript_segments: editedSegments.map((s) => ({
+            start: Number(s.start ?? 0),
+            end: Number(s.end ?? 0),
+            text: String(s.text ?? ''),
+        })),
+    };
+    try {
+        const res = await fetch(
+            `${BACKEND_DB_URL}/edited-transcripts/${backendEditedTranscriptId}`,
+            {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            },
+        );
+        if (!res.ok) {
+            console.warn(
+                `[edits] backend co-write failed: HTTP ${res.status} ${await res.text().catch(() => '')}`,
+            );
+        }
+    } catch (err) {
+        console.warn(`[edits] backend co-write unreachable: ${err.message}`);
+    }
+}
+
 // Replaces the edits list for a file's raw transcript. Each UI edit is stored
 // as a single row in `transcript_edit` with the full edit JSON-encoded into
 // the `content` column — a pragmatic overload because the char-level schema
 // can't losslessly express the UI's word-level edit shape (TODO: align).
-export function writeEditsForFile(fileId, edits, actor) {
+export async function writeEditsForFile(fileId, edits, actor) {
     const db = platformDb();
     const row = db
         .prepare(
-            `SELECT af.id, rt.id AS raw_transcript_id
+            `SELECT af.id, rt.id AS raw_transcript_id,
+                    af.backend_raw_transcript_id AS backend_rt_id,
+                    af.backend_edited_transcript_id AS backend_et_id
                FROM audio_file af
                LEFT JOIN raw_transcript rt ON rt.audio_file_id = af.id
               WHERE af.external_id = ? OR af.id = ?`
@@ -173,6 +294,13 @@ export function writeEditsForFile(fileId, edits, actor) {
     if (!row.raw_transcript_id) {
         throw new Error('File has no raw_transcript; cannot store edits');
     }
+
+    const rawSegments = db
+        .prepare(
+            `SELECT id, start, end, text FROM raw_transcript_segment
+              WHERE raw_transcript_id = ? ORDER BY start`
+        )
+        .all(row.raw_transcript_id);
 
     const tx = db.transaction((items) => {
         db.prepare(`DELETE FROM transcript_edit WHERE raw_transcript_id = ?`).run(
@@ -206,6 +334,13 @@ export function writeEditsForFile(fileId, edits, actor) {
         actionKey: 'edited',
         details: { editCount: (edits || []).length },
     });
+
+    const editedSegments = applyEdits(rawSegments, edits || []);
+    await coWriteEditedTranscriptToBackend(
+        row.backend_rt_id,
+        row.backend_et_id,
+        editedSegments,
+    );
 }
 
 // Updates audio_file.status and records an audit event. Caller provides the

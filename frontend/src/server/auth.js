@@ -6,12 +6,24 @@ import { cookies } from 'next/headers';
 
 import { usersDb } from './db';
 
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const DEV_FALLBACK_JWT_SECRET = 'dev-only-not-for-production-please-set-JWT_SECRET';
+
+if (IS_PRODUCTION && !process.env.JWT_SECRET) {
+    throw new Error(
+        'JWT_SECRET must be set in production. Refusing to boot with the dev fallback.'
+    );
+}
+
 const JWT_SECRET = new TextEncoder().encode(
-    process.env.JWT_SECRET || 'dev-only-not-for-production-please-set-JWT_SECRET'
+    process.env.JWT_SECRET || DEV_FALLBACK_JWT_SECRET
 );
 const JWT_ALG = 'HS256';
 const JWT_TTL_SEC = 12 * 60 * 60;
-export const COOKIE_NAME = 'token';
+// __Host-prefixed cookies are required to be Secure + Path=/ + no Domain, so
+// the prefix only works under HTTPS. Use the plain name in dev (HTTP) and the
+// hardened name in production.
+export const COOKIE_NAME = IS_PRODUCTION ? '__Host-token' : 'token';
 
 export async function verifyPassword(plaintext, hashed) {
     if (!hashed) return false;
@@ -60,7 +72,7 @@ export async function setAuthCookie(token) {
         value: token,
         httpOnly: true,
         sameSite: 'lax',
-        secure: false,
+        secure: IS_PRODUCTION,
         path: '/',
         maxAge: JWT_TTL_SEC,
     });

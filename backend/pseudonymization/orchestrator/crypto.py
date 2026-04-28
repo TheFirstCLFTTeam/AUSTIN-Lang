@@ -13,12 +13,20 @@ import sys
 from cryptography.fernet import Fernet
 
 _ENV_VAR = "PSEUDONYM_FERNET_KEY"
+_IS_PRODUCTION = os.getenv("ENVIRONMENT", "development").lower() == "production"
 
 
 def _load_key() -> bytes:
     raw = os.getenv(_ENV_VAR)
     if raw:
         return raw.encode("utf-8")
+    if _IS_PRODUCTION:
+        # Refuse to boot rather than silently regenerate a key on each restart —
+        # which would render every existing ciphertext unreadable. See
+        # docs/07 Integration CAA 27APR2026/security overview.md §13.
+        raise RuntimeError(
+            f"{_ENV_VAR} must be set in production. Refusing to boot with a generated key."
+        )
     generated = Fernet.generate_key()
     print(
         f"[crypto] {_ENV_VAR} not set — generated dev key: {generated.decode()}",

@@ -59,6 +59,50 @@ services:
       - GLINER_PORT=5001
       - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET}
 
+  meeting-webhooks:
+    build: "./backend/meeting_webhooks"
+    ports:
+      - "${MEETING_WEBHOOKS_PORT}:8007"
+    depends_on:
+      - transcription-orchestrator
+    volumes:
+      - meeting_webhooks_data:/app/data
+    environment:
+      - PORT=8007
+      - DB_PATH=/app/data/meeting_webhooks.db
+      - TRANSCRIPTION_ORCHESTRATOR_URL=http://transcription-orchestrator:${TRANSCRIPTION_ORCHESTRATOR_PORT}
+      - FRONTEND_INGEST_URL=http://frontend:3000/api/integrations/ingest
+      - FRONTEND_INGEST_SECRET=${MEETING_WEBHOOKS_INGEST_SECRET}
+      - PUBLIC_BASE_URL=${MEETING_WEBHOOKS_PUBLIC_BASE_URL}
+      - TEAMS_TENANT_ID=${TEAMS_TENANT_ID}
+      - TEAMS_CLIENT_ID=${TEAMS_CLIENT_ID}
+      - TEAMS_CLIENT_SECRET=${TEAMS_CLIENT_SECRET}
+      - ZOOM_ACCOUNT_ID=${ZOOM_ACCOUNT_ID}
+      - ZOOM_CLIENT_ID=${ZOOM_CLIENT_ID}
+      - ZOOM_CLIENT_SECRET=${ZOOM_CLIENT_SECRET}
+      - ZOOM_WEBHOOK_SECRET_TOKEN=${ZOOM_WEBHOOK_SECRET_TOKEN}
+      - ALLOW_MOCK_CONNECT=true
+
+  # Redis cache — commented out until the team is ready to wire it in.
+  # See docs/07 Integration CAA 27APR2026/azure-deployment-requirements.md §9
+  # for what we'd use it for (rate limits, CSRF tokens, session caching,
+  # privacy-budget ledger) and the cloud setup. To enable: uncomment this
+  # block, the `redis_data` volume at the bottom, and the `redis` entry in
+  # the frontend's `depends_on` + `REDIS_URL` env var.
+  #
+  # redis:
+  #   image: redis:7-alpine
+  #   command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 5
+
   pseudonymisation-orchestrator:
     build: "./backend/pseudonymization/orchestrator"
     ports:
@@ -79,21 +123,35 @@ services:
     build:
       context: "./frontend"
       args:
-        NEXT_PUBLIC_MOCK_API: "true"
+        # Set to "true" for the mock-data build (no DB needed).
+        # Set to "false" for the real build (uses ./database(FE)/*.db via the
+        # mount below). Override at build time with FRONTEND_MOCK_API.
+        NEXT_PUBLIC_MOCK_API: "${FRONTEND_MOCK_API:-true}"
     ports:
       - "3000:3000"
     depends_on:
       - transcription-orchestrator
       - database
+      - pseudonymisation-orchestrator
+      # - redis
+      - meeting-webhooks
     volumes:
-      # Mount the whole directory so SQLite can create -wal/-shm sidecars
-      # alongside the DB files.
+      # Mounted so the real-mode build can read/write the seeded SQLite files.
+      # Ignored at runtime by the mock-mode build.
       - "./database(FE):/db"
     environment:
       - USERS_DB_PATH=/db/users.db
       - PLATFORM_DB_PATH=/db/platform.db
       - JWT_SECRET=${JWT_SECRET:-dev-only-not-for-production-please-set-JWT_SECRET}
+      - TRANSCRIPTION_ORCHESTRATOR_URL=http://transcription-orchestrator:${TRANSCRIPTION_ORCHESTRATOR_PORT}
+      - BACKEND_DB_URL=http://database:${DATABASE_PORT}
+      - PSEUDONYM_ORCHESTRATOR_URL=http://pseudonymisation-orchestrator:${PSEUDONYMISATION_ORCHESTRATOR_PORT}
+      # - REDIS_URL=redis://redis:6379
+      - MEETING_WEBHOOKS_URL=http://meeting-webhooks:8007
+      - MEETING_WEBHOOKS_INGEST_SECRET=${MEETING_WEBHOOKS_INGEST_SECRET}
 
 volumes:
   hf_models_cache:
   pseudonymisation_data:
+  # redis_data:
+  meeting_webhooks_data:

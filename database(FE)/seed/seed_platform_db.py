@@ -392,6 +392,7 @@ def seed_leaderboard(conn: sqlite3.Connection) -> None:
             1 if repro.get("config") else 0,
             1 if repro.get("checkpoint") else 0,
             1 if repro.get("notebook") else 0,
+            row.get("evaluatedRecordingCount"),
         ))
         for ex in row.get("worstExamples") or []:
             worst_rows.append((
@@ -403,8 +404,9 @@ def seed_leaderboard(conn: sqlite3.Connection) -> None:
         """INSERT INTO leaderboard_submission (
              id, dataset_id, engineer_id, engineer_name, model_name,
              base_family, wer, cer, rtf, submission_count, submitted_at,
-             config_stored, checkpoint_stored, notebook_stored
-           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+             config_stored, checkpoint_stored, notebook_stored,
+             evaluated_recording_count
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         sub_rows,
     )
     conn.executemany(
@@ -412,6 +414,19 @@ def seed_leaderboard(conn: sqlite3.Connection) -> None:
              id, submission_id, ref_text, pred_text, utterance_wer
            ) VALUES (?, ?, ?, ?, ?)""",
         worst_rows,
+    )
+
+
+# ── Holdout membership ──────────────────────────────────────────────────────
+
+def seed_holdouts(conn: sqlite3.Connection) -> None:
+    rows = load_fixture("holdout_membership")
+    conn.executemany(
+        """INSERT INTO holdout_membership
+           (dataset_id, audio_file_external_id, marked_by, marked_at)
+           VALUES (?, ?, ?, ?)""",
+        [(r["dataset_id"], r["audio_file_external_id"],
+          r["marked_by"], r["marked_at"]) for r in rows],
     )
 
 
@@ -459,6 +474,7 @@ TABLES_FOR_COUNT = [
     "metric", "metric_series", "selected_metric",
     "critical_term_failure", "accuracy_log",
     "leaderboard_submission", "leaderboard_worst_example",
+    "holdout_membership",
     "audit_action", "audit_event",
 ]
 
@@ -483,6 +499,7 @@ def main() -> None:
             seed_training(conn)
             seed_metrics(conn)
             seed_leaderboard(conn)
+            seed_holdouts(conn)
             seed_audit(conn)
 
         print(f"platform.db seeded -> {DB_PATH}")

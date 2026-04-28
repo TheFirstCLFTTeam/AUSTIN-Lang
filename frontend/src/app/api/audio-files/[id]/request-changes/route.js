@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 
-import { requireUser } from '@/server/route-helpers';
+import { requireOwnerOrRole } from '@/server/route-helpers';
 import { setAudioFileStatus } from '@/server/audio-files';
 
-export const POST = requireUser(async (request, { params, user }) => {
+export const POST = requireOwnerOrRole(async (request, { params, user }) => {
     const { id } = await params;
     let body;
     try {
@@ -19,6 +19,7 @@ export const POST = requireUser(async (request, { params, user }) => {
         });
         return NextResponse.json(result);
     } catch (err) {
-        return NextResponse.json({ detail: err.message }, { status: 400 });
+        console.error(`request-changes failed for file ${id}:`, err);
+        return NextResponse.json({ detail: 'Could not request changes' }, { status: 400 });
     }
 });

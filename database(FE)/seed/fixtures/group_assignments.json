@@ -14,5 +14,17 @@
   "u4": [
     "hk-reviewer-file-organisation",
     "reviewer-generic-access-perms"
+  ],
+  "eng-priya": [
+    "hk-engineer-file-organisation",
+    "MLE-generic-access-perms"
+  ],
+  "eng-andreas": [
+    "hk-engineer-file-organisation",
+    "MLE-generic-access-perms"
+  ],
+  "eng-james": [
+    "hk-engineer-file-organisation",
+    "MLE-generic-access-perms"
   ]
 }

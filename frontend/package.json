@@ -6,7 +6,7 @@
         "@lottiefiles/dotlottie-react": "^0.18.8",
         "@tailwindcss/postcss": "^4.1.18",
         "bcryptjs": "^2.4.3",
-        "better-sqlite3": "^11.5.0",
+        "better-sqlite3": "^12.9.0",
         "d3": "^7.9.0",
         "jose": "^5.9.6",
         "lucide-react": "^1.8.0",
@@ -15,9 +15,13 @@
         "react-dom": "^19.2.3"
     },
     "scripts": {
-        "dev": "next dev",
+        "dev": "next dev:mock",
+        "dev:mock": "cross-env NEXT_PUBLIC_MOCK_API=true next dev",
+        "dev:real": "cross-env NEXT_PUBLIC_MOCK_API=false next dev",
         "deb": "next dev",
         "build": "next build",
+        "build:mock": "cross-env NEXT_PUBLIC_MOCK_API=true next build",
+        "build:real": "cross-env NEXT_PUBLIC_MOCK_API=false next build",
         "start": "next start",
         "lint": "next lint",
         "test": "vitest"
@@ -30,6 +34,7 @@
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.1",
         "autoprefixer": "^10.4.23",
+        "cross-env": "^7.0.3",
         "eslint": "^9.0.0",
         "eslint-config-next": "^16.1.6",
         "jsdom": "^29.0.1",
