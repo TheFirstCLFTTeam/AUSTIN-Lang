@@ -15,9 +15,11 @@ from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from real_worker import start_real_worker
+from sse import stream_job_events
 from storage import JobError, JobStore, TrainingJobRecord
 from worker import (
     DEFAULT_POLL_INTERVAL_SECONDS,
@@ -215,6 +217,34 @@ async def cancel_job(job_id: str):
     except JobError as err:
         raise _handle_job_error(err)
     return _to_response(record)
+
+
+@app.get("/jobs/{job_id}/logs")
+async def stream_logs(job_id: str):
+    """SSE stream of log lines + state transitions for a single job.
+
+    Replays existing log content first, then tails until the job hits a
+    terminal state (published / cancelled / failed). See sse.py for the
+    event shape.
+    """
+    record = store.get(job_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail=f"job {job_id!r} not found")
+
+    log_dir = os.getenv("TRAINING_LOG_DIR", "/app/data/logs")
+
+    def event_stream():
+        yield from stream_job_events(store, job_id, log_dir=log_dir)
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",  # nginx: don't buffer
+            "Connection": "keep-alive",
+        },
+    )
 
 
 @app.post("/jobs/{job_id}/transitions/{new_status}", response_model=JobResponse)

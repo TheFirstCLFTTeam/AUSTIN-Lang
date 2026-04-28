@@ -34,11 +34,21 @@ def load_manifest(path: str) -> List[Sample]:
                 raise ManifestError(
                     f"manifest line {line_no} missing required field 'reference'"
                 )
+            critical_terms = data.get("critical_terms")
+            if critical_terms is not None:
+                if not isinstance(critical_terms, list):
+                    raise ManifestError(
+                        f"manifest line {line_no} 'critical_terms' must be a list, "
+                        f"got {type(critical_terms).__name__}"
+                    )
+                critical_terms = [str(t) for t in critical_terms]
+
             samples.append(
                 Sample(
                     reference=str(data["reference"]),
                     hypothesis=str(data.get("hypothesis", "")),
                     audio_path=data.get("audio_path"),
+                    critical_terms=critical_terms,
                     tags=dict(data.get("tags") or {}),
                 )
             )

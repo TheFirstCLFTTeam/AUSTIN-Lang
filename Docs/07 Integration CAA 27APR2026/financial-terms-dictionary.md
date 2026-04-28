@@ -202,15 +202,57 @@ Auth pattern matches `meeting_webhooks` and the training orchestrator: trust `X-
 
 ## 7. Frontend integration
 
+> **Doc correction (2026-04-28).** An earlier version of this section described attaching the affordance to a "per-word edit popover." That popover doesn't exist — the real editor at `/files/[id]/page.jsx:1875` is segment-level `contentEditable`: a click makes the entire segment editable, the user types corrections inline, and `updateText` diffs the result against the original. There's nothing per-word to attach a button to. The corrected design uses **selection-based floating buttons** instead.
+
 ### 7.1 Inline submission during transcript editing
 
-Wired into the existing `/files/[id]/page.jsx` editor, two affordances:
+Wired into `/files/[id]/page.jsx`, two paths — one explicit (UI), one implicit (instrumentation).
 
-**(a) Explicit — "Add to dictionary" button.** On the per-word edit popover (the same one that captures `before` → `after` corrections), a checkbox or button "💼 Add to financial dictionary." When checked, the next `saveEdits` call also POSTs `{ term, audio_file_id, was_correct: false_if_edit_else_true }` to the FE proxy → microservice. Term enters as `status='pending'`; an `occurrence` row is inserted simultaneously.
+**(a) Explicit — selection-based floating button.** When the user highlights a word or phrase anywhere in the transcript (works in view *and* edit modes), a small floating "💼 Add to financial dictionary" button appears near the selection. Click → small modal pre-fills the term, asks for an optional category, asks "was the model correct?" (default: yes — selecting a term you can read clearly means it transcribed fine), Save. Same UX shape as Google Docs / Notion selection toolbars — discoverable, matches reading flow, doesn't clutter the editor when nothing is selected.
 
-**(b) Implicit auto-trail.** When `writeEditsForFile` (already covered by the cache-invalidation hook in §4.1 of `redis-cache-integration.md`) saves an edit, after the SQLite tx commits we look up `before` against the dictionary's approved snapshot. If it matches, an `occurrence` row gets inserted with `correctly_transcribed=0` — the model got this term wrong, the reviewer corrected it. Zero friction, captures real-world signal automatically.
+Why selection-based, not per-word or context-menu:
+- Selection works in both view and edit modes. Per-word affordances only fire while editing. A reviewer skim-reading a finished transcript can still flag a term.
+- Selection scopes naturally to multi-word terms (`"earnings per share"`, `"S&P 500"`). Per-word would require Shift-click semantics or similar.
+- The browser's native selection event fires for free; conditional rendering ("only show the button when selection is plausibly a term: 1-5 words, no sentence-internal punctuation") keeps it from being visual noise.
 
-Both paths fail-quiet: a dictionary outage doesn't break transcript editing.
+Two alternative shapes considered and rejected for slice 1:
+- **Right-click context menu on a word.** Cheaper but less discoverable; also word-scoped, doesn't handle multi-word terms cleanly.
+- **Save-time review modal** ("you corrected these words — tick any that should go in the dictionary"). High-friction at the save moment; better as a v2 power-user mode if the inline button proves clutter-y.
+
+The button POSTs to `/api/financial-terms` (FE proxy → microservice) which lands the term as `status='pending'` and creates an `occurrence` row simultaneously. Both writes fail-quiet — a dictionary outage doesn't break transcript editing.
+
+**(b) Implicit auto-trail.** Independent of the explicit button. After `writeEditsForFile` commits the SQLite tx (in slice 1 of the cache-invalidation hooks per `redis-cache-integration.md` §4.1), the FE save path looks up each edit's `before` text against the dictionary's approved-terms snapshot (cached client-side for ~5 min). If `before` matches an approved term, the path POSTs `/occurrences` with `correctly_transcribed=0` — the model got this term wrong, the reviewer fixed it. Zero UI, zero friction, captures the volume signal that drives the **top wrong terms** admin view.
+
+The two paths produce different signals: the explicit button captures *intent* ("admins, please consider this term"), the auto-trail captures *behaviour* ("the model is making mistakes here"). Both feed the same admin moderation surface.
+
+### 7.2 Modal shape for the explicit path
+
+```
+┌── Add to financial dictionary ─────────────────────────┐
+│                                                        │
+│  Term            [ EBITDA                          ]   │
+│                                                        │
+│  Category        [ ratio          ▾ ] (optional)       │
+│                                                        │
+│  Source          ✓ This transcript (auto-filled)       │
+│                                                        │
+│  Did the model    ◉ Yes, it got this right             │
+│  transcribe it    ○ No, I'm correcting it              │
+│  correctly?                                            │
+│                                                        │
+│  Note            [ optional, for admins        ]       │
+│                                                        │
+│  [Cancel]                              [💼 Submit]     │
+└────────────────────────────────────────────────────────┘
+```
+
+Pre-fills:
+- `Term` — the user's selection, trimmed.
+- `Category` — null; admin can set during moderation.
+- `Source` — the current `audio_file.external_id`, locked.
+- `Did the model transcribe it correctly?` — defaults to "yes" because if the user is selecting clean text, that's usually true. Flipping to "no" creates an `occurrence` with `correctly_transcribed=0` immediately, which is what the auto-trail would have done anyway — explicit is strictly more informative than implicit.
+
+Submission: `POST /api/financial-terms` with the term + category + note; on success, `POST /api/financial-terms/occurrences` with the term_id + audio_file_external_id + was_correct. One round-trip pair, both fail-quiet.
 
 ### 7.2 Admin moderation page
 

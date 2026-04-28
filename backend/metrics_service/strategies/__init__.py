@@ -8,6 +8,7 @@ from . import f1  # noqa: F401
 from . import wer  # noqa: F401
 from . import cer  # noqa: F401
 from . import smr  # noqa: F401
+from . import financial_term_accuracy  # noqa: F401
 
 __all__ = [
     "MetricStrategy",

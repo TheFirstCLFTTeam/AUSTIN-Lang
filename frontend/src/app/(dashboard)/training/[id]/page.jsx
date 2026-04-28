@@ -9,6 +9,9 @@ import {
     detectMetricsFromLogs,
 } from '@/services/training-jobs';
 import OwnerBadge from '../../components/OwnerBadge';
+import TrainingJobProgress from '../../components/TrainingJobProgress';
+
+const MOCK_API = process.env.NEXT_PUBLIC_MOCK_API === 'true';
 
 function formatAbsolute(iso) {
     if (!iso) return '\u2014';
@@ -703,7 +706,11 @@ export default function TrainingJobDetailPage() {
                 </div>
             )}
 
-            {/* Log tail */}
+            {/* Log tail.
+                Real mode: SSE stream from /api/training-jobs/{id}/logs via
+                <TrainingJobProgress>. Mock mode: keep the static <LogPanel>
+                rendering of the in-memory mock so dev mode still has
+                something to look at without the orchestrator running. */}
             <div className="mb-10">
                 <div className="flex items-end justify-between mb-3">
                     <div>
@@ -711,23 +718,29 @@ export default function TrainingJobDetailPage() {
                             className="text-[0.875rem] font-bold uppercase tracking-widest"
                             style={{ color: '#1c1b1b' }}
                         >
-                            Recent Logs
-                            <span
-                                className="ml-3 text-[0.6875rem] font-semibold"
-                                style={{ color: '#7a7574' }}
-                            >
-                                ({logs.length})
-                            </span>
+                            {MOCK_API ? 'Recent Logs' : 'Live Logs'}
+                            {MOCK_API && (
+                                <span
+                                    className="ml-3 text-[0.6875rem] font-semibold"
+                                    style={{ color: '#7a7574' }}
+                                >
+                                    ({logs.length})
+                                </span>
+                            )}
                         </h2>
                         <p
                             className="text-[0.6875rem] uppercase tracking-widest mt-1"
                             style={{ color: '#7a7574' }}
                         >
-                            Streamed from the training container &middot; most recent at bottom
+                            {MOCK_API
+                                ? 'Mock-mode: static excerpt from the in-memory job. Set NEXT_PUBLIC_MOCK_API=false for the live stream.'
+                                : 'Live SSE stream from the orchestrator · most recent at bottom'}
                         </p>
                     </div>
                 </div>
-                <LogPanel logs={logs} />
+                {MOCK_API
+                    ? <LogPanel logs={logs} />
+                    : <TrainingJobProgress jobId={jobId} />}
             </div>
 
             {/* Audit footer */}

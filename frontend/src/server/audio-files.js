@@ -3,6 +3,7 @@ import 'server-only';
 import { platformDb, usersDb } from './db';
 import { recordAuditEvent } from './audit';
 import { invalidateDetail } from './cache';
+import { getCachedSnapshot, lookupTerm } from './financial-terms-cache';
 import { applyEdits } from '../lib/transcriptEdits';
 
 // URL of the backend database service (poc.db, FastAPI at :8002). It's the
@@ -423,6 +424,72 @@ export async function writeEditsForFile(fileId, edits, actor) {
     // Cache invalidation. Fail-open — if Redis is down, cache miss next read
     // and we eat one cold SQLite hit.
     await invalidateDetail(row.external_id || String(row.id));
+
+    // Slice 5: auto-trail occurrences. For each edit whose `before` text is
+    // an approved financial term, POST an occurrence with
+    // correctly_transcribed=0 (the model got the term wrong; the reviewer
+    // is correcting it). Fire-and-forget, fail-quiet — auto-trail is
+    // instrumentation, never blocks transcript saves.
+    autoTrailDictionaryOccurrences(
+        row.external_id || String(row.id),
+        edits || [],
+    ).catch(() => { /* silent */ });
+}
+
+// Look up each edit's `before` text against the cached approved-terms
+// snapshot; for matches, POST an occurrence record. Runs after the SQLite
+// tx commits so the user's save isn't held up by either the snapshot
+// fetch or the occurrence POST.
+async function autoTrailDictionaryOccurrences(fileExternalId, edits) {
+    if (!edits.length) return;
+    let termsByNorm;
+    try {
+        const result = await getCachedSnapshot();
+        termsByNorm = result.termsByNorm;
+    } catch {
+        return; // cold cache + upstream down — skip silently
+    }
+    if (!termsByNorm || termsByNorm.size === 0) return;
+
+    const matches = [];
+    for (const e of edits) {
+        // The edit shape carries `before` (the model's word) and `after`
+        // (the human correction). A `delete` op has no `after`. We trail
+        // when `before` is in the dictionary regardless of op — any edit
+        // means the model didn't produce the canonical term.
+        const before = (e?.before || '').toString();
+        if (!before) continue;
+        const term = lookupTerm(termsByNorm, before);
+        if (term) matches.push(term);
+    }
+    if (!matches.length) return;
+
+    const url = (process.env.FINANCIAL_TERMS_URL ||
+        'http://financial-terms-dictionary:8009') + '/occurrences';
+    // Dedupe by term_id — multiple edits of the same term in one save
+    // count as one occurrence per (term, file).
+    const uniqueByTermId = new Map();
+    for (const t of matches) {
+        if (!uniqueByTermId.has(t.id)) uniqueByTermId.set(t.id, t);
+    }
+    await Promise.allSettled(
+        Array.from(uniqueByTermId.values()).map((term) =>
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-User-Id': 'system:auto-trail',
+                    'X-User-Role': 'system',
+                },
+                body: JSON.stringify({
+                    term_id: term.id,
+                    audio_file_external_id: fileExternalId,
+                    correctly_transcribed: false,
+                }),
+            }).catch(() => {}),
+        ),
+    );
 }
 
 // Maps an audit_action key to the transcript_version label that should be

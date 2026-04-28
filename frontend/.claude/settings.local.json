@@ -80,12 +80,27 @@
       "Bash(grep -E \"\\\\.json$\")",
       "Bash(awk '{print $5, $9}')",
       "Bash(awk -F'-' '{print $2\"-\"$3}')",
-      "Bash(npx --no-install next build)"
+      "Bash(npx --no-install next build)",
+      "Skill(update-config)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn"
   ],
   "prefersReducedMotion": true,
-  "enableAllProjectMcpServers": true
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "async": true,
+            "command": "Add-Type -AssemblyName presentationCore; $mp = New-Object System.Windows.Media.MediaPlayer; $mp.Open([uri]'C:\\Users\\ChunChunMaru\\Desktop\\Repos\\AUSTIN-Lang\\dry-fart.mp3'); $mp.Volume = 0.1; $mp.Play(); Start-Sleep -Seconds 3"
+          }
+        ]
+      }
+    ]
+  }
 }

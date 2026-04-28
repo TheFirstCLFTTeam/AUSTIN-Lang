@@ -7,6 +7,7 @@ import AudioPlayer from '../../../../components/AudioPlayer';
 import Dialog from '../../components/Dialog';
 import PseudonymisationPanel from '../../components/PseudonymisationPanel';
 import SpeakerPickerSection from '../../components/SpeakerPickerSection';
+import TermFlagger from '../../components/TermFlagger';
 import TranscriptVersioning from '../../components/TranscriptVersioning';
 import {
     fetchFileDetail,
@@ -979,6 +980,10 @@ export default function FileDetailPage() {
 
     return (
         <div>
+            {/* Selection-based "Add to financial dictionary" affordance.
+                Renders nothing unless the user's selection looks like a term. */}
+            <TermFlagger fileId={id} />
+
             {/* Top Action Bar */}
             <div
                 className="flex items-center justify-between px-6 py-3 mb-6 -mx-6 -mt-6"

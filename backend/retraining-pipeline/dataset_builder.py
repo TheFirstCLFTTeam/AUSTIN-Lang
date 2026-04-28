@@ -133,5 +133,12 @@ def fetch_training_data():
     print(f"Manifest created with {len(manifest)} samples at {manifest_path}")
     return manifest
 
+# Slice 4 of financial-terms-dictionary.md — the helpers that the future
+# eval-manifest writer will use to stamp `critical_terms` on each row.
+# They live in `eval_manifest_helpers.py` so they're testable without the
+# audio stack (librosa / soundfile / requests above).
+from eval_manifest_helpers import fetch_dictionary_snapshot, stamp_critical_terms  # noqa: F401, E402
+
+
 if __name__ == "__main__":
     fetch_training_data()
