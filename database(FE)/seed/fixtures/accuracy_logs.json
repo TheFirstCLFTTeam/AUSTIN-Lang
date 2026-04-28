@@ -1,0 +1,26 @@
+[
+  {
+    "id": "TRN-9403-B",
+    "title": "Q3 Earnings Boardroom",
+    "dur": "634 hrs",
+    "editor": "J. Chen",
+    "accuracy": "87.6",
+    "change": -1.2
+  },
+  {
+    "id": "TRN-7718-A",
+    "title": "Risk Assessment Alpha",
+    "dur": "198 hrs",
+    "editor": "M. Wisse",
+    "accuracy": "91.1",
+    "change": 0.8
+  },
+  {
+    "id": "TRN-4603-D",
+    "title": "Compliance Policy Update",
+    "dur": "848 hrs",
+    "editor": "E. Kim",
+    "accuracy": "84.9",
+    "change": -2.4
+  }
+]

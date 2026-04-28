@@ -1,0 +1,75 @@
+[
+  {
+    "id": "u1",
+    "email": "user@example.com",
+    "password": "password123",
+    "name": "Generic User",
+    "role": "generic",
+    "company": "SELF",
+    "fileOrgGroup": "hk-user-file-organisation",
+    "isControlMember": true
+  },
+  {
+    "id": "u2",
+    "email": "engineer@example.com",
+    "password": "password123",
+    "name": "Engineer User",
+    "role": "engineer",
+    "company": "SELF",
+    "fileOrgGroup": "hk-engineer-file-organisation",
+    "isControlMember": true
+  },
+  {
+    "id": "u3",
+    "email": "admin@example.com",
+    "password": "password123",
+    "name": "Admin User",
+    "role": "admin",
+    "company": "SELF",
+    "fileOrgGroup": "hk-admin-file-organisation",
+    "isControlMember": true
+  },
+  {
+    "id": "u4",
+    "email": "reviewer@example.com",
+    "password": "password123",
+    "name": "Reviewer User",
+    "role": "reviewer",
+    "company": "SELF",
+    "fileOrgGroup": "hk-reviewer-file-organisation",
+    "isControlMember": true
+  },
+  {
+    "id": "eng-priya",
+    "email": null,
+    "password": null,
+    "name": "Priya Rangan",
+    "role": "engineer",
+    "company": "SELF",
+    "fileOrgGroup": "hk-engineer-file-organisation",
+    "isControlMember": false,
+    "loginEnabled": false
+  },
+  {
+    "id": "eng-andreas",
+    "email": null,
+    "password": null,
+    "name": "Andreas Keller",
+    "role": "engineer",
+    "company": "SELF",
+    "fileOrgGroup": "hk-engineer-file-organisation",
+    "isControlMember": false,
+    "loginEnabled": false
+  },
+  {
+    "id": "eng-james",
+    "email": null,
+    "password": null,
+    "name": "James Whitmore",
+    "role": "engineer",
+    "company": "SELF",
+    "fileOrgGroup": "hk-engineer-file-organisation",
+    "isControlMember": false,
+    "loginEnabled": false
+  }
+]

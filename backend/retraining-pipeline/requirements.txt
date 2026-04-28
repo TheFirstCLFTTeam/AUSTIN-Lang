@@ -3,7 +3,7 @@ peft
 bitsandbytes
 datasets
 evaluate
-torch
+torch==2.4.1
 accelerate
 librosa
 jiwer
@@ -12,3 +12,8 @@ python-dotenv
 torchcodec
 soundfile
 tensorboard
+# Pinned per docs/07 Integration CAA 27APR2026/fl-dp-risk-assessment.md P1 — do
+# not bump without re-evaluating the analytic ε bound. DP-SGD is currently OFF
+# (DP_ENABLED env var unset in train.py); flipping it on requires re-reading the
+# quantisation interaction note in §4.9 of the same doc.
+opacus==1.5.2

@@ -27,11 +27,10 @@ export default function AudioPlayer({
   return (
     <audio
       ref={actualRef}
-      controls
       preload="metadata"
       src={fileUrl}
       onCanPlay={onReady}
-      className="w-full mt-4"
+      style={{ display: "none" }}
     />
   );
 }

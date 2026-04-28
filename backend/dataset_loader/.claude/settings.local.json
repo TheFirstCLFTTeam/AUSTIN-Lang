@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\Source\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\\\\failure_runs\")",
+      "Bash(mv \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\\\\dataset_failed_\"*.txt \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\\\\failure_runs\\\\\" && ls \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\" && echo \"---\" && ls \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\Source\\\\failure_runs\")",
+      "Bash(mv sampled_datasets/Source Source)",
+      "Bash(mkdir -p Source/failure_runs)",
+      "Bash(mv Source/dataset_failed_*.txt Source/failure_runs/)",
+      "Bash(xargs grep *)",
+      "Bash(find *)",
+      "Bash(git -C \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\" status -sb)",
+      "Bash(git -C \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\" log --oneline origin/ui_enhancement..ui_enhancement)",
+      "Bash(python -c \"import pydub; print\\(pydub.__version__\\)\")",
+      "Bash(pip install *)",
+      "Bash(python multispeak_maker/mix.py AlienKevin-mixed_cantonese_and_english_speech kensho-spgispeech-S --limit 2)",
+      "Bash(python multispeak_maker/mix.py AlienKevin-mixed_cantonese_and_english_speech AlienKevin-wordshk_cantonese_speech --limit 1)",
+      "Bash(python multispeak_maker/mix.py AlienKevin-wordshk_cantonese_speech alvanlii-cantonese-youtube --limit 1)",
+      "Bash(python -c \"from pydub import AudioSegment; a=AudioSegment.from_file\\(r'C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\multispeak_maker\\\\MIX-AlienKevin-alvanlii\\\\audio\\\\0000_audio.mp3'\\); print\\(f'{len\\(a\\)} ms, {a.frame_rate} Hz, {a.channels} ch'\\)\")",
+      "Bash(python multispeak_maker/mix.py)"
+    ]
+  }
+}

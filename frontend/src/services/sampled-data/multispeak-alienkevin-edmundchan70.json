@@ -1,0 +1,77 @@
+[
+  {
+    "audio": "audio/0000_audio.mp3",
+    "speaker_1": {
+      "transcript": "我冇讀過政治學，有錯麻煩各位指正。",
+      "start_ms": 0,
+      "source_folder": "AlienKevin-wordshk_cantonese_speech",
+      "source_audio": "audio/0000_audio.mp3"
+    },
+    "speaker_2": {
+      "transcript": "更知道這篇詩篇",
+      "start_ms": 1000,
+      "source_folder": "edmundchan70-Cantonese_fine_tune",
+      "source_audio": "audio/0000_audio.mp3"
+    }
+  },
+  {
+    "audio": "audio/0001_audio.mp3",
+    "speaker_1": {
+      "transcript": "上下聯對仗工整，但內容無關嘅對聯（量詞：副／對）",
+      "start_ms": 0,
+      "source_folder": "AlienKevin-wordshk_cantonese_speech",
+      "source_audio": "audio/0001_audio.mp3"
+    },
+    "speaker_2": {
+      "transcript": "原來我生命可以改變",
+      "start_ms": 1000,
+      "source_folder": "edmundchan70-Cantonese_fine_tune",
+      "source_audio": "audio/0001_audio.mp3"
+    }
+  },
+  {
+    "audio": "audio/0002_audio.mp3",
+    "speaker_1": {
+      "transcript": "追求一個人而令到嗰個人對自己有好感",
+      "start_ms": 0,
+      "source_folder": "AlienKevin-wordshk_cantonese_speech",
+      "source_audio": "audio/0002_audio.mp3"
+    },
+    "speaker_2": {
+      "transcript": "是不是",
+      "start_ms": 1000,
+      "source_folder": "edmundchan70-Cantonese_fine_tune",
+      "source_audio": "audio/0002_audio.mp3"
+    }
+  },
+  {
+    "audio": "audio/0003_audio.mp3",
+    "speaker_1": {
+      "transcript": "鍾意某人，對某人帶有愛意",
+      "start_ms": 0,
+      "source_folder": "AlienKevin-wordshk_cantonese_speech",
+      "source_audio": "audio/0003_audio.mp3"
+    },
+    "speaker_2": {
+      "transcript": "要讓我的生命",
+      "start_ms": 1000,
+      "source_folder": "edmundchan70-Cantonese_fine_tune",
+      "source_audio": "audio/0003_audio.mp3"
+    }
+  },
+  {
+    "audio": "audio/0004_audio.mp3",
+    "speaker_1": {
+      "transcript": "個蘋果好大個，不如我哋一人一半食咗佢？",
+      "start_ms": 0,
+      "source_folder": "AlienKevin-wordshk_cantonese_speech",
+      "source_audio": "audio/0004_audio.mp3"
+    },
+    "speaker_2": {
+      "transcript": "他看到原來",
+      "start_ms": 1000,
+      "source_folder": "edmundchan70-Cantonese_fine_tune",
+      "source_audio": "audio/0004_audio.mp3"
+    }
+  }
+]

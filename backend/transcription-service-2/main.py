@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 import torch
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from transformers import pipeline, AutoModelForSpeechSeq2Seq, AutoProcessor
@@ -33,7 +33,7 @@ app.add_middleware(
 # Model Initialization
 # ---------------------------------------------------------------------------
 
-MODEL_ID = "openai/whisper-large-v3-turbo"
+MODEL_ID = os.getenv("MODEL_ID")
 ADAPTERS_DIR = "/app/adapters"
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -128,8 +128,8 @@ def ensure_adapter_loaded(domain: str):
 # ---------------------------------------------------------------------------
 
 class Segment(BaseModel):
-    start: float
-    end: float
+    start: Optional[float] = None
+    end: Optional[float] = None
     text: str
 
 class TranscriptionResponse(BaseModel):
@@ -155,11 +155,21 @@ async def health():
         "active_adapter": active_adapter
     }
 
+@app.get("/adapters")
+async def list_adapters():
+    """Returns a list of all available adapters in the ADAPTERS_DIR."""
+    adapters = ["base"]
+    if os.path.exists(ADAPTERS_DIR):
+        for item in os.listdir(ADAPTERS_DIR):
+            if os.path.isdir(os.path.join(ADAPTERS_DIR, item)):
+                adapters.append(item)
+    return {"adapters": adapters}
+
 @app.post("/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio(
     audio: UploadFile = File(...),
-    language: Optional[str] = None,
-    domain: Optional[str] = None
+    language: Optional[str] = Form(None),
+    domain: Optional[str] = Form(None)
 ):
     """
     Transcribe an uploaded audio file using whisper-large-v3-turbo.
@@ -209,8 +219,9 @@ async def transcribe_audio(
         if language:
             generate_kwargs["language"] = language
 
-        # HF Whisper pipeline handles the audio loading internally via ffmpeg/librosa
-        result = pipe(tmp_path, generate_kwargs=generate_kwargs)
+        # result = pipe(tmp_path, generate_kwargs=generate_kwargs)
+        # Force passing as a string path to ensure it doesn't try to use bytes
+        result = pipe(str(tmp_path), generate_kwargs=generate_kwargs)
 
         # Build response
         response = TranscriptionResponse(
@@ -227,6 +238,8 @@ async def transcribe_audio(
         return response
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
     finally:

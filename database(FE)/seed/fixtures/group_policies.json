@@ -1,0 +1,108 @@
+{
+  "hk-user-file-organisation": {
+    "permissions": [
+      "view_files"
+    ],
+    "resources": [
+      "files"
+    ]
+  },
+  "hk-reviewer-file-organisation": {
+    "permissions": [
+      "view_files"
+    ],
+    "resources": [
+      "files",
+      "processing"
+    ]
+  },
+  "hk-engineer-file-organisation": {
+    "permissions": [
+      "view_files"
+    ],
+    "resources": [
+      "files"
+    ]
+  },
+  "hk-admin-file-organisation": {
+    "permissions": [
+      "view_files"
+    ],
+    "resources": [
+      "files",
+      "processing"
+    ]
+  },
+  "user-generic-access-perms": {
+    "permissions": [
+      "view_files",
+      "edit_transcripts",
+      "submit_for_review",
+      "export"
+    ],
+    "resources": [
+      "files",
+      "processing",
+      "metrics"
+    ]
+  },
+  "MLE-generic-access-perms": {
+    "permissions": [
+      "view_files",
+      "create_datasets",
+      "train_models",
+      "submit_to_leaderboard",
+      "export"
+    ],
+    "resources": [
+      "files",
+      "datasets",
+      "training",
+      "leaderboard",
+      "metrics",
+      "processing"
+    ]
+  },
+  "reviewer-generic-access-perms": {
+    "permissions": [
+      "view_files",
+      "review",
+      "flag_privacy",
+      "pseudonymise",
+      "submit_for_review",
+      "export"
+    ],
+    "resources": [
+      "files",
+      "privacy",
+      "processing",
+      "metrics"
+    ]
+  },
+  "hk-admin-access-perms": {
+    "permissions": [
+      "view_files",
+      "transcribe",
+      "edit_transcripts",
+      "submit_for_review",
+      "review",
+      "flag_privacy",
+      "pseudonymise",
+      "export",
+      "create_datasets",
+      "train_models",
+      "submit_to_leaderboard",
+      "manage_group_members"
+    ],
+    "resources": [
+      "files",
+      "processing",
+      "metrics",
+      "datasets",
+      "training",
+      "leaderboard",
+      "privacy",
+      "admin"
+    ]
+  }
+}

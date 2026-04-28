@@ -1,0 +1,7725 @@
+[
+  {
+    "id": "audit-ds-mixed-0000-10",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-12T22:27:06.564Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-9",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-11T15:27:06.564Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-8",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T06:27:06.564Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-7",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-11T05:17:06.564Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.004
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-6",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-11T04:17:06.564Z",
+    "details": {
+      "comment": "Timestamps on speaker 2 drift after 03:00 — please re-align."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-5",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-10T12:17:06.564Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-4",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-10T11:25:06.564Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-3",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-03-10T09:52:06.564Z",
+    "details": {
+      "dwellSec": 342
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-2",
+    "fileId": "ds-mixed-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-10T09:02:06.564Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 73
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0000-1",
+    "fileId": "ds-mixed-0000",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-10T09:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "11.3"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-9",
+    "fileId": "ds-mixed-0001",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-12T06:11:43.283Z",
+    "details": {
+      "granteeId": "u4",
+      "granteeName": "Reviewer User",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-8",
+    "fileId": "ds-mixed-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-12T01:11:43.283Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-7",
+    "fileId": "ds-mixed-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-11T17:11:43.283Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-6",
+    "fileId": "ds-mixed-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-10T16:11:43.283Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-5",
+    "fileId": "ds-mixed-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-10T15:42:43.283Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-4",
+    "fileId": "ds-mixed-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-10T14:33:43.283Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.017
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-3",
+    "fileId": "ds-mixed-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-10T13:00:43.283Z",
+    "details": {
+      "dwellSec": 486
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-2",
+    "fileId": "ds-mixed-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-10T12:05:43.283Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 70
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0001-1",
+    "fileId": "ds-mixed-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-03-10T12:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "19.9"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0002-8",
+    "fileId": "ds-mixed-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-14T06:50:20.002Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0002-7",
+    "fileId": "ds-mixed-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-11T18:50:20.002Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0002-6",
+    "fileId": "ds-mixed-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-10T20:50:20.002Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0002-5",
+    "fileId": "ds-mixed-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-10T18:40:20.002Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.018
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0002-4",
+    "fileId": "ds-mixed-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-10T17:48:20.002Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0002-3",
+    "fileId": "ds-mixed-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "viewed",
+    "timestamp": "2026-03-10T15:16:20.002Z",
+    "details": {
+      "dwellSec": 524
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0002-2",
+    "fileId": "ds-mixed-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-10T15:02:20.002Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 66
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0002-1",
+    "fileId": "ds-mixed-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-03-10T15:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "10.6"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-9",
+    "fileId": "ds-mixed-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T05:56:56.722Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-8",
+    "fileId": "ds-mixed-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T16:56:56.722Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-7",
+    "fileId": "ds-mixed-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-11T16:01:56.722Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-6",
+    "fileId": "ds-mixed-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-11T11:01:56.722Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-5",
+    "fileId": "ds-mixed-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-10T21:01:56.722Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-4",
+    "fileId": "ds-mixed-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-10T20:42:56.722Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.006
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-3",
+    "fileId": "ds-mixed-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-03-10T19:07:56.722Z",
+    "details": {
+      "dwellSec": 237
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-2",
+    "fileId": "ds-mixed-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-10T18:05:56.722Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 63
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0003-1",
+    "fileId": "ds-mixed-0003",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-03-10T18:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "19.2"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-10",
+    "fileId": "ds-mixed-0004",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-13T02:58:39.687Z",
+    "details": {
+      "granteeId": "eng-priya",
+      "granteeName": "Priya Rangan",
+      "scope": "read-only"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-9",
+    "fileId": "ds-mixed-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-11T16:58:39.687Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-8",
+    "fileId": "ds-mixed-0004",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T07:58:39.687Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-7",
+    "fileId": "ds-mixed-0004",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-11T07:05:39.687Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.013
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-6",
+    "fileId": "ds-mixed-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-11T05:28:39.687Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.022
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-5",
+    "fileId": "ds-mixed-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-11T04:01:39.687Z",
+    "details": {
+      "dwellSec": 263
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-4",
+    "fileId": "ds-mixed-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-11T03:02:39.687Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-3",
+    "fileId": "ds-mixed-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-10T21:02:39.687Z",
+    "details": {
+      "entity": "phone_number",
+      "confidence": "0.86"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-2",
+    "fileId": "ds-mixed-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-10T21:01:39.687Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 87
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0004-1",
+    "fileId": "ds-mixed-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-03-10T21:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "12.7"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-13",
+    "fileId": "ds-mixed-0005",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-14T07:21:16.406Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-12",
+    "fileId": "ds-mixed-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T16:21:16.406Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-11",
+    "fileId": "ds-mixed-0005",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T23:21:16.406Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-10",
+    "fileId": "ds-mixed-0005",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-11T22:38:16.406Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.004
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-9",
+    "fileId": "ds-mixed-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-11T18:38:16.406Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-8",
+    "fileId": "ds-mixed-0005",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T10:38:16.406Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-7",
+    "fileId": "ds-mixed-0005",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-11T10:01:16.406Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-6",
+    "fileId": "ds-mixed-0005",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-11T08:04:16.406Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-5",
+    "fileId": "ds-mixed-0005",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "viewed",
+    "timestamp": "2026-03-11T06:41:16.406Z",
+    "details": {
+      "dwellSec": 242
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-4",
+    "fileId": "ds-mixed-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-11T06:08:16.406Z",
+    "details": {
+      "spansMasked": 1
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-3",
+    "fileId": "ds-mixed-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-11T00:08:16.406Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.88"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-2",
+    "fileId": "ds-mixed-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-11T00:05:16.406Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 84
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0005-1",
+    "fileId": "ds-mixed-0005",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-03-11T00:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "3.3"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-10",
+    "fileId": "ds-mixed-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "exported",
+    "timestamp": "2026-03-14T19:33:53.125Z",
+    "details": {
+      "format": "txt"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-9",
+    "fileId": "ds-mixed-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-12T18:33:53.125Z",
+    "details": {
+      "granteeId": "u4",
+      "granteeName": "Reviewer User",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-8",
+    "fileId": "ds-mixed-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T02:33:53.125Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-7",
+    "fileId": "ds-mixed-0006",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T13:33:53.125Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-6",
+    "fileId": "ds-mixed-0006",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-11T12:34:53.125Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-5",
+    "fileId": "ds-mixed-0006",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "viewed",
+    "timestamp": "2026-03-11T09:31:53.125Z",
+    "details": {
+      "dwellSec": 337
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-4",
+    "fileId": "ds-mixed-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-11T09:03:53.125Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-3",
+    "fileId": "ds-mixed-0006",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-11T03:03:53.125Z",
+    "details": {
+      "entity": "email",
+      "confidence": "0.89"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-2",
+    "fileId": "ds-mixed-0006",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-11T03:01:53.125Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 80
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0006-1",
+    "fileId": "ds-mixed-0006",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-03-11T03:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "12.0"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-10",
+    "fileId": "ds-mixed-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-12T09:46:29.845Z",
+    "details": {
+      "datasetName": "Cantonese Telephony Edge Cases"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-9",
+    "fileId": "ds-mixed-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-11T20:46:29.845Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-8",
+    "fileId": "ds-mixed-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T15:46:29.845Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-7",
+    "fileId": "ds-mixed-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-11T14:16:29.845Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-6",
+    "fileId": "ds-mixed-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-11T13:03:29.845Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.013
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-5",
+    "fileId": "ds-mixed-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-03-11T11:48:29.845Z",
+    "details": {
+      "dwellSec": 200
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-4",
+    "fileId": "ds-mixed-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-11T11:06:29.845Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-3",
+    "fileId": "ds-mixed-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-11T06:06:29.845Z",
+    "details": {
+      "entity": "phone_number",
+      "confidence": "0.90"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-2",
+    "fileId": "ds-mixed-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-11T06:05:29.845Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 77
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0007-1",
+    "fileId": "ds-mixed-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-11T06:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "2.6"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-9",
+    "fileId": "ds-mixed-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T01:04:00.318Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-8",
+    "fileId": "ds-mixed-0008",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T14:04:00.318Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-7",
+    "fileId": "ds-mixed-0008",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-11T13:34:00.318Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.004
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-6",
+    "fileId": "ds-mixed-0008",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-11T12:37:00.318Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.024
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-5",
+    "fileId": "ds-mixed-0008",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "viewed",
+    "timestamp": "2026-03-11T11:57:00.318Z",
+    "details": {
+      "dwellSec": 610
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-4",
+    "fileId": "ds-mixed-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-11T11:07:00.318Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-3",
+    "fileId": "ds-mixed-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-11T09:07:00.318Z",
+    "details": {
+      "entity": "email",
+      "confidence": "0.82"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-2",
+    "fileId": "ds-mixed-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-11T09:03:00.318Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 45
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0008-1",
+    "fileId": "ds-mixed-0008",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-03-11T09:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "8.5"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-12",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-13T01:31:37.037Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-11",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T13:31:37.037Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-10",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-12T12:41:37.037Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-9",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-12T07:41:37.037Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-8",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T23:41:37.037Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-7",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-11T21:44:37.037Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-6",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-11T21:09:37.037Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.021
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-5",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-03-11T20:33:37.037Z",
+    "details": {
+      "dwellSec": 589
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-4",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-11T20:09:37.037Z",
+    "details": {
+      "spansMasked": 4
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-3",
+    "fileId": "ds-mixed-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-11T12:09:37.037Z",
+    "details": {
+      "entity": "phone_number",
+      "confidence": "0.83"
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-2",
+    "fileId": "ds-mixed-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-11T12:06:37.037Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 42
+    }
+  },
+  {
+    "id": "audit-ds-mixed-0009-1",
+    "fileId": "ds-mixed-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-03-11T12:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "17.1"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-9",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-12T21:44:30.286Z",
+    "details": {
+      "granteeId": "u2",
+      "granteeName": "Engineer User",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-8",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T15:44:30.286Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-7",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-11T21:44:30.286Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-6",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-03-11T20:22:30.286Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-5",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-11T19:16:30.286Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.023
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-4",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-03-11T16:50:30.286Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-3",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-03-11T15:24:30.286Z",
+    "details": {
+      "dwellSec": 221
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-2",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-11T15:03:30.286Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 65
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0000-1",
+    "fileId": "ds-wordshk-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "uploaded",
+    "timestamp": "2026-03-11T15:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "14.3"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-14",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "exported",
+    "timestamp": "2026-03-16T23:30:53.567Z",
+    "details": {
+      "format": "txt"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-13",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-13T23:30:53.567Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-12",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T23:30:53.567Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-11",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-12T22:27:53.567Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.003
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-10",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-12T16:27:53.567Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-9",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T11:27:53.567Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-8",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-12T09:48:53.567Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.005
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-7",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-12T06:59:53.567Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.013
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-6",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-12T05:32:53.567Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.006
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-5",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-12T03:02:53.567Z",
+    "details": {
+      "dwellSec": 637
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-4",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-12T02:09:53.567Z",
+    "details": {
+      "spansMasked": 4
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-3",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-11T18:09:53.567Z",
+    "details": {
+      "entity": "email",
+      "confidence": "0.83"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-2",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-11T18:06:53.567Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 69
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0001-1",
+    "fileId": "ds-wordshk-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-03-11T18:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "5.6"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-16",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "exported",
+    "timestamp": "2026-03-18T10:14:16.848Z",
+    "details": {
+      "format": "srt"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-15",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-17T23:14:16.848Z",
+    "details": {
+      "granteeId": "u2",
+      "granteeName": "Engineer User",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-14",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-16T07:14:16.848Z",
+    "details": {
+      "datasetName": "Cantonese Telephony Edge Cases"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-13",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-13T23:14:16.848Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-12",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T01:14:16.848Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-11",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-13T01:02:16.848Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-10",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-12T23:02:16.848Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-9",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T08:02:16.848Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-8",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-12T05:49:16.848Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-7",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-12T02:21:16.848Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.006
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-6",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-12T01:39:16.848Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-5",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-11T23:15:16.848Z",
+    "details": {
+      "dwellSec": 555
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-4",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-11T23:04:16.848Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-3",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-11T21:04:16.848Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.81"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-2",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-11T21:03:16.848Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 72
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0002-1",
+    "fileId": "ds-wordshk-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-11T21:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "15.0"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-12",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "exported",
+    "timestamp": "2026-03-16T23:21:40.129Z",
+    "details": {
+      "format": "vtt"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-11",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-15T00:21:40.129Z",
+    "details": {
+      "datasetName": "Cantonese Telephony Edge Cases"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-10",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T23:21:40.129Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-9",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T14:21:40.129Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-8",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-12T12:16:40.129Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-7",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-12T08:56:40.129Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-6",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-12T05:51:40.129Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.016
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-5",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "viewed",
+    "timestamp": "2026-03-12T03:21:40.129Z",
+    "details": {
+      "dwellSec": 609
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-4",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-12T03:08:40.129Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-3",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-12T00:08:40.129Z",
+    "details": {
+      "entity": "phone_number",
+      "confidence": "0.80"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-2",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-12T00:06:40.129Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 76
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0003-1",
+    "fileId": "ds-wordshk-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-12T00:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "6.3"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0004-8",
+    "fileId": "ds-wordshk-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T20:58:57.164Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0004-7",
+    "fileId": "ds-wordshk-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T11:58:57.164Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0004-6",
+    "fileId": "ds-wordshk-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-12T10:50:57.164Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0004-5",
+    "fileId": "ds-wordshk-0004",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-12T08:12:57.164Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0004-4",
+    "fileId": "ds-wordshk-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-12T06:02:57.164Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.015
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0004-3",
+    "fileId": "ds-wordshk-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-12T03:39:57.164Z",
+    "details": {
+      "dwellSec": 373
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0004-2",
+    "fileId": "ds-wordshk-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-12T03:03:57.164Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 51
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0004-1",
+    "fileId": "ds-wordshk-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-03-12T03:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "12.9"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-9",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-14T20:44:20.444Z",
+    "details": {
+      "granteeId": "eng-priya",
+      "granteeName": "Priya Rangan",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-8",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-13T01:44:20.444Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-7",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T14:44:20.444Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-6",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-12T13:02:20.444Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.014
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-5",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-12T10:02:20.444Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.013
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-4",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-12T07:48:20.444Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.024
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-3",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "viewed",
+    "timestamp": "2026-03-12T06:24:20.444Z",
+    "details": {
+      "dwellSec": 335
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-2",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-12T06:07:20.444Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 54
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0005-1",
+    "fileId": "ds-wordshk-0005",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-12T06:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "4.2"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0006-8",
+    "fileId": "ds-wordshk-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T20:35:43.725Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0006-7",
+    "fileId": "ds-wordshk-0006",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T18:35:43.725Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0006-6",
+    "fileId": "ds-wordshk-0006",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-12T16:38:43.725Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.024
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0006-5",
+    "fileId": "ds-wordshk-0006",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-03-12T13:27:43.725Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.017
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0006-4",
+    "fileId": "ds-wordshk-0006",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-03-12T11:09:43.725Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.022
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0006-3",
+    "fileId": "ds-wordshk-0006",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-03-12T09:38:43.725Z",
+    "details": {
+      "dwellSec": 526
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0006-2",
+    "fileId": "ds-wordshk-0006",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-12T09:03:43.725Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 58
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0006-1",
+    "fileId": "ds-wordshk-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-12T09:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "13.6"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-10",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "exported",
+    "timestamp": "2026-03-16T03:32:07.006Z",
+    "details": {
+      "format": "vtt"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-9",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-14T03:32:07.006Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-8",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-12T22:32:07.006Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-7",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T20:32:07.006Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-6",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-12T20:07:07.006Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-5",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-12T17:33:07.006Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.02
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-4",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-12T15:11:07.006Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.021
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-3",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "viewed",
+    "timestamp": "2026-03-12T12:46:07.006Z",
+    "details": {
+      "dwellSec": 259
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-2",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-12T12:07:07.006Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 62
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0007-1",
+    "fileId": "ds-wordshk-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-03-12T12:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "4.9"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-13",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-14T02:18:24.041Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-12",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T14:18:24.041Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-11",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-13T14:03:24.041Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.011
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-10",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-13T09:03:24.041Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-9",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T03:03:24.041Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-8",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-13T01:58:24.041Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.007
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-7",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-13T00:12:24.041Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-6",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-12T23:01:24.041Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.017
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-5",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "viewed",
+    "timestamp": "2026-03-12T21:07:24.041Z",
+    "details": {
+      "dwellSec": 447
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-4",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-12T20:07:24.041Z",
+    "details": {
+      "spansMasked": 4
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-3",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-12T15:07:24.041Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.94"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-2",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-12T15:04:24.041Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 37
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0008-1",
+    "fileId": "ds-wordshk-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-12T15:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "11.5"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-9",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "exported",
+    "timestamp": "2026-03-15T14:11:47.321Z",
+    "details": {
+      "format": "json"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-8",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-14T02:11:47.321Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-7",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T03:11:47.321Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-6",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-13T01:32:47.321Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.02
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-5",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-03-12T23:34:47.321Z",
+    "details": {
+      "dwellSec": 468
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-4",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-12T23:08:47.321Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-3",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-12T18:08:47.321Z",
+    "details": {
+      "entity": "account_id",
+      "confidence": "0.93"
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-2",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-12T18:07:47.321Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 40
+    }
+  },
+  {
+    "id": "audit-ds-wordshk-0009-1",
+    "fileId": "ds-wordshk-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-03-12T18:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "2.8"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-11",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "exported",
+    "timestamp": "2026-03-18T21:43:06.757Z",
+    "details": {
+      "format": "srt"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-10",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-17T09:43:06.757Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-9",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-14T11:43:06.757Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-8",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T21:43:06.757Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-7",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-13T21:15:06.757Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-6",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-13T14:15:06.757Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-5",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-12T23:15:06.757Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-4",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-12T22:37:06.757Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-3",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-12T21:49:06.757Z",
+    "details": {
+      "dwellSec": 55
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-2",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-12T21:07:06.757Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 22
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0000-1",
+    "fileId": "ds-alvanlii-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-12T21:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "9.2"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0001-8",
+    "fileId": "ds-alvanlii-0001",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "exported",
+    "timestamp": "2026-03-17T13:22:30.038Z",
+    "details": {
+      "format": "srt"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0001-7",
+    "fileId": "ds-alvanlii-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-16T10:22:30.038Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0001-6",
+    "fileId": "ds-alvanlii-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-13T07:22:30.038Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0001-5",
+    "fileId": "ds-alvanlii-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T04:22:30.038Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0001-4",
+    "fileId": "ds-alvanlii-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-13T03:38:30.038Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0001-3",
+    "fileId": "ds-alvanlii-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "viewed",
+    "timestamp": "2026-03-13T00:58:30.038Z",
+    "details": {
+      "dwellSec": 329
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0001-2",
+    "fileId": "ds-alvanlii-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-13T00:03:30.038Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 25
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0001-1",
+    "fileId": "ds-alvanlii-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-03-13T00:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "18.5"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-10",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "exported",
+    "timestamp": "2026-03-17T15:18:20.196Z",
+    "details": {
+      "format": "json"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-9",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-16T06:18:20.196Z",
+    "details": {
+      "granteeId": "eng-james",
+      "granteeName": "James Whitmore",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-8",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-14T10:18:20.196Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-7",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T14:18:20.196Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-6",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-13T12:54:20.196Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.013
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-5",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-03-13T10:27:20.196Z",
+    "details": {
+      "dwellSec": 50
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-4",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-13T10:09:20.196Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-3",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-13T03:09:20.196Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.91"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-2",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-13T03:07:20.196Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 85
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0002-1",
+    "fileId": "ds-alvanlii-0002",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-03-13T03:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "8.5"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0003-8",
+    "fileId": "ds-alvanlii-0003",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-16T07:41:43.476Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0003-7",
+    "fileId": "ds-alvanlii-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-13T12:41:43.476Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0003-6",
+    "fileId": "ds-alvanlii-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T10:41:43.476Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0003-5",
+    "fileId": "ds-alvanlii-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-13T09:12:43.476Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0003-4",
+    "fileId": "ds-alvanlii-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-13T08:37:43.476Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.007
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0003-3",
+    "fileId": "ds-alvanlii-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-03-13T06:49:43.476Z",
+    "details": {
+      "dwellSec": 620
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0003-2",
+    "fileId": "ds-alvanlii-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-13T06:03:43.476Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 88
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0003-1",
+    "fileId": "ds-alvanlii-0003",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-13T06:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "17.8"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-13",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-17T01:07:39.880Z",
+    "details": {
+      "granteeId": "eng-priya",
+      "granteeName": "Priya Rangan",
+      "scope": "read-only"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-12",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-16T08:07:39.880Z",
+    "details": {
+      "datasetName": "Cantonese Telephony Edge Cases"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-11",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-14T13:07:39.880Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-10",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T03:07:39.880Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-9",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-14T02:36:39.880Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-8",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-14T00:36:39.880Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-7",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T17:36:39.880Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-6",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-13T16:45:39.880Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.015
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-5",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-13T13:39:39.880Z",
+    "details": {
+      "dwellSec": 375
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-4",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-13T13:08:39.880Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-3",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-13T09:08:39.880Z",
+    "details": {
+      "entity": "email",
+      "confidence": "0.84"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-2",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-13T09:06:39.880Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 36
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0004-1",
+    "fileId": "ds-alvanlii-0004",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-13T09:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "10.6"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-9",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-14T19:31:03.161Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-8",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T21:31:03.161Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-7",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-13T20:38:03.161Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.023
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-6",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-13T17:42:03.161Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-5",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-03-13T16:43:03.161Z",
+    "details": {
+      "dwellSec": 272
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-4",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-13T16:06:03.161Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-3",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-13T12:06:03.161Z",
+    "details": {
+      "entity": "account_id",
+      "confidence": "0.82"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-2",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-13T12:03:03.161Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 39
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0005-1",
+    "fileId": "ds-alvanlii-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-13T12:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "19.9"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-10",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-14T13:56:53.318Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-9",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T07:56:53.318Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-8",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-14T06:52:53.318Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-7",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-14T04:52:53.318Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-6",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T18:52:53.318Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-5",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-13T18:15:53.318Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.018
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-4",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-13T17:28:53.318Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-3",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-03-13T15:41:53.318Z",
+    "details": {
+      "dwellSec": 125
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-2",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-13T15:06:53.318Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 29
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0006-1",
+    "fileId": "ds-alvanlii-0006",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-03-13T15:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "9.9"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-10",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "exported",
+    "timestamp": "2026-03-17T04:13:16.599Z",
+    "details": {
+      "format": "srt"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-9",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T04:13:16.599Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-8",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T18:13:16.599Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-7",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-14T17:30:16.599Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.005
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-6",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-14T13:30:16.599Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-5",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-13T20:30:16.599Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-4",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-13T19:20:16.599Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-3",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "viewed",
+    "timestamp": "2026-03-13T18:34:16.599Z",
+    "details": {
+      "dwellSec": 160
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-2",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-13T18:03:16.599Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 32
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0007-1",
+    "fileId": "ds-alvanlii-0007",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-03-13T18:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "19.2"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-15",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "exported",
+    "timestamp": "2026-03-20T00:38:13.003Z",
+    "details": {
+      "format": "srt"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-14",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-18T11:38:13.003Z",
+    "details": {
+      "datasetName": "Cantonese Telephony Edge Cases"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-13",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T22:38:13.003Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-12",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-15T10:38:13.003Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-11",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-15T10:24:13.003Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-10",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-15T05:24:13.003Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-9",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T12:24:13.003Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-8",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-14T10:33:13.003Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.017
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-7",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-14T07:06:13.003Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-6",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-14T04:14:13.003Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.018
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-5",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-14T03:04:13.003Z",
+    "details": {
+      "dwellSec": 335
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-4",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-14T02:09:13.003Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-3",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-13T21:09:13.003Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.79"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-2",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-13T21:06:13.003Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 50
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0008-1",
+    "fileId": "ds-alvanlii-0008",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-03-13T21:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "12.0"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-9",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-16T20:39:36.283Z",
+    "details": {
+      "granteeId": "eng-andreas",
+      "granteeName": "Andreas Keller",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-8",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-15T09:39:36.283Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-7",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T02:39:36.283Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-6",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T03:39:36.283Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-5",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-14T01:43:36.283Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.005
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-4",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-14T01:13:36.283Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.007
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-3",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-03-14T00:27:36.283Z",
+    "details": {
+      "dwellSec": 626
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-2",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-14T00:02:36.283Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 53
+    }
+  },
+  {
+    "id": "audit-ds-alvanlii-0009-1",
+    "fileId": "ds-alvanlii-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-03-14T00:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "3.3"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-12",
+    "fileId": "ds-edmund-0000",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "exported",
+    "timestamp": "2026-03-20T22:59:50.331Z",
+    "details": {
+      "format": "json"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-11",
+    "fileId": "ds-edmund-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-18T19:59:50.331Z",
+    "details": {
+      "granteeId": "eng-james",
+      "granteeName": "James Whitmore",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-10",
+    "fileId": "ds-edmund-0000",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-17T01:59:50.331Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-9",
+    "fileId": "ds-edmund-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T08:59:50.331Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-8",
+    "fileId": "ds-edmund-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T08:59:50.331Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-7",
+    "fileId": "ds-edmund-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-03-14T08:40:50.331Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-6",
+    "fileId": "ds-edmund-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-03-14T05:58:50.331Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.024
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-5",
+    "fileId": "ds-edmund-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-03-14T05:24:50.331Z",
+    "details": {
+      "dwellSec": 637
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-4",
+    "fileId": "ds-edmund-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-14T05:08:50.331Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-3",
+    "fileId": "ds-edmund-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-14T03:08:50.331Z",
+    "details": {
+      "entity": "account_id",
+      "confidence": "0.84"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-2",
+    "fileId": "ds-edmund-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-14T03:05:50.331Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 57
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0000-1",
+    "fileId": "ds-edmund-0000",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "uploaded",
+    "timestamp": "2026-03-14T03:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "15.0"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-12",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-18T22:48:27.050Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-11",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-16T06:48:27.050Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-10",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-15T07:48:27.050Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-9",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-15T07:18:27.050Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-8",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-15T00:18:27.050Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-7",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T13:18:27.050Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-6",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-14T11:49:27.050Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.004
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-5",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-03-14T09:11:27.050Z",
+    "details": {
+      "dwellSec": 300
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-4",
+    "fileId": "ds-edmund-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-14T08:04:27.050Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-3",
+    "fileId": "ds-edmund-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-14T06:04:27.050Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.86"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-2",
+    "fileId": "ds-edmund-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-14T06:02:27.050Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 54
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0001-1",
+    "fileId": "ds-edmund-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-03-14T06:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "5.7"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-11",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-16T13:06:03.769Z",
+    "details": {
+      "datasetName": "Cantonese Telephony Edge Cases"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-10",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T06:06:03.769Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-9",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-15T02:06:03.769Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-8",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-15T01:14:03.769Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-7",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-14T22:19:03.769Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.014
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-6",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-14T20:46:03.769Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.021
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-5",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "viewed",
+    "timestamp": "2026-03-14T18:15:03.769Z",
+    "details": {
+      "dwellSec": 246
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-4",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-14T17:10:03.769Z",
+    "details": {
+      "spansMasked": 1
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-3",
+    "fileId": "ds-edmund-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-14T09:10:03.769Z",
+    "details": {
+      "entity": "email",
+      "confidence": "0.87"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-2",
+    "fileId": "ds-edmund-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-14T09:06:03.769Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 50
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0002-1",
+    "fileId": "ds-edmund-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-03-14T09:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "14.3"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-9",
+    "fileId": "ds-edmund-0003",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "exported",
+    "timestamp": "2026-03-16T14:06:40.489Z",
+    "details": {
+      "format": "vtt"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-8",
+    "fileId": "ds-edmund-0003",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-16T05:06:40.489Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-7",
+    "fileId": "ds-edmund-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T09:06:40.489Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-6",
+    "fileId": "ds-edmund-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T19:06:40.489Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-5",
+    "fileId": "ds-edmund-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-14T17:35:40.489Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.014
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-4",
+    "fileId": "ds-edmund-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-03-14T14:12:40.489Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.022
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-3",
+    "fileId": "ds-edmund-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-03-14T12:42:40.489Z",
+    "details": {
+      "dwellSec": 576
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-2",
+    "fileId": "ds-edmund-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-14T12:02:40.489Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 47
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0003-1",
+    "fileId": "ds-edmund-0003",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-14T12:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "5.0"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-11",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "exported",
+    "timestamp": "2026-03-20T22:09:23.454Z",
+    "details": {
+      "format": "json"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-10",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-18T02:09:23.454Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-9",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-16T05:09:23.454Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-8",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-16T00:09:23.454Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-7",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-15T23:45:23.454Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.003
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-6",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-15T14:45:23.454Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-5",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T20:45:23.454Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-4",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-14T18:45:23.454Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.007
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-3",
+    "fileId": "ds-edmund-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-03-14T15:19:23.454Z",
+    "details": {
+      "dwellSec": 221
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-2",
+    "fileId": "ds-edmund-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-14T15:05:23.454Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 71
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0004-1",
+    "fileId": "ds-edmund-0004",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-03-14T15:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "16.4"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-9",
+    "fileId": "ds-edmund-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "exported",
+    "timestamp": "2026-03-19T14:17:00.173Z",
+    "details": {
+      "format": "vtt"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-8",
+    "fileId": "ds-edmund-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-16T19:17:00.173Z",
+    "details": {
+      "granteeId": "eng-priya",
+      "granteeName": "Priya Rangan",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-7",
+    "fileId": "ds-edmund-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T12:17:00.173Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-6",
+    "fileId": "ds-edmund-0005",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-14T23:17:00.173Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-5",
+    "fileId": "ds-edmund-0005",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-03-14T22:50:00.173Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-4",
+    "fileId": "ds-edmund-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-03-14T19:46:00.173Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.006
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-3",
+    "fileId": "ds-edmund-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-03-14T18:20:00.173Z",
+    "details": {
+      "dwellSec": 186
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-2",
+    "fileId": "ds-edmund-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-14T18:02:00.173Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 68
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0005-1",
+    "fileId": "ds-edmund-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-03-14T18:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "7.1"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0006-7",
+    "fileId": "ds-edmund-0006",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-17T01:04:36.892Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0006-6",
+    "fileId": "ds-edmund-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T04:04:36.892Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0006-5",
+    "fileId": "ds-edmund-0006",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-15T01:04:36.892Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0006-4",
+    "fileId": "ds-edmund-0006",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-03-15T00:42:36.892Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.023
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0006-3",
+    "fileId": "ds-edmund-0006",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "viewed",
+    "timestamp": "2026-03-14T21:55:36.892Z",
+    "details": {
+      "dwellSec": 159
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0006-2",
+    "fileId": "ds-edmund-0006",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-14T21:05:36.892Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 64
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0006-1",
+    "fileId": "ds-edmund-0006",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-14T21:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "15.7"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-10",
+    "fileId": "ds-edmund-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "exported",
+    "timestamp": "2026-03-17T18:06:13.612Z",
+    "details": {
+      "format": "json"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-9",
+    "fileId": "ds-edmund-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-16T17:06:13.612Z",
+    "details": {
+      "datasetName": "Cantonese Telephony Edge Cases"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-8",
+    "fileId": "ds-edmund-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-16T09:06:13.612Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-7",
+    "fileId": "ds-edmund-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-15T08:06:13.612Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-6",
+    "fileId": "ds-edmund-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-03-15T06:08:13.612Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-5",
+    "fileId": "ds-edmund-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "viewed",
+    "timestamp": "2026-03-15T03:17:13.612Z",
+    "details": {
+      "dwellSec": 409
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-4",
+    "fileId": "ds-edmund-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-15T03:06:13.612Z",
+    "details": {
+      "spansMasked": 1
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-3",
+    "fileId": "ds-edmund-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-15T00:06:13.612Z",
+    "details": {
+      "entity": "email",
+      "confidence": "0.83"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-2",
+    "fileId": "ds-edmund-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-15T00:02:13.612Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 61
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0007-1",
+    "fileId": "ds-edmund-0007",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-03-15T00:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "6.4"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0008-6",
+    "fileId": "ds-edmund-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-15T18:28:44.085Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0008-5",
+    "fileId": "ds-edmund-0008",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-15T06:28:44.085Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0008-4",
+    "fileId": "ds-edmund-0008",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-03-15T04:38:44.085Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.018
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0008-3",
+    "fileId": "ds-edmund-0008",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-03-15T04:05:44.085Z",
+    "details": {
+      "dwellSec": 400
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0008-2",
+    "fileId": "ds-edmund-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-15T03:06:44.085Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 29
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0008-1",
+    "fileId": "ds-edmund-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-03-15T03:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "12.2"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-16",
+    "fileId": "ds-edmund-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "exported",
+    "timestamp": "2026-03-19T00:46:20.804Z",
+    "details": {
+      "format": "txt"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-15",
+    "fileId": "ds-edmund-0009",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-03-18T20:46:20.804Z",
+    "details": {
+      "granteeId": "eng-james",
+      "granteeName": "James Whitmore",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-14",
+    "fileId": "ds-edmund-0009",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-03-18T04:46:20.804Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-13",
+    "fileId": "ds-edmund-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-03-17T07:46:20.804Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-12",
+    "fileId": "ds-edmund-0009",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-16T21:46:20.804Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-11",
+    "fileId": "ds-edmund-0009",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-16T21:35:20.804Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-10",
+    "fileId": "ds-edmund-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-03-16T14:35:20.804Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-9",
+    "fileId": "ds-edmund-0009",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-03-15T21:35:20.804Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-8",
+    "fileId": "ds-edmund-0009",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-15T19:51:20.804Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-7",
+    "fileId": "ds-edmund-0009",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-15T16:54:20.804Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.014
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-6",
+    "fileId": "ds-edmund-0009",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-03-15T14:28:20.804Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.014
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-5",
+    "fileId": "ds-edmund-0009",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "viewed",
+    "timestamp": "2026-03-15T11:29:20.804Z",
+    "details": {
+      "dwellSec": 447
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-4",
+    "fileId": "ds-edmund-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-03-15T11:06:20.804Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-3",
+    "fileId": "ds-edmund-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-03-15T06:06:20.804Z",
+    "details": {
+      "entity": "phone_number",
+      "confidence": "0.96"
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-2",
+    "fileId": "ds-edmund-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-03-15T06:03:20.804Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 26
+    }
+  },
+  {
+    "id": "audit-ds-edmund-0009-1",
+    "fileId": "ds-edmund-0009",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-03-15T06:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "2.9"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0000-8",
+    "fileId": "root-earnings22-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "exported",
+    "timestamp": "2026-04-03T07:42:57.841Z",
+    "details": {
+      "format": "vtt"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0000-7",
+    "fileId": "root-earnings22-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-04-02T15:42:57.841Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0000-6",
+    "fileId": "root-earnings22-0000",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-04-01T14:42:57.841Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0000-5",
+    "fileId": "root-earnings22-0000",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-04-01T13:23:57.841Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.015
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0000-4",
+    "fileId": "root-earnings22-0000",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-04-01T12:06:57.841Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0000-3",
+    "fileId": "root-earnings22-0000",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "viewed",
+    "timestamp": "2026-04-01T09:28:57.841Z",
+    "details": {
+      "dwellSec": 278
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0000-2",
+    "fileId": "root-earnings22-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-04-01T09:01:57.841Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 28
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0000-1",
+    "fileId": "root-earnings22-0000",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-04-01T09:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "2.1"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0001-8",
+    "fileId": "root-earnings22-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "exported",
+    "timestamp": "2026-04-14T10:04:21.122Z",
+    "details": {
+      "format": "vtt"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0001-7",
+    "fileId": "root-earnings22-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-04-13T19:04:21.122Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0001-6",
+    "fileId": "root-earnings22-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-04-13T15:04:21.122Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0001-5",
+    "fileId": "root-earnings22-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-04-13T13:26:21.122Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.016
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0001-4",
+    "fileId": "root-earnings22-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-04-13T11:53:21.122Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.019
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0001-3",
+    "fileId": "root-earnings22-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-04-13T10:14:21.122Z",
+    "details": {
+      "dwellSec": 241
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0001-2",
+    "fileId": "root-earnings22-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-04-13T09:05:21.122Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 32
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0001-1",
+    "fileId": "root-earnings22-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-04-13T09:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "11.4"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-9",
+    "fileId": "root-earnings22-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-04-11T19:28:11.279Z",
+    "details": {
+      "granteeId": "eng-james",
+      "granteeName": "James Whitmore",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-8",
+    "fileId": "root-earnings22-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-04-10T17:28:11.279Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-7",
+    "fileId": "root-earnings22-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-04-08T21:28:11.279Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-6",
+    "fileId": "root-earnings22-0002",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-04-08T15:28:11.279Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-5",
+    "fileId": "root-earnings22-0002",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-04-08T13:16:11.279Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-4",
+    "fileId": "root-earnings22-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-04-08T11:44:11.279Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.013
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-3",
+    "fileId": "root-earnings22-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-04-08T10:07:11.279Z",
+    "details": {
+      "dwellSec": 354
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-2",
+    "fileId": "root-earnings22-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-04-08T09:02:11.279Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 21
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0002-1",
+    "fileId": "root-earnings22-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-04-08T09:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "19.4"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-9",
+    "fileId": "root-earnings22-0003",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "exported",
+    "timestamp": "2026-05-17T21:26:34.560Z",
+    "details": {
+      "format": "json"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-8",
+    "fileId": "root-earnings22-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-17T10:26:34.560Z",
+    "details": {
+      "granteeId": "u4",
+      "granteeName": "Reviewer User",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-7",
+    "fileId": "root-earnings22-0003",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-15T18:26:34.560Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-6",
+    "fileId": "root-earnings22-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-13T00:26:34.560Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-5",
+    "fileId": "root-earnings22-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-12T10:26:34.560Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-4",
+    "fileId": "root-earnings22-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-05-12T09:50:34.560Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.024
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-3",
+    "fileId": "root-earnings22-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-05-12T06:42:34.560Z",
+    "details": {
+      "dwellSec": 354
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-2",
+    "fileId": "root-earnings22-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-12T06:05:34.560Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 25
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0003-1",
+    "fileId": "root-earnings22-0003",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-05-12T06:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "10.7"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-11",
+    "fileId": "root-earnings22-0004",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-15T10:49:30.964Z",
+    "details": {
+      "granteeId": "u4",
+      "granteeName": "Reviewer User",
+      "scope": "read-only"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-10",
+    "fileId": "root-earnings22-0004",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-13T22:49:30.964Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-9",
+    "fileId": "root-earnings22-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-13T06:49:30.964Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-8",
+    "fileId": "root-earnings22-0004",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-12T21:49:30.964Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-7",
+    "fileId": "root-earnings22-0004",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-12T20:07:30.964Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.023
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-6",
+    "fileId": "root-earnings22-0004",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-12T18:10:30.964Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-5",
+    "fileId": "root-earnings22-0004",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-05-12T16:14:30.964Z",
+    "details": {
+      "dwellSec": 144
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-4",
+    "fileId": "root-earnings22-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-12T16:03:30.964Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-3",
+    "fileId": "root-earnings22-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-12T09:03:30.964Z",
+    "details": {
+      "entity": "phone_number",
+      "confidence": "0.81"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-2",
+    "fileId": "root-earnings22-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-12T09:01:30.964Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 42
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0004-1",
+    "fileId": "root-earnings22-0004",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "uploaded",
+    "timestamp": "2026-05-12T09:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "3.5"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-13",
+    "fileId": "root-earnings22-0005",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "exported",
+    "timestamp": "2026-05-17T04:41:54.245Z",
+    "details": {
+      "format": "txt"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-12",
+    "fileId": "root-earnings22-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T07:41:54.245Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-11",
+    "fileId": "root-earnings22-0005",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T14:41:54.245Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-10",
+    "fileId": "root-earnings22-0005",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-13T14:01:54.245Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-9",
+    "fileId": "root-earnings22-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-05-13T13:01:54.245Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-8",
+    "fileId": "root-earnings22-0005",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T02:01:54.245Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-7",
+    "fileId": "root-earnings22-0005",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-13T00:53:54.245Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-6",
+    "fileId": "root-earnings22-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-12T22:13:54.245Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-5",
+    "fileId": "root-earnings22-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-05-12T19:29:54.245Z",
+    "details": {
+      "dwellSec": 473
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-4",
+    "fileId": "root-earnings22-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-12T19:07:54.245Z",
+    "details": {
+      "spansMasked": 1
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-3",
+    "fileId": "root-earnings22-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-12T12:07:54.245Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.79"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-2",
+    "fileId": "root-earnings22-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-12T12:04:54.245Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 46
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0005-1",
+    "fileId": "root-earnings22-0005",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-05-12T12:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "12.8"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0006-7",
+    "fileId": "root-earnings22-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-14T11:41:44.402Z",
+    "details": {
+      "granteeId": "u4",
+      "granteeName": "Reviewer User",
+      "scope": "read-only"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0006-6",
+    "fileId": "root-earnings22-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-13T11:41:44.402Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0006-5",
+    "fileId": "root-earnings22-0006",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-12T19:41:44.402Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0006-4",
+    "fileId": "root-earnings22-0006",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-05-12T18:33:44.402Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.006
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0006-3",
+    "fileId": "root-earnings22-0006",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "viewed",
+    "timestamp": "2026-05-12T15:27:44.402Z",
+    "details": {
+      "dwellSec": 459
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0006-2",
+    "fileId": "root-earnings22-0006",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-12T15:01:44.402Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 35
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0006-1",
+    "fileId": "root-earnings22-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-05-12T15:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "2.8"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-10",
+    "fileId": "root-earnings22-0007",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-14T08:40:07.683Z",
+    "details": {
+      "granteeId": "u1",
+      "granteeName": "Generic User",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-9",
+    "fileId": "root-earnings22-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-13T10:40:07.683Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-8",
+    "fileId": "root-earnings22-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T05:40:07.683Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-7",
+    "fileId": "root-earnings22-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-05-13T03:55:07.683Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.013
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-6",
+    "fileId": "root-earnings22-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-05-13T02:55:07.683Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.022
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-5",
+    "fileId": "root-earnings22-0007",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "viewed",
+    "timestamp": "2026-05-13T00:24:07.683Z",
+    "details": {
+      "dwellSec": 365
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-4",
+    "fileId": "root-earnings22-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-13T00:06:07.683Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-3",
+    "fileId": "root-earnings22-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-12T18:06:07.683Z",
+    "details": {
+      "entity": "account_id",
+      "confidence": "0.82"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-2",
+    "fileId": "root-earnings22-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-12T18:05:07.683Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 39
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0007-1",
+    "fileId": "root-earnings22-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-05-12T18:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "12.1"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0008-7",
+    "fileId": "root-earnings22-0008",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "exported",
+    "timestamp": "2026-05-16T13:19:04.087Z",
+    "details": {
+      "format": "json"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0008-6",
+    "fileId": "root-earnings22-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T00:19:04.087Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0008-5",
+    "fileId": "root-earnings22-0008",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T03:19:04.087Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0008-4",
+    "fileId": "root-earnings22-0008",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-13T01:06:04.087Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0008-3",
+    "fileId": "root-earnings22-0008",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-05-12T22:04:04.087Z",
+    "details": {
+      "dwellSec": 70
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0008-2",
+    "fileId": "root-earnings22-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-12T21:01:04.087Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 56
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0008-1",
+    "fileId": "root-earnings22-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-05-12T21:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "4.9"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-11",
+    "fileId": "root-earnings22-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "exported",
+    "timestamp": "2026-05-18T18:29:27.367Z",
+    "details": {
+      "format": "txt"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-10",
+    "fileId": "root-earnings22-0009",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-17T08:29:27.367Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-9",
+    "fileId": "root-earnings22-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T21:29:27.367Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-8",
+    "fileId": "root-earnings22-0009",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T03:29:27.367Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-7",
+    "fileId": "root-earnings22-0009",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-14T02:24:27.367Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.003
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-6",
+    "fileId": "root-earnings22-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-05-13T17:24:27.367Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-5",
+    "fileId": "root-earnings22-0009",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T04:24:27.367Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-4",
+    "fileId": "root-earnings22-0009",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-13T03:28:27.367Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.007
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-3",
+    "fileId": "root-earnings22-0009",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-05-13T00:43:27.367Z",
+    "details": {
+      "dwellSec": 538
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-2",
+    "fileId": "root-earnings22-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-13T00:04:27.367Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 60
+    }
+  },
+  {
+    "id": "audit-root-earnings22-0009-1",
+    "fileId": "root-earnings22-0009",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "uploaded",
+    "timestamp": "2026-05-13T00:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "14.2"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-13",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "exported",
+    "timestamp": "2026-05-17T04:15:53.775Z",
+    "details": {
+      "format": "txt"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-12",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-16T03:15:53.775Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-11",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T21:15:53.775Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-10",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T07:15:53.775Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-9",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-14T06:41:53.775Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.011
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-8",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-05-14T01:41:53.775Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-7",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T11:41:53.775Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-6",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-13T11:16:53.775Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.007
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-5",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-05-13T10:03:53.775Z",
+    "details": {
+      "dwellSec": 435
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-4",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-13T09:08:53.775Z",
+    "details": {
+      "spansMasked": 4
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-3",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-13T03:08:53.775Z",
+    "details": {
+      "entity": "phone_number",
+      "confidence": "0.89"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-2",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-13T03:05:53.775Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 44
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0000-1",
+    "fileId": "root-spgispeech-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-05-13T03:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "13.0"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-9",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "exported",
+    "timestamp": "2026-05-15T09:13:17.055Z",
+    "details": {
+      "format": "vtt"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-8",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T05:13:17.055Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-7",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T15:13:17.055Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-6",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-05-13T14:27:17.055Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-5",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "viewed",
+    "timestamp": "2026-05-13T12:57:17.055Z",
+    "details": {
+      "dwellSec": 235
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-4",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-13T12:06:17.055Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-3",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-13T06:06:17.055Z",
+    "details": {
+      "entity": "email",
+      "confidence": "0.88"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-2",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-13T06:02:17.055Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 47
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0001-1",
+    "fileId": "root-spgispeech-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-05-13T06:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "4.4"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-13",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-17T11:58:40.336Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-12",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-15T15:58:40.336Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-11",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T21:58:40.336Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-10",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-14T21:17:40.336Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.003
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-9",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-05-14T15:17:40.336Z",
+    "details": {
+      "comment": "Two proper nouns still untagged in the second half."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-8",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T20:17:40.336Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-7",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-13T19:53:40.336Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-6",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-13T18:15:40.336Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.013
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-5",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-05-13T16:54:40.336Z",
+    "details": {
+      "dwellSec": 477
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-4",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-13T16:07:40.336Z",
+    "details": {
+      "spansMasked": 1
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-3",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-13T09:07:40.336Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.87"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-2",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-13T09:05:40.336Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 51
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0002-1",
+    "fileId": "root-spgispeech-0002",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "uploaded",
+    "timestamp": "2026-05-13T09:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "13.7"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-13",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-15T16:24:03.617Z",
+    "details": {
+      "granteeId": "eng-andreas",
+      "granteeName": "Andreas Keller",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-12",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T20:24:03.617Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-11",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T13:24:03.617Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-10",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-14T12:30:03.617Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.009
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-9",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-05-14T06:30:03.617Z",
+    "details": {
+      "comment": "Check compliance spans on the 00:28 utterance."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-8",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T22:30:03.617Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-7",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-13T21:23:03.617Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.011
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-6",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-05-13T20:43:03.617Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.017
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-5",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "viewed",
+    "timestamp": "2026-05-13T19:18:03.617Z",
+    "details": {
+      "dwellSec": 498
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-4",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-13T19:05:03.617Z",
+    "details": {
+      "spansMasked": 4
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-3",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-13T12:05:03.617Z",
+    "details": {
+      "entity": "account_id",
+      "confidence": "0.86"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-2",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-13T12:02:03.617Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 54
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0003-1",
+    "fileId": "root-spgispeech-0003",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-05-13T12:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "5.1"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0004-7",
+    "fileId": "root-spgispeech-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T13:51:20.652Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0004-6",
+    "fileId": "root-spgispeech-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-13T20:51:20.652Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0004-5",
+    "fileId": "root-spgispeech-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-05-13T19:36:20.652Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.007
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0004-4",
+    "fileId": "root-spgispeech-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-05-13T16:30:20.652Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.005
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0004-3",
+    "fileId": "root-spgispeech-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-05-13T15:42:20.652Z",
+    "details": {
+      "dwellSec": 538
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0004-2",
+    "fileId": "root-spgispeech-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-13T15:06:20.652Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 30
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0004-1",
+    "fileId": "root-spgispeech-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-05-13T15:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "11.6"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-9",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-15T18:32:43.932Z",
+    "details": {
+      "granteeId": "eng-priya",
+      "granteeName": "Priya Rangan",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-8",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T09:32:43.932Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-7",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T00:32:43.932Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-6",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-05-13T23:15:43.932Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.004
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-5",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-13T21:03:43.932Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.014
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-4",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-05-13T19:59:43.932Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.015
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-3",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-05-13T18:57:43.932Z",
+    "details": {
+      "dwellSec": 333
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-2",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-13T18:02:43.932Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 33
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0005-1",
+    "fileId": "root-spgispeech-0005",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "uploaded",
+    "timestamp": "2026-05-13T18:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "3.0"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0006-8",
+    "fileId": "root-spgispeech-0006",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-15T04:44:07.213Z",
+    "details": {
+      "granteeId": "eng-priya",
+      "granteeName": "Priya Rangan",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0006-7",
+    "fileId": "root-spgispeech-0006",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T06:44:07.213Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0006-6",
+    "fileId": "root-spgispeech-0006",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T03:44:07.213Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0006-5",
+    "fileId": "root-spgispeech-0006",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-05-14T02:04:07.213Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.02
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0006-4",
+    "fileId": "root-spgispeech-0006",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "edited",
+    "timestamp": "2026-05-14T00:59:07.213Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.016
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0006-3",
+    "fileId": "root-spgispeech-0006",
+    "actorId": "eng-priya",
+    "actorName": "Priya Rangan",
+    "action": "viewed",
+    "timestamp": "2026-05-13T21:58:07.213Z",
+    "details": {
+      "dwellSec": 368
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0006-2",
+    "fileId": "root-spgispeech-0006",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-13T21:06:07.213Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 37
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0006-1",
+    "fileId": "root-spgispeech-0006",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-05-13T21:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "12.3"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-12",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-18T10:18:30.494Z",
+    "details": {
+      "granteeId": "eng-james",
+      "granteeName": "James Whitmore",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-11",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-16T14:18:30.494Z",
+    "details": {
+      "datasetName": "Cantonese Telephony Edge Cases"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-10",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-15T14:18:30.494Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-9",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-15T02:18:30.494Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-8",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-05-15T01:43:30.494Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-7",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-05-14T22:43:30.494Z",
+    "details": {
+      "comment": "Timestamps on speaker 2 drift after 03:00 — please re-align."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-6",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T04:43:30.494Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-5",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-05-14T02:41:30.494Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.024
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-4",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-05-14T01:32:30.494Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-3",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-05-14T00:42:30.494Z",
+    "details": {
+      "dwellSec": 424
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-2",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-14T00:02:30.494Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 40
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0007-1",
+    "fileId": "root-spgispeech-0007",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-05-14T00:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "3.7"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0008-8",
+    "fileId": "root-spgispeech-0008",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-18T05:00:00.020Z",
+    "details": {
+      "granteeId": "eng-andreas",
+      "granteeName": "Andreas Keller",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0008-7",
+    "fileId": "root-spgispeech-0008",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-16T16:00:00.020Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0008-6",
+    "fileId": "root-spgispeech-0008",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T18:00:00.020Z",
+    "details": {
+      "comment": null
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0008-5",
+    "fileId": "root-spgispeech-0008",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T07:00:00.020Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0008-4",
+    "fileId": "root-spgispeech-0008",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-05-14T04:53:00.020Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.008
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0008-3",
+    "fileId": "root-spgispeech-0008",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "viewed",
+    "timestamp": "2026-05-14T03:57:00.020Z",
+    "details": {
+      "dwellSec": 83
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0008-2",
+    "fileId": "root-spgispeech-0008",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-14T03:05:00.020Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 72
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0008-1",
+    "fileId": "root-spgispeech-0008",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "uploaded",
+    "timestamp": "2026-05-14T03:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "15.8"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-9",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-15T15:49:23.301Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-8",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-14T21:49:23.301Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-7",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T13:49:23.301Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-6",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-05-14T11:51:23.301Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.004
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-5",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-05-14T08:55:23.301Z",
+    "details": {
+      "segmentsChanged": 5,
+      "werDelta": -0.016
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-4",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "edited",
+    "timestamp": "2026-05-14T07:06:23.301Z",
+    "details": {
+      "segmentsChanged": 6,
+      "werDelta": -0.023
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-3",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "viewed",
+    "timestamp": "2026-05-14T06:11:23.301Z",
+    "details": {
+      "dwellSec": 154
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-2",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-14T06:01:23.301Z",
+    "details": {
+      "model": "sensevoice-small",
+      "elapsedSec": 75
+    }
+  },
+  {
+    "id": "audit-root-spgispeech-0009-1",
+    "fileId": "root-spgispeech-0009",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "uploaded",
+    "timestamp": "2026-05-14T06:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "7.2"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-12",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-17T09:03:57.361Z",
+    "details": {
+      "granteeId": "eng-james",
+      "granteeName": "James Whitmore",
+      "scope": "review"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-11",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-16T18:03:57.361Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-10",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-15T04:03:57.361Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-9",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-14T20:03:57.361Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-8",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-05-14T18:21:57.361Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-7",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-05-14T17:48:57.361Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.016
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-6",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "edited",
+    "timestamp": "2026-05-14T16:32:57.361Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.021
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-5",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "viewed",
+    "timestamp": "2026-05-14T14:46:57.361Z",
+    "details": {
+      "dwellSec": 357
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-4",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-14T14:03:57.361Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-3",
+    "fileId": "root-multispeak-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-14T09:03:57.361Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.90"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-2",
+    "fileId": "root-multispeak-0000",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-14T09:01:57.361Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 46
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0000-1",
+    "fileId": "root-multispeak-0000",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "uploaded",
+    "timestamp": "2026-05-14T09:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "19.0"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-14",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "exported",
+    "timestamp": "2026-05-17T22:49:20.642Z",
+    "details": {
+      "format": "vtt"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-13",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-16T11:49:20.642Z",
+    "details": {
+      "comment": "Approved. WER within tolerance."
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-12",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-16T01:49:20.642Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-11",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-05-16T00:52:20.642Z",
+    "details": {
+      "segmentsChanged": 3,
+      "werDelta": -0.006
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-10",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "requested_changes",
+    "timestamp": "2026-05-15T21:52:20.642Z",
+    "details": {
+      "comment": "Timestamps on speaker 2 drift after 03:00 — please re-align."
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-9",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-15T01:52:20.642Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-8",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "edited",
+    "timestamp": "2026-05-14T23:47:20.642Z",
+    "details": {
+      "segmentsChanged": 4,
+      "werDelta": -0.02
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-7",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-14T21:43:20.642Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.011
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-6",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-14T20:05:20.642Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.024
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-5",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-05-14T18:16:20.642Z",
+    "details": {
+      "dwellSec": 378
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-4",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-14T17:08:20.642Z",
+    "details": {
+      "spansMasked": 2
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-3",
+    "fileId": "root-multispeak-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-14T12:08:20.642Z",
+    "details": {
+      "entity": "account_id",
+      "confidence": "0.89"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-2",
+    "fileId": "root-multispeak-0001",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-14T12:05:20.642Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 49
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0001-1",
+    "fileId": "root-multispeak-0001",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-05-14T12:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "10.3"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-11",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "access_granted",
+    "timestamp": "2026-05-16T06:35:43.923Z",
+    "details": {
+      "granteeId": "u1",
+      "granteeName": "Generic User",
+      "scope": "edit"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-10",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-15T19:35:43.923Z",
+    "details": {
+      "datasetName": "Earnings Calls Q1 2026"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-9",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-15T13:35:43.923Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-8",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-15T03:35:43.923Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-7",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-15T02:21:43.923Z",
+    "details": {
+      "segmentsChanged": 1,
+      "werDelta": -0.022
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-6",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "edited",
+    "timestamp": "2026-05-15T00:05:43.923Z",
+    "details": {
+      "segmentsChanged": 2,
+      "werDelta": -0.015
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-5",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "viewed",
+    "timestamp": "2026-05-14T20:50:43.923Z",
+    "details": {
+      "dwellSec": 637
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-4",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-14T20:05:43.923Z",
+    "details": {
+      "spansMasked": 1
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-3",
+    "fileId": "root-multispeak-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-14T15:05:43.923Z",
+    "details": {
+      "entity": "email",
+      "confidence": "0.87"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-2",
+    "fileId": "root-multispeak-0002",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-14T15:01:43.923Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 53
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0002-1",
+    "fileId": "root-multispeak-0002",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "uploaded",
+    "timestamp": "2026-05-14T15:00:00.000Z",
+    "details": {
+      "source": "API /v1/upload",
+      "sizeMb": "19.7"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-9",
+    "fileId": "root-multispeak-0003",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-17T21:45:07.203Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-8",
+    "fileId": "root-multispeak-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-15T14:45:07.203Z",
+    "details": {
+      "comment": "LGTM — no blocking issues."
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-7",
+    "fileId": "root-multispeak-0003",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-15T04:45:07.203Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-6",
+    "fileId": "root-multispeak-0003",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "edited",
+    "timestamp": "2026-05-15T03:04:07.203Z",
+    "details": {
+      "segmentsChanged": 8,
+      "werDelta": -0.01
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-5",
+    "fileId": "root-multispeak-0003",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "viewed",
+    "timestamp": "2026-05-15T01:07:07.203Z",
+    "details": {
+      "dwellSec": 420
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-4",
+    "fileId": "root-multispeak-0003",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "pseudonymised",
+    "timestamp": "2026-05-15T00:07:07.203Z",
+    "details": {
+      "spansMasked": 3
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-3",
+    "fileId": "root-multispeak-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "privacy_flagged",
+    "timestamp": "2026-05-14T18:07:07.203Z",
+    "details": {
+      "entity": "person_name",
+      "confidence": "0.86"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-2",
+    "fileId": "root-multispeak-0003",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-14T18:05:07.203Z",
+    "details": {
+      "model": "whisper-lg-v3",
+      "elapsedSec": 56
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0003-1",
+    "fileId": "root-multispeak-0003",
+    "actorId": "eng-andreas",
+    "actorName": "Andreas Keller",
+    "action": "uploaded",
+    "timestamp": "2026-05-14T18:00:00.000Z",
+    "details": {
+      "source": "Recorder webhook",
+      "sizeMb": "11.0"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0004-8",
+    "fileId": "root-multispeak-0004",
+    "actorId": "u1",
+    "actorName": "Generic User",
+    "action": "exported",
+    "timestamp": "2026-05-18T15:08:24.238Z",
+    "details": {
+      "format": "srt"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0004-7",
+    "fileId": "root-multispeak-0004",
+    "actorId": "u2",
+    "actorName": "Engineer User",
+    "action": "added_to_dataset",
+    "timestamp": "2026-05-18T07:08:24.238Z",
+    "details": {
+      "datasetName": "Multispeaker Overlap (Hard)"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0004-6",
+    "fileId": "root-multispeak-0004",
+    "actorId": "u4",
+    "actorName": "Reviewer User",
+    "action": "approved",
+    "timestamp": "2026-05-15T20:08:24.238Z",
+    "details": {
+      "comment": "Looks good. Cleared for downstream use."
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0004-5",
+    "fileId": "root-multispeak-0004",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "submitted_for_review",
+    "timestamp": "2026-05-15T02:08:24.238Z",
+    "details": {
+      "reviewerId": "u4",
+      "reviewerName": "Reviewer User"
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0004-4",
+    "fileId": "root-multispeak-0004",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "edited",
+    "timestamp": "2026-05-15T01:00:24.238Z",
+    "details": {
+      "segmentsChanged": 7,
+      "werDelta": -0.012
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0004-3",
+    "fileId": "root-multispeak-0004",
+    "actorId": "eng-james",
+    "actorName": "James Whitmore",
+    "action": "viewed",
+    "timestamp": "2026-05-14T22:02:24.238Z",
+    "details": {
+      "dwellSec": 171
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0004-2",
+    "fileId": "root-multispeak-0004",
+    "actorId": "system",
+    "actorName": "AUSTIN System",
+    "action": "transcribed",
+    "timestamp": "2026-05-14T21:02:24.238Z",
+    "details": {
+      "model": "meralion v2",
+      "elapsedSec": 32
+    }
+  },
+  {
+    "id": "audit-root-multispeak-0004-1",
+    "fileId": "root-multispeak-0004",
+    "actorId": "u3",
+    "actorName": "Admin User",
+    "action": "uploaded",
+    "timestamp": "2026-05-14T21:00:00.000Z",
+    "details": {
+      "source": "drag-drop",
+      "sizeMb": "17.6"
+    }
+  }
+]

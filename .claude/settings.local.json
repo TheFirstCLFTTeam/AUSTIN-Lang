@@ -6,7 +6,10 @@
       "mcp__magic__21st_magic_component_builder",
       "mcp__magic__21st_magic_component_inspiration",
       "mcp__magic__21st_magic_component_refiner",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(python -c \"import sys; sys.path.insert\\(0, '.'\\); from orchestrator import masking, labels; print\\('imports ok'\\)\")",
+      "Bash(python -m pytest orchestrator/tests/test_masking.py -v)",
+      "Bash(python -c \"import sys; sys.path.insert\\(0, '.'\\); from orchestrator import api; print\\('api ok'\\); print\\('routes:', [r.path for r in api.app.routes]\\)\")"
     ]
   }
 }

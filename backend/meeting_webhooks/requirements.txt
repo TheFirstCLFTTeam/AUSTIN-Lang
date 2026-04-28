@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+httpx
+pydantic
+pydantic-settings
+cryptography
+python-jose[cryptography]
+PyJWT[crypto]

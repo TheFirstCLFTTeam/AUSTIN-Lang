@@ -1,0 +1,191 @@
+name: Security checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# These checks emit ::warning:: annotations that show up on PR check runs and
+# in the workflow summary. They do not fail the build — they're a persistent
+# nudge until the underlying issues from Docs/07 Integration/security overview.md
+# are addressed.
+
+jobs:
+  static-checks:
+    name: Static security checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Emits a ::warning file=...,line=N::message annotation per match.
+      # Always exits 0 so a clean repo (no matches) doesn't fail the step.
+      - name: Define warn-on-grep helper
+        run: |
+          cat > /tmp/warn-on-grep.sh <<'EOF'
+          #!/usr/bin/env bash
+          # warn_on_grep <pattern> <path> <message>
+          warn_on_grep() {
+            local pattern="$1" path="$2" message="$3"
+            grep -rnE --include='*.js' --include='*.jsx' --include='*.ts' --include='*.tsx' --include='*.py' \
+              "$pattern" "$path" 2>/dev/null | while IFS=: read -r file lineno _; do
+              echo "::warning file=${file},line=${lineno}::${message}"
+            done || true
+          }
+          export -f warn_on_grep
+          EOF
+          chmod +x /tmp/warn-on-grep.sh
+
+      - name: JWT_SECRET dev fallback present in source
+        run: |
+          source /tmp/warn-on-grep.sh
+          warn_on_grep \
+            'dev-only-not-for-production' \
+            frontend/src \
+            'JWT_SECRET dev fallback string is hardcoded — production startup must throw if JWT_SECRET is unset, not silently use this default.'
+
+      - name: Auth cookie hardcoded with secure:false
+        run: |
+          source /tmp/warn-on-grep.sh
+          warn_on_grep \
+            'secure:[[:space:]]*false' \
+            frontend/src/server \
+            'Auth cookie has secure:false hardcoded. Flip to true (or process.env.NODE_ENV === "production") and consider renaming the cookie to __Host-token.'
+
+      - name: Hardcoded X-User-Role header sent to backend
+        run: |
+          source /tmp/warn-on-grep.sh
+          warn_on_grep \
+            "['\"]X-User-Role['\"]:[[:space:]]*['\"]" \
+            frontend/src \
+            'X-User-Role is being sent to a backend service with a hardcoded value. The downstream role check is decorative — pass the authenticated user role instead.'
+
+      - name: FastAPI CORS allow_origins=["*"]
+        run: |
+          source /tmp/warn-on-grep.sh
+          warn_on_grep \
+            'allow_origins[[:space:]]*=[[:space:]]*\[[[:space:]]*"\*"' \
+            backend \
+            'CORS allow_origins=["*"] in a FastAPI service. In production, restrict to the deployed frontend origin only — and never combine with allow_credentials=True.'
+
+      - name: FastAPI CORS allow_methods=["*"]
+        run: |
+          source /tmp/warn-on-grep.sh
+          warn_on_grep \
+            'allow_methods[[:space:]]*=[[:space:]]*\[[[:space:]]*"\*"' \
+            backend \
+            'CORS allow_methods=["*"] in a FastAPI service. Narrow to the verbs actually served (typically GET, POST, PUT).'
+
+      - name: dangerouslySetInnerHTML usage
+        run: |
+          source /tmp/warn-on-grep.sh
+          warn_on_grep \
+            'dangerouslySetInnerHTML' \
+            frontend/src \
+            'dangerouslySetInnerHTML found. Sanitise the input (e.g. via DOMPurify) and ensure the surrounding CSP blocks inline scripts.'
+
+      - name: Insecure env fallback defaults in security-sensitive Python vars
+        run: |
+          source /tmp/warn-on-grep.sh
+          warn_on_grep \
+            'os\.getenv\(["'"'"']( JWT_SECRET|GLINER_SHARED_SECRET|PSEUDONYM_FERNET_KEY)["'"'"'][[:space:]]*,[[:space:]]*["'"'"']' \
+            backend \
+            'Security-sensitive env var has a hardcoded fallback default. The process should refuse to start when the variable is unset rather than silently use a dev value.'
+
+      - name: Next.js config missing security headers block
+        run: |
+          if [ -f frontend/next.config.ts ] || [ -f frontend/next.config.js ]; then
+            config_file=$(ls frontend/next.config.ts frontend/next.config.js 2>/dev/null | head -n1)
+            if ! grep -qE 'async[[:space:]]+headers' "$config_file"; then
+              echo "::warning file=${config_file}::next.config has no async headers() block. Add Content-Security-Policy (with per-request nonce), Strict-Transport-Security, X-Content-Type-Options: nosniff, Referrer-Policy, Permissions-Policy, and frame-ancestors 'none'."
+            fi
+          fi
+
+      - name: Dependabot ecosystem coverage (npm + pip)
+        run: |
+          file=.github/dependabot.yml
+          if [ -f "$file" ]; then
+            if ! grep -qE 'package-ecosystem:[[:space:]]*"?npm"?' "$file"; then
+              echo "::warning file=${file}::Dependabot has no npm ecosystem entry. Add one for /frontend so the JS dependency tree is scanned."
+            fi
+            if ! grep -qE 'package-ecosystem:[[:space:]]*"?pip"?' "$file"; then
+              echo "::warning file=${file}::Dependabot has no pip ecosystem entry. Add entries for each backend service that ships a requirements.txt."
+            fi
+          else
+            echo "::warning::No .github/dependabot.yml found. Configure Dependabot for npm and pip to get automated SCA alerts."
+          fi
+
+      - name: Login route missing rate-limit middleware reference
+        run: |
+          if [ -f frontend/src/app/auth/login/route.js ] && [ ! -f frontend/src/middleware.ts ] && [ ! -f frontend/src/middleware.js ]; then
+            echo "::warning file=frontend/src/app/auth/login/route.js::No frontend/src/middleware.{ts,js} exists. Add rate limiting (e.g. token bucket in middleware) to protect /auth/login from brute-force and credential stuffing."
+          fi
+
+  npm-audit:
+    name: npm audit (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Run npm audit (high+ severity)
+        working-directory: frontend
+        run: |
+          set +e
+          report=$(npm audit --omit=dev --audit-level=high --json 2>/dev/null)
+          high=$(echo "$report" | jq '.metadata.vulnerabilities.high // 0' 2>/dev/null || echo 0)
+          critical=$(echo "$report" | jq '.metadata.vulnerabilities.critical // 0' 2>/dev/null || echo 0)
+          if [ "${high:-0}" -gt 0 ] || [ "${critical:-0}" -gt 0 ]; then
+            echo "::warning file=frontend/package.json::npm audit reports ${critical} critical and ${high} high-severity vulnerabilities in frontend production dependencies. Run 'npm audit' locally for details."
+            echo "$report" | jq -r '
+              .vulnerabilities
+              | to_entries[]
+              | select(.value.severity == "high" or .value.severity == "critical")
+              | "::warning file=frontend/package.json::\(.value.severity | ascii_upcase) — \(.key): \(.value.via | if type=="array" then (.[0].title // (.[0]|tostring)) else . end)"
+            ' 2>/dev/null || true
+          fi
+          exit 0
+
+  python-audit:
+    name: pip-audit (backend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      # Each requirements.txt is audited independently. Failures (e.g. unresolved
+      # deps) are swallowed so one bad service doesn't mask the others.
+      - name: Audit each backend service's requirements.txt
+        run: |
+          set +e
+          shopt -s globstar nullglob
+          for req in backend/**/requirements.txt; do
+            echo "::group::pip-audit ${req}"
+            output=$(pip-audit -r "$req" --strict --format json 2>/dev/null)
+            count=$(echo "$output" | jq '[.dependencies[]?.vulns[]?] | length' 2>/dev/null || echo 0)
+            if [ "${count:-0}" -gt 0 ]; then
+              echo "::warning file=${req}::pip-audit reports ${count} vulnerable package(s). Run 'pip-audit -r ${req}' locally for details."
+              echo "$output" | jq -r --arg req "$req" '
+                .dependencies[]?
+                | . as $d
+                | .vulns[]?
+                | "::warning file=\($req)::\($d.name) \($d.version) — \(.id): \(.description // "see advisory")"
+              ' 2>/dev/null || true
+            fi
+            echo "::endgroup::"
+          done
+          exit 0

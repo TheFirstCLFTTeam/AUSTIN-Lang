@@ -1,0 +1,792 @@
+[
+  {
+    "id": "root-earnings22-0000",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "earnings22_4474327_seg135.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0000_audio.wav",
+    "uploaded_at": "2026-04-01T09:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "transcribed",
+    "duration": "00:05",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 63,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6000,
+      "audio_file_id": 5500,
+      "transcript_segments": [
+        {
+          "id": 5001,
+          "start": 0,
+          "end": 5.52001953125,
+          "text": "Can you give us any sense of what that means in, in new business for yourself?"
+        }
+      ]
+    },
+    "edits": [],
+    "deleted_at": "2026-04-08T09:00:00.000Z",
+    "deleted_by": "system",
+    "expires_at": "2026-04-08T09:00:00.000Z"
+  },
+  {
+    "id": "root-earnings22-0001",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "earnings22_4483680_seg366.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0001_audio.wav",
+    "uploaded_at": "2026-04-13T09:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "transcribing",
+    "duration": "00:01",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 36,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 6002,
+      "audio_file_id": 5501,
+      "transcript_segments": [
+        {
+          "id": 5011,
+          "start": 0,
+          "end": 1.72021484375,
+          "text": "Uh, I don't know if it's a real possibility."
+        }
+      ]
+    },
+    "edits": [],
+    "deleted_at": "2026-04-15T14:32:00Z",
+    "deleted_by": "u1",
+    "expires_at": "2026-04-20T09:00:00.000Z"
+  },
+  {
+    "id": "root-earnings22-0002",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "earnings22_4483680_seg173.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0002_audio.wav",
+    "uploaded_at": "2026-04-08T09:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "completed",
+    "duration": "00:02",
+    "wer": 6.3,
+    "absoluteWordErrorRate": 4,
+    "totalNumberOfWords": 62,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6004,
+      "audio_file_id": 5502,
+      "transcript_segments": [
+        {
+          "id": 5021,
+          "start": 0,
+          "end": 2.7601318359375,
+          "text": "Uh, just one, uh, one quick question, the capital allocation for the year."
+        }
+      ]
+    },
+    "edits": [],
+    "deleted_at": "2026-04-15T09:00:00.000Z",
+    "deleted_by": "system",
+    "expires_at": "2026-04-15T09:00:00.000Z"
+  },
+  {
+    "id": "root-earnings22-0003",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "earnings22_4483680_seg392.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0003_audio.wav",
+    "uploaded_at": "2026-05-12T06:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "needs action",
+    "duration": "00:02",
+    "wer": 4.4,
+    "absoluteWordErrorRate": 2,
+    "totalNumberOfWords": 42,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6006,
+      "audio_file_id": 5503,
+      "transcript_segments": [
+        {
+          "id": 5031,
+          "start": 0,
+          "end": 2.39990234375,
+          "text": "I'm not sure exactly where it stands at this point?"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-earnings22-0004",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "earnings22_4483680_seg219.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0004_audio.wav",
+    "uploaded_at": "2026-05-12T09:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "needs action",
+    "duration": "00:23",
+    "wer": 2.8,
+    "absoluteWordErrorRate": 7,
+    "totalNumberOfWords": 246,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6008,
+      "audio_file_id": 5504,
+      "transcript_segments": [
+        {
+          "id": 5041,
+          "start": 0,
+          "end": 23.8199462890625,
+          "text": "Uh, not because we don't think it's appropriate, but we wanted those transactions to close, um, with certainty, and we wanted to, uh, work with our independent appraiser, Kushman, um, in terms of determining what impact those transactions have on our underlying, uh, urban data center values."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-earnings22-0005",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "earnings22_4483680_seg542.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0005_audio.wav",
+    "uploaded_at": "2026-05-12T12:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "in review",
+    "duration": "00:05",
+    "wer": 8.9,
+    "absoluteWordErrorRate": 5,
+    "totalNumberOfWords": 51,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 6010,
+      "audio_file_id": 5505,
+      "transcript_segments": [
+        {
+          "id": 5051,
+          "start": 0,
+          "end": 5.10009765625,
+          "text": "So that's Spadina property would be the vacation of, uh, IBM?"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-earnings22-0006",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "earnings22_4474327_seg128.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0006_audio.wav",
+    "uploaded_at": "2026-05-12T15:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "transcribed",
+    "duration": "00:01",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 31,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6012,
+      "audio_file_id": 5506,
+      "transcript_segments": [
+        {
+          "id": 5061,
+          "start": 0,
+          "end": 1.5599365234375,
+          "text": "You're now unmuted, please go ahead."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-earnings22-0007",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "earnings22_4483680_seg124.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0007_audio.wav",
+    "uploaded_at": "2026-05-12T18:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "transcribing",
+    "duration": "00:11",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 132,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6014,
+      "audio_file_id": 5507,
+      "transcript_segments": [
+        {
+          "id": 5071,
+          "start": 0,
+          "end": 11.0799560546875,
+          "text": "It advanced the proposition that the global pandemic would benefit the commercial real estate industry by accelerating three established secular trends."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-earnings22-0008",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "earnings22_4474327_seg342.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0008_audio.wav",
+    "uploaded_at": "2026-05-12T21:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "completed",
+    "duration": "00:01",
+    "wer": 3.2,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 15,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6016,
+      "audio_file_id": 5508,
+      "transcript_segments": [
+        {
+          "id": 5081,
+          "start": 0,
+          "end": 1.14013671875,
+          "text": "Yeah, yeah, yeah."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-earnings22-0009",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "earnings22_4474327_seg151.wav",
+    "audioUrl": "/api/mock-audio/distil-whisper-earnings22-chunked/audio/0009_audio.wav",
+    "uploaded_at": "2026-05-13T00:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "needs action",
+    "duration": "00:09",
+    "wer": 1.3,
+    "absoluteWordErrorRate": 2,
+    "totalNumberOfWords": 134,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6018,
+      "audio_file_id": 5509,
+      "transcript_segments": [
+        {
+          "id": 5091,
+          "start": 0,
+          "end": 9.6400146484375,
+          "text": "It's, uh, often it's the first thing that, uh, that they want to talk about, they want to discuss, uh, about that long term innovation, How can we take plastic out?"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0000",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "spgispeech_0000.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0000_audio.wav",
+    "uploaded_at": "2026-05-13T03:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "needs action",
+    "duration": "00:28",
+    "wer": 8.7,
+    "absoluteWordErrorRate": 9,
+    "totalNumberOfWords": 108,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 6020,
+      "audio_file_id": 5510,
+      "transcript_segments": [
+        {
+          "id": 5101,
+          "start": 0,
+          "end": 10,
+          "text": "they certainly expect this year to be a lot more reasonably balanced than perhaps we thought of 2017 in the first part of last year."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0001",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "spgispeech_0001.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0001_audio.wav",
+    "uploaded_at": "2026-05-13T06:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "in review",
+    "duration": "00:23",
+    "wer": 6.7,
+    "absoluteWordErrorRate": 5,
+    "totalNumberOfWords": 74,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6022,
+      "audio_file_id": 5511,
+      "transcript_segments": [
+        {
+          "id": 5111,
+          "start": 0,
+          "end": 10,
+          "text": "and momentum in both our base business and OTT, will create material shareholder value."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0002",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "spgispeech_0002.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0002_audio.wav",
+    "uploaded_at": "2026-05-13T09:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "transcribed",
+    "duration": "00:17",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 117,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6024,
+      "audio_file_id": 5512,
+      "transcript_segments": [
+        {
+          "id": 5121,
+          "start": 0,
+          "end": 10,
+          "text": "So while we don't know if these estimates will hold for the full year, what we do know is that we just grew 9% organically in the fourth quarter,"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0003",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "spgispeech_0003.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0003_audio.wav",
+    "uploaded_at": "2026-05-13T12:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "transcribing",
+    "duration": "00:11",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 48,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6026,
+      "audio_file_id": 5513,
+      "transcript_segments": [
+        {
+          "id": 5131,
+          "start": 0,
+          "end": 10,
+          "text": "obviously, the key secondary measure is clinical global"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0004",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "spgispeech_0004.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0004_audio.wav",
+    "uploaded_at": "2026-05-13T15:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "completed",
+    "duration": "00:27",
+    "wer": 8.3,
+    "absoluteWordErrorRate": 4,
+    "totalNumberOfWords": 54,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 6028,
+      "audio_file_id": 5514,
+      "transcript_segments": [
+        {
+          "id": 5141,
+          "start": 0,
+          "end": 10,
+          "text": "they are now behind us. It is now largely a question of execution."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0005",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "spgispeech_0005.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0005_audio.wav",
+    "uploaded_at": "2026-05-13T18:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "needs action",
+    "duration": "00:22",
+    "wer": 6.4,
+    "absoluteWordErrorRate": 5,
+    "totalNumberOfWords": 76,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6030,
+      "audio_file_id": 5515,
+      "transcript_segments": [
+        {
+          "id": 5151,
+          "start": 0,
+          "end": 10,
+          "text": "pay for the costs of the transportation of our metal right from the point that it's refined."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0006",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "spgispeech_0006.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0006_audio.wav",
+    "uploaded_at": "2026-05-13T21:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "needs action",
+    "duration": "00:16",
+    "wer": 4.5,
+    "absoluteWordErrorRate": 2,
+    "totalNumberOfWords": 54,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6032,
+      "audio_file_id": 5516,
+      "transcript_segments": [
+        {
+          "id": 5161,
+          "start": 0,
+          "end": 10,
+          "text": "And so just the accumulated variances of being slightly off plan"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0007",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "spgispeech_0007.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0007_audio.wav",
+    "uploaded_at": "2026-05-14T00:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "in review",
+    "duration": "00:10",
+    "wer": 2.6,
+    "absoluteWordErrorRate": 4,
+    "totalNumberOfWords": 137,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6034,
+      "audio_file_id": 5517,
+      "transcript_segments": [
+        {
+          "id": 5171,
+          "start": 0,
+          "end": 10,
+          "text": "and has given AstroNova a seat at the table with large global manufacturing companies looking for enterprise-wide solutions to meet the needs of their customers."
+        }
+      ]
+    },
+    "edits": [],
+    "verifier": {
+      "id": "u4",
+      "name": "L. Vasquez",
+      "profilePic": "/02ReviewerPFP.png",
+      "designation": "Transcript Reviewer"
+    },
+    "speakerMap": {
+      "5171": {
+        "id": "u1",
+        "name": "J. Montgomery",
+        "type": "operator",
+        "profilePic": "/04UserPFP.png"
+      }
+    },
+    "reviewerId": "u4",
+    "submittedForReviewAt": "2026-05-14T00:00:00.000Z"
+  },
+  {
+    "id": "root-spgispeech-0008",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "spgispeech_0008.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0008_audio.wav",
+    "uploaded_at": "2026-05-14T03:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "transcribed",
+    "duration": "00:07",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 33,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6036,
+      "audio_file_id": 5518,
+      "transcript_segments": [
+        {
+          "id": 5181,
+          "start": 0,
+          "end": 10,
+          "text": "Now let me talk about our vision further"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-spgispeech-0009",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "spgispeech_0009.wav",
+    "audioUrl": "/api/mock-audio/kensho-spgispeech-S/audio/0009_audio.wav",
+    "uploaded_at": "2026-05-14T06:00:00.000Z",
+    "detectedLanguage": "English (US)",
+    "status": "transcribing",
+    "duration": "00:25",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 66,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 6038,
+      "audio_file_id": 5519,
+      "transcript_segments": [
+        {
+          "id": 5191,
+          "start": 0,
+          "end": 10,
+          "text": "offset by a 30 basis point FX decline due to the weakness of the Canadian dollar."
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-multispeak-0000",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "multispeak_0000.mp3",
+    "audioUrl": "/api/mock-audio/multispeak/MIX-AlienKevin-edmundchan70/audio/0000_audio.mp3",
+    "uploaded_at": "2026-05-14T09:00:00.000Z",
+    "detectedLanguage": "Cantonese (mixed speakers)",
+    "status": "completed",
+    "duration": "00:07",
+    "wer": 4.9,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 24,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6040,
+      "audio_file_id": 5520,
+      "transcript_segments": [
+        {
+          "id": 5201,
+          "start": 0,
+          "end": 1,
+          "text": "我冇讀過政治學，有錯麻煩各位指正。",
+          "speaker": "Speaker 1"
+        },
+        {
+          "id": 5202,
+          "start": 1,
+          "end": 7,
+          "text": "更知道這篇詩篇",
+          "speaker": "Speaker 2"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-multispeak-0001",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "multispeak_0001.mp3",
+    "audioUrl": "/api/mock-audio/multispeak/MIX-AlienKevin-edmundchan70/audio/0001_audio.mp3",
+    "uploaded_at": "2026-05-14T12:00:00.000Z",
+    "detectedLanguage": "Cantonese (mixed speakers)",
+    "status": "needs action",
+    "duration": "00:07",
+    "wer": 3,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 33,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6042,
+      "audio_file_id": 5521,
+      "transcript_segments": [
+        {
+          "id": 5211,
+          "start": 0,
+          "end": 1,
+          "text": "上下聯對仗工整，但內容無關嘅對聯（量詞：副／對）",
+          "speaker": "Speaker 1"
+        },
+        {
+          "id": 5212,
+          "start": 1,
+          "end": 7,
+          "text": "原來我生命可以改變",
+          "speaker": "Speaker 2"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-multispeak-0002",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "multispeak_0002.mp3",
+    "audioUrl": "/api/mock-audio/multispeak/MIX-AlienKevin-edmundchan70/audio/0002_audio.mp3",
+    "uploaded_at": "2026-05-14T15:00:00.000Z",
+    "detectedLanguage": "Cantonese (mixed speakers)",
+    "status": "needs action",
+    "duration": "00:07",
+    "wer": 1.1,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 20,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6044,
+      "audio_file_id": 5522,
+      "transcript_segments": [
+        {
+          "id": 5221,
+          "start": 0,
+          "end": 1,
+          "text": "追求一個人而令到嗰個人對自己有好感",
+          "speaker": "Speaker 1"
+        },
+        {
+          "id": 5222,
+          "start": 1,
+          "end": 7,
+          "text": "是不是",
+          "speaker": "Speaker 2"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-multispeak-0003",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "multispeak_0003.mp3",
+    "audioUrl": "/api/mock-audio/multispeak/MIX-AlienKevin-edmundchan70/audio/0003_audio.mp3",
+    "uploaded_at": "2026-05-14T18:00:00.000Z",
+    "detectedLanguage": "Cantonese (mixed speakers)",
+    "status": "in review",
+    "duration": "00:07",
+    "wer": 7.2,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 18,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6046,
+      "audio_file_id": 5523,
+      "transcript_segments": [
+        {
+          "id": 5231,
+          "start": 0,
+          "end": 1,
+          "text": "鍾意某人，對某人帶有愛意",
+          "speaker": "Speaker 1"
+        },
+        {
+          "id": 5232,
+          "start": 1,
+          "end": 7,
+          "text": "要讓我的生命",
+          "speaker": "Speaker 2"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "root-multispeak-0004",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "multispeak_0004.mp3",
+    "audioUrl": "/api/mock-audio/multispeak/MIX-AlienKevin-edmundchan70/audio/0004_audio.mp3",
+    "uploaded_at": "2026-05-14T21:00:00.000Z",
+    "detectedLanguage": "Cantonese (mixed speakers)",
+    "status": "transcribed",
+    "duration": "00:07",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 24,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 6048,
+      "audio_file_id": 5524,
+      "transcript_segments": [
+        {
+          "id": 5241,
+          "start": 0,
+          "end": 1,
+          "text": "個蘋果好大個，不如我哋一人一半食咗佢？",
+          "speaker": "Speaker 1"
+        },
+        {
+          "id": 5242,
+          "start": 1,
+          "end": 7,
+          "text": "他看到原來",
+          "speaker": "Speaker 2"
+        }
+      ]
+    },
+    "edits": []
+  }
+]

@@ -1,12 +1,68 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for more information:
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-# https://containers.dev/guide/dependabot
+# Dependabot ecosystem coverage. The security-checks workflow at
+# .github/workflows/security-checks.yml warns when this file is missing the
+# npm or pip ecosystems.
 
 version: 2
 updates:
- - package-ecosystem: "devcontainers"
-   directory: "/"
-   schedule:
-     interval: weekly
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      next:
+        patterns: ["next", "eslint-config-next", "@next/*"]
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+      tooling:
+        patterns: ["typescript", "vitest", "@vitejs/*", "@testing-library/*", "eslint*", "postcss*", "tailwindcss", "@tailwindcss/*", "autoprefixer"]
+
+  - package-ecosystem: "pip"
+    directory: "/backend/audio_submission"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "pip"
+    directory: "/backend/database"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "pip"
+    directory: "/backend/metrics_service"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "pip"
+    directory: "/backend/pseudonymization/gliner_service"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "pip"
+    directory: "/backend/pseudonymization/orchestrator"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "pip"
+    directory: "/backend/retraining-pipeline"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "pip"
+    directory: "/backend/server"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "pip"
+    directory: "/backend/transcription_orchestrator"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "pip"
+    directory: "/backend/transcription-service-2"
+    schedule:
+      interval: weekly

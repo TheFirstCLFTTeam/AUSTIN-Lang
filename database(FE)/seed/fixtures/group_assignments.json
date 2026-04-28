@@ -1,0 +1,30 @@
+{
+  "u1": [
+    "hk-user-file-organisation",
+    "user-generic-access-perms"
+  ],
+  "u2": [
+    "hk-engineer-file-organisation",
+    "MLE-generic-access-perms"
+  ],
+  "u3": [
+    "hk-admin-file-organisation",
+    "hk-admin-access-perms"
+  ],
+  "u4": [
+    "hk-reviewer-file-organisation",
+    "reviewer-generic-access-perms"
+  ],
+  "eng-priya": [
+    "hk-engineer-file-organisation",
+    "MLE-generic-access-perms"
+  ],
+  "eng-andreas": [
+    "hk-engineer-file-organisation",
+    "MLE-generic-access-perms"
+  ],
+  "eng-james": [
+    "hk-engineer-file-organisation",
+    "MLE-generic-access-perms"
+  ]
+}

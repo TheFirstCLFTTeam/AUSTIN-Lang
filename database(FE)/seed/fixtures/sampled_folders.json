@@ -1,0 +1,26 @@
+[
+  {
+    "id": "mixed",
+    "source": "AlienKevin/mixed_cantonese_and_english_speech",
+    "name": "AlienKevin-mixed_cantonese_and_english_speech",
+    "fileCount": 10
+  },
+  {
+    "id": "wordshk",
+    "source": "AlienKevin/wordshk_cantonese_speech",
+    "name": "AlienKevin-wordshk_cantonese_speech",
+    "fileCount": 10
+  },
+  {
+    "id": "alvanlii",
+    "source": "alvanlii/cantonese-youtube",
+    "name": "alvanlii-cantonese-youtube",
+    "fileCount": 10
+  },
+  {
+    "id": "edmund",
+    "source": "edmundchan70/Cantonese_fine_tune",
+    "name": "edmundchan70-Cantonese_fine_tune",
+    "fileCount": 10
+  }
+]

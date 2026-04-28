@@ -1,0 +1,216 @@
+services:
+  audio_submission:
+    build: "./backend/audio_submission"
+    ports:
+      - "${AUDIO_SUBMISSION_PORT}:${AUDIO_SUBMISSION_PORT}"
+    volumes:
+      - "./backend/audio_submission:/app"
+
+  transcription-orchestrator:
+    build: "./backend/transcription_orchestrator"
+    ports:
+      - "${TRANSCRIPTION_ORCHESTRATOR_PORT}:${TRANSCRIPTION_ORCHESTRATOR_PORT}"
+    depends_on:
+      - audio_submission
+      - transcription-service-2
+    environment:
+      - AUDIO_SUBMISSION_PORT=${AUDIO_SUBMISSION_PORT}
+      - SERVER_PORT=${SERVER_PORT}
+      - TRANSCRIPTION_SERVICE_2_PORT=${TRANSCRIPTION_SERVICE_2_PORT}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - SKIP_TRANSCRIPTION_SERVER=${SKIP_TRANSCRIPTION_SERVER}
+
+  transcription-server:
+    build:
+      context: "./backend/server"
+      args:
+        SERVER_PORT: ${SERVER_PORT}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    environment:
+      - SERVER_PORT=${SERVER_PORT}
+
+  transcription-service-2:
+    build: "./backend/transcription-service-2"
+    ports:
+      - "${TRANSCRIPTION_SERVICE_2_PORT}:8005"
+    volumes:
+      - "./backend/transcription-service-2:/app"
+      - "./backend/retraining-pipeline/adapters:/app/adapters"
+      - hf_models_cache:/app/models_cache
+    environment:
+      - TRANSCRIPTION_PORT=8005
+
+  database:
+    build: "./backend/database"
+    ports:
+      - "${DATABASE_PORT}:${DATABASE_PORT}"
+    volumes:
+      - "./backend/database:/app"
+
+  gliner-service:
+    build: "./backend/pseudonymization/gliner_service"
+    ports:
+      - "${GLINER_SERVICE_PORT}:5001"
+    volumes:
+      - "./backend/pseudonymization/gliner_service:/app"
+      - hf_models_cache:/app/models_cache
+    environment:
+      - GLINER_PORT=5001
+      - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET}
+
+  meeting-webhooks:
+    build: "./backend/meeting_webhooks"
+    ports:
+      - "${MEETING_WEBHOOKS_PORT}:8007"
+    depends_on:
+      - transcription-orchestrator
+    volumes:
+      - meeting_webhooks_data:/app/data
+    environment:
+      - PORT=8007
+      - DB_PATH=/app/data/meeting_webhooks.db
+      - TRANSCRIPTION_ORCHESTRATOR_URL=http://transcription-orchestrator:${TRANSCRIPTION_ORCHESTRATOR_PORT}
+      - FRONTEND_INGEST_URL=http://frontend:3000/api/integrations/ingest
+      - FRONTEND_INGEST_SECRET=${MEETING_WEBHOOKS_INGEST_SECRET}
+      - PUBLIC_BASE_URL=${MEETING_WEBHOOKS_PUBLIC_BASE_URL}
+      - TEAMS_TENANT_ID=${TEAMS_TENANT_ID}
+      - TEAMS_CLIENT_ID=${TEAMS_CLIENT_ID}
+      - TEAMS_CLIENT_SECRET=${TEAMS_CLIENT_SECRET}
+      - ZOOM_ACCOUNT_ID=${ZOOM_ACCOUNT_ID}
+      - ZOOM_CLIENT_ID=${ZOOM_CLIENT_ID}
+      - ZOOM_CLIENT_SECRET=${ZOOM_CLIENT_SECRET}
+      - ZOOM_WEBHOOK_SECRET_TOKEN=${ZOOM_WEBHOOK_SECRET_TOKEN}
+      - ALLOW_MOCK_CONNECT=true
+
+  # Redis cache — read-through cache for /api/audio-files/{id} + per-user
+  # recents list. Treated as fully reconstructible from platform.db, hence
+  # `--appendonly no` and no persistent volume. allkeys-lru gives us a
+  # bounded LRU even if a key forgets to TTL. See
+  # docs/07 Integration CAA 27APR2026/redis-cache-integration.md.
+  #
+  # When prod reuse cases land (rate limits / CSRF tokens / privacy-budget
+  # ledger per azure-deployment-requirements.md §9), bump to AOF + a real
+  # volume — that's a separate Redis instance concern, not this one.
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  training-orchestrator:
+    build: "./backend/training_orchestrator"
+    ports:
+      - "${TRAINING_ORCHESTRATOR_PORT}:${TRAINING_ORCHESTRATOR_PORT}"
+    volumes:
+      - "./backend/training_orchestrator:/app"
+      - training_orchestrator_data:/app/data
+    environment:
+      - TRAINING_ORCHESTRATOR_PORT=${TRAINING_ORCHESTRATOR_PORT}
+      - TRAINING_DB_PATH=/app/data/training_orchestrator.db
+
+  metrics-service:
+    build: "./backend/metrics_service"
+    ports:
+      - "${METRICS_SERVICE_PORT}:${METRICS_SERVICE_PORT}"
+    depends_on:
+      - database
+      - transcription-service-2
+    volumes:
+      - "./backend/metrics_service:/app"
+      - "./backend/retraining-pipeline/adapters:/app/adapters:ro"
+      - metrics_data:/app/data
+    environment:
+      - METRICS_SERVICE_PORT=${METRICS_SERVICE_PORT}
+      - DATABASE_URL=http://database:${DATABASE_PORT}
+      - METRICS_DB_PATH=/app/data/metrics.db
+      - ADAPTERS_DIR=/app/adapters
+      # Seeds metrics.db with the FE dashboard mock on first boot if the DB
+      # is empty. Set to "false" in prod. See
+      # docs/06 server/metrics-service-module.md §5.3.
+      - SEED_ON_BOOT=${METRICS_SEED_ON_BOOT:-true}
+      # Inference fan-out (§3.1 #2): when an eval manifest declares
+      # audio_path but no hypothesis, metrics-service POSTs each clip
+      # here to fill it in. Concurrency is capped to avoid starving
+      # the GPU.
+      - TRANSCRIPTION_SERVICE_2_URL=http://transcription-service-2:8005
+      - INFERENCE_FANOUT_CONCURRENCY=${INFERENCE_FANOUT_CONCURRENCY:-4}
+
+  financial-terms-dictionary:
+    build: "./backend/Financial_terms_dictionary"
+    ports:
+      - "${FINANCIAL_TERMS_PORT:-8009}:8009"
+    volumes:
+      - "./backend/Financial_terms_dictionary:/app"
+      - financial_terms_data:/app/data
+    environment:
+      - PORT=8009
+      - DB_PATH=/app/data/financial_terms.db
+      - SEED_CSV_PATH=/app/financialTerms.csv
+      - SEED_ON_BOOT=${FINANCIAL_TERMS_SEED_ON_BOOT:-true}
+
+  pseudonymisation-orchestrator:
+    build: "./backend/pseudonymization/orchestrator"
+    ports:
+      - "${PSEUDONYMISATION_ORCHESTRATOR_PORT}:5002"
+    depends_on:
+      - gliner-service
+    volumes:
+      - "./backend/pseudonymization/orchestrator:/app/orchestrator"
+      - pseudonymisation_data:/app/data
+    environment:
+      - PSEUDONYM_ORCHESTRATOR_PORT=5002
+      - GLINER_URL=http://gliner-service:5001
+      - GLINER_SHARED_SECRET=${GLINER_SHARED_SECRET}
+      - PSEUDONYM_FERNET_KEY=${PSEUDONYM_FERNET_KEY:-}
+      - TRANSCRIPT_STATUS_URL=http://transcription-orchestrator:${TRANSCRIPTION_ORCHESTRATOR_PORT}
+
+  frontend:
+    build:
+      context: "./frontend"
+      args:
+        # Set to "true" for the mock-data build (no DB needed).
+        # Set to "false" for the real build (uses ./database(FE)/*.db via the
+        # mount below). Override at build time with FRONTEND_MOCK_API.
+        NEXT_PUBLIC_MOCK_API: "${FRONTEND_MOCK_API:-true}"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - transcription-orchestrator
+      - database
+      - pseudonymisation-orchestrator
+      - metrics-service
+      - training-orchestrator
+      - redis
+      - meeting-webhooks
+      - financial-terms-dictionary
+    volumes:
+      # Mounted so the real-mode build can read/write the seeded SQLite files.
+      # Ignored at runtime by the mock-mode build.
+      - "./database(FE):/db"
+    environment:
+      - USERS_DB_PATH=/db/users.db
+      - PLATFORM_DB_PATH=/db/platform.db
+      - JWT_SECRET=${JWT_SECRET:-dev-only-not-for-production-please-set-JWT_SECRET}
+      - TRANSCRIPTION_ORCHESTRATOR_URL=http://transcription-orchestrator:${TRANSCRIPTION_ORCHESTRATOR_PORT}
+      - BACKEND_DB_URL=http://database:${DATABASE_PORT}
+      - PSEUDONYM_ORCHESTRATOR_URL=http://pseudonymisation-orchestrator:${PSEUDONYMISATION_ORCHESTRATOR_PORT}
+      - METRICS_SERVICE_URL=http://metrics-service:${METRICS_SERVICE_PORT}
+      - TRAINING_ORCHESTRATOR_URL=http://training-orchestrator:${TRAINING_ORCHESTRATOR_PORT}
+      - REDIS_URL=redis://redis:6379
+      - MEETING_WEBHOOKS_URL=http://meeting-webhooks:8007
+      - MEETING_WEBHOOKS_INGEST_SECRET=${MEETING_WEBHOOKS_INGEST_SECRET}
+      - FINANCIAL_TERMS_URL=http://financial-terms-dictionary:8009
+
+volumes:
+  hf_models_cache:
+  pseudonymisation_data:
+  meeting_webhooks_data:
+  metrics_data:
+  training_orchestrator_data:
+  financial_terms_data:

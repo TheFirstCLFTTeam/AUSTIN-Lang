@@ -1,0 +1,6 @@
+# Failed downloads from <original cards path>
+# Generated: 2026-04-15T03:05:00
+# Error details follow each entry as a comment.
+
+ziyou-li/cantonese_daily
+#   error: To support encoding audio data, please install 'torchcodec'.

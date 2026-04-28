@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "docusaurus",
+  "owner": "lescientifik",
+  "repo": "oncopet_academy",
+  "path": ".claude/skills/docusaurus",
+  "branch": "main",
+  "sha": "03b5c3d894d117472abc156841aa18687545c09b",
+  "source": "manual"
+}

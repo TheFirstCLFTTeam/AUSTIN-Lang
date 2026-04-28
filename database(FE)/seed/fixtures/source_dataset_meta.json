@@ -1,0 +1,59 @@
+{
+  "mixed": {
+    "languages": [
+      "Cantonese",
+      "English"
+    ],
+    "origin": "Hugging Face · AlienKevin",
+    "purpose": "Code-switch training",
+    "description": "Mixed Cantonese-English speech drawn from interview and call-centre recordings. The primary training signal for the model’s code-switching behaviour.",
+    "tags": [
+      "code-switch",
+      "conversational",
+      "noisy"
+    ],
+    "status": "Active"
+  },
+  "wordshk": {
+    "languages": [
+      "Cantonese"
+    ],
+    "origin": "Hugging Face · AlienKevin",
+    "purpose": "Pronunciation priors",
+    "description": "Read-aloud Cantonese dictionary entries sourced from words.hk. Short, clean utterances used to bias the acoustic model toward canonical pronunciations.",
+    "tags": [
+      "dictionary",
+      "read-speech",
+      "clean"
+    ],
+    "status": "Active"
+  },
+  "alvanlii": {
+    "languages": [
+      "Cantonese"
+    ],
+    "origin": "Hugging Face · alvanlii",
+    "purpose": "Spontaneous conversational",
+    "description": "Cantonese YouTube audio spanning vlogs, interviews, and podcasts. Dominant source of naturalistic Cantonese for the current fine-tune.",
+    "tags": [
+      "youtube",
+      "conversational",
+      "spontaneous"
+    ],
+    "status": "Active"
+  },
+  "edmund": {
+    "languages": [
+      "Cantonese"
+    ],
+    "origin": "Hugging Face · edmundchan70",
+    "purpose": "Supervised fine-tune",
+    "description": "Curated, speaker-balanced Cantonese fine-tuning set. Used for the supervised pass after the mixed code-switch training stage.",
+    "tags": [
+      "fine-tune",
+      "curated",
+      "balanced"
+    ],
+    "status": "Active"
+  }
+}

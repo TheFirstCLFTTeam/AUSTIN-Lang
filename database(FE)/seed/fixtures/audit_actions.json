@@ -1,0 +1,98 @@
+{
+  "uploaded": {
+    "label": "Uploaded",
+    "verb": "uploaded the recording",
+    "category": "Intake",
+    "color": "#1c1b1b"
+  },
+  "transcribed": {
+    "label": "Transcribed",
+    "verb": "produced the initial transcript",
+    "category": "Pipeline",
+    "color": "#9e6a00"
+  },
+  "viewed": {
+    "label": "Viewed",
+    "verb": "opened the transcript",
+    "category": "Access",
+    "color": "#7a7574"
+  },
+  "edited": {
+    "label": "Edited",
+    "verb": "edited the transcript",
+    "category": "Authoring",
+    "color": "#004ec6"
+  },
+  "submitted_for_review": {
+    "label": "Submitted for review",
+    "verb": "submitted the transcript for review",
+    "category": "Review",
+    "color": "#004ec6"
+  },
+  "approved": {
+    "label": "Approved",
+    "verb": "approved the transcript",
+    "category": "Review",
+    "color": "#1a7f37"
+  },
+  "requested_changes": {
+    "label": "Requested changes",
+    "verb": "requested changes on the transcript",
+    "category": "Review",
+    "color": "#b20100"
+  },
+  "privacy_flagged": {
+    "label": "Privacy flagged",
+    "verb": "flagged the recording for PII review",
+    "category": "Compliance",
+    "color": "#b20100"
+  },
+  "pseudonymised": {
+    "label": "Pseudonymised",
+    "verb": "masked PII spans on the transcript",
+    "category": "Compliance",
+    "color": "#9e6a00"
+  },
+  "access_granted": {
+    "label": "Access granted",
+    "verb": "granted access to the recording",
+    "category": "Access",
+    "color": "#7a7574"
+  },
+  "added_to_dataset": {
+    "label": "Added to dataset",
+    "verb": "added the recording to a dataset",
+    "category": "Curation",
+    "color": "#b20100"
+  },
+  "exported": {
+    "label": "Exported",
+    "verb": "exported the transcript",
+    "category": "Access",
+    "color": "#7a7574"
+  },
+  "login_succeeded": {
+    "label": "Login succeeded",
+    "verb": "signed in",
+    "category": "Auth",
+    "color": "#1a7f37"
+  },
+  "login_failed": {
+    "label": "Login failed",
+    "verb": "tried to sign in with the wrong credentials",
+    "category": "Auth",
+    "color": "#b20100"
+  },
+  "logout": {
+    "label": "Logout",
+    "verb": "signed out",
+    "category": "Auth",
+    "color": "#7a7574"
+  },
+  "version_restored": {
+    "label": "Version restored",
+    "verb": "restored a previous transcript version",
+    "category": "Authoring",
+    "color": "#9e6a00"
+  }
+}

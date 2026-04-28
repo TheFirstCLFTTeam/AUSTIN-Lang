@@ -1,144 +1,213 @@
 // src/services/api.js
+//
+// Client-side API surface with two modes, controlled by NEXT_PUBLIC_MOCK_API:
+//
+//   mock mode (true):
+//     - reads/writes use in-memory fixtures from mock-data.js
+//     - login accepts the seeded mock users with their plaintext passwords
+//       and sets a readable 'token' cookie so the middleware lets pages through
+//     - no server round-trips, no DB required
+//
+//   real mode (false, default):
+//     - reads/writes hit in-process Next.js route handlers under
+//       src/app/{auth,api}/** which are backed by SQLite (users.db + platform.db)
+//     - auth is an HttpOnly JWT cookie signed server-side
+//
+// Switch with the `dev:mock` / `dev:real` scripts in package.json. Because
+// NEXT_PUBLIC_* is inlined at build time, changing modes requires a rebuild.
 
 import { users, MOCK_FILE_STORE, MOCK_PROCESSING_JOBS, MOCK_USER_PROFILES } from './mock-data';
+import { addReviewNotification, addReviewActionNotification } from './notifications';
+import { assertTransition } from '../lib/statusFlow';
+import { http, readCsrfToken } from './http';
+import { pseudonymiseSegments, triggerPseudonymisationRun } from './pseudonymisation';
+import { refreshMetricsCache } from './metrics';
+import { applyEdits, recomputeSegmentEdits } from '../lib/transcriptEdits';
 
-// Set NEXT_PUBLIC_MOCK_API=true in .env.development to run without the backend.
+// Fire-and-forget; the metrics service caches for 60s so invalidating after
+// an edit/approve keeps the dashboard honest. Failures are non-fatal.
+function invalidateMetricsCache() {
+    refreshMetricsCache().catch((err) => {
+        console.warn('metrics cache refresh failed', err);
+    });
+}
+
 const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_API === 'true';
 
-// Token helpers
-const TOKEN_KEY = 'token';
+// ── Auth helpers ────────────────────────────────────────────────────────────
+// In both modes we keep a synchronous sessionStorage cache of the currently
+// authenticated user so pages that expect getCurrentUser() to return
+// immediately (there are many) still work. In real mode the HttpOnly JWT
+// cookie is the actual source of truth; in mock mode we also drop a
+// non-HttpOnly 'token' cookie so the proxy middleware lets pages through.
 
-function setTokenCookie(value) {
-    document.cookie = TOKEN_KEY + '=' + value + '; path=/; SameSite=Lax';
-}
+const USER_CACHE_KEY = 'austin.currentUser';
+const MOCK_COOKIE_NAME = 'token';
 
-function clearTokenCookie() {
-    document.cookie = TOKEN_KEY + '=; path=/; max-age=0';
-}
-
-export function getToken() {
-    return localStorage.getItem(TOKEN_KEY);
-}
-
-export function logout() {
-    localStorage.removeItem(TOKEN_KEY);
-    clearTokenCookie();
-}
-
-export function isAuthenticated() {
-    return !!getToken();
+export function setCachedUser(user) {
+    if (typeof window === 'undefined') return;
+    if (user) {
+        sessionStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+    } else {
+        sessionStorage.removeItem(USER_CACHE_KEY);
+    }
 }
 
 export function getCurrentUser() {
-    const token = getToken();
-    if (!token) return null;
+    if (typeof window === 'undefined') return null;
+    const raw = sessionStorage.getItem(USER_CACHE_KEY);
+    if (!raw) return null;
     try {
-        return JSON.parse(atob(token));
+        return JSON.parse(raw);
     } catch {
         return null;
     }
 }
 
-// Mock login
+export function isAuthenticated() {
+    return !!getCurrentUser();
+}
+
+function setMockCookie(userId) {
+    if (typeof document === 'undefined') return;
+    document.cookie = `${MOCK_COOKIE_NAME}=MOCK-${userId}; path=/; SameSite=Lax`;
+}
+
+function clearMockCookie() {
+    if (typeof document === 'undefined') return;
+    document.cookie = `${MOCK_COOKIE_NAME}=; path=/; max-age=0`;
+}
+
 export async function login(email, password) {
-    const user = users.find(
-        (u) => u.email === email && u.password === password,
-    );
-
-    if (!user) {
-        throw new Error('Invalid email or password');
+    if (MOCK_MODE) {
+        const user = users.find((u) => u.email === email && u.password === password);
+        if (!user) throw new Error('Invalid email or password');
+        const shape = { id: user.id, email: user.email, name: user.name, role: user.role };
+        setMockCookie(user.id);
+        setCachedUser(shape);
+        return { user: shape };
     }
+    const user = await http.post('/auth/login', { email, password });
+    setCachedUser(user);
+    return { user };
+}
 
-    // fake JWT
-    const fakeToken = btoa(
-        JSON.stringify({ id: user.id, email: user.email, role: user.role }),
-    );
+export async function logout() {
+    if (MOCK_MODE) {
+        clearMockCookie();
+        setCachedUser(null);
+        return;
+    }
+    try {
+        await http.post('/auth/logout');
+    } catch (err) {
+        console.warn('logout: server clear failed, proceeding with local clear', err);
+    }
+    setCachedUser(null);
+}
 
-    localStorage.setItem(TOKEN_KEY, fakeToken);
-    setTokenCookie(fakeToken);
+// Called on app load to populate the sync cache.
+export async function bootstrapAuth() {
+    if (MOCK_MODE) {
+        return getCurrentUser();
+    }
+    try {
+        const user = await http.get('/auth/me');
+        setCachedUser(user);
+        return user;
+    } catch (err) {
+        if (err?.status === 401) {
+            setCachedUser(null);
+            return null;
+        }
+        throw err;
+    }
+}
 
+// Legacy shim for call sites that still ask for a raw token.
+export function getToken() {
+    return isAuthenticated() ? 'cookie' : null;
+}
+
+function requireAuth() {
+    if (!isAuthenticated()) throw new Error('Not authenticated');
+}
+
+// Helpers used only by the mock branches below.
+let _nextMockId = 3;
+
+function listShapeFromMockFile(f) {
+    const fullText = (f.rawTranscript?.transcript_segments || []).map((s) => s.text).join(' ');
+    const words = fullText.split(/\s+/).filter(Boolean);
+    const header = words.length > 1 ? words.slice(0, 50).join(' ') : fullText.slice(0, 120);
     return {
-        token: fakeToken,
-        user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-        },
+        id: f.id,
+        name: f.name,
+        audioUrl: f.audioUrl,
+        uploaded_at: f.uploaded_at,
+        transcriptHeader: header,
+        duration: f.duration || null,
+        wer: f.wer ?? null,
+        absoluteWordErrorRate: f.absoluteWordErrorRate ?? null,
+        totalNumberOfWords: f.totalNumberOfWords ?? null,
+        speakerDetection: f.speakerDetection ?? null,
+        detectedLanguage: f.detectedLanguage || null,
+        compliance: f.compliance || null,
+        dataset: f.dataset || null,
+        status: f.status || 'needs action',
+        reviewerId: f.reviewerId || null,
+        submittedForReviewAt: f.submittedForReviewAt || null,
     };
 }
 
-/*********************************
- * MOCK FILE DATABASE (imported from mock-data.js)
- *********************************/
-
-let _nextMockId = 3;
-
-// Simple auth guard for mock API calls
-function requireAuth() {
-    if (!isAuthenticated()) {
-        throw new Error('Not authenticated');
-    }
-}
-
-/*********************************
- * USER PROFILE
- *********************************/
-
+// ── User profile ───────────────────────────────────────────────────────────
 export async function fetchUserProfile() {
     requireAuth();
-    const currentUser = getCurrentUser();
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return MOCK_USER_PROFILES[currentUser?.id] || MOCK_USER_PROFILES.u1;
+    if (MOCK_MODE) {
+        const currentUser = getCurrentUser();
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_USER_PROFILES[currentUser?.id] || MOCK_USER_PROFILES.u1;
+    }
+    return http.get('/api/user-profile');
 }
 
-/*********************************
- * FILE API FUNCTIONS
- *********************************/
-
-// Fetch processing jobs
+// ── Processing queue ───────────────────────────────────────────────────────
 export async function fetchProcessingJobs() {
     requireAuth();
-
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return MOCK_PROCESSING_JOBS;
     }
-
     try {
-        const response = await fetch('http://localhost:8001/processing-jobs/');
-        if (!response.ok) {
-            throw new Error(`Failed to fetch processing jobs: ${response.status}`);
-        }
-        return await response.json();
+        return await http.get('/api/processing-jobs');
     } catch (error) {
         console.error('Error fetching processing jobs:', error);
         return [];
     }
 }
 
-// Upload audio file
-export async function uploadAudio(file) {
+// ── Upload ─────────────────────────────────────────────────────────────────
+export async function fetchAdapters() {
+    if (MOCK_MODE) {
+        return { adapters: ['base', 'meralion_v1'] };
+    }
+    try {
+        return await http.get('/api/adapters');
+    } catch (err) {
+        console.warn('fetchAdapters: falling back to base only', err);
+        return { adapters: ['base'] };
+    }
+}
+
+export async function uploadAudio(file, { domain, language } = {}) {
     requireAuth();
 
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
         const newId = String(_nextMockId++);
         const segments = [
-            {
-                id: Date.now(),
-                start: 0.0,
-                end: 3.0,
-                text: 'Mock transcription for ' + file.name,
-                originalText: 'Mock transcription for ' + file.name,
-            },
-            {
-                id: Date.now() + 1,
-                start: 3.0,
-                end: 6.0,
-                text: 'This is a placeholder transcript.',
-                originalText: 'This is a placeholder transcript.',
-            },
+            { id: Date.now(),     start: 0.0, end: 3.0, text: 'Mock transcription for ' + file.name },
+            { id: Date.now() + 1, start: 3.0, end: 6.0, text: 'This is a placeholder transcript.' },
         ];
         const currentUser = getCurrentUser();
         const newFile = {
@@ -153,279 +222,447 @@ export async function uploadAudio(file) {
                 audio_file_id: Number(newId),
                 transcript_segments: segments,
             },
-            editedTranscript: {
-                id: 200 + Number(newId),
-                raw_transcript_id: 100 + Number(newId),
-                transcript_segments: segments,
-            },
-            transcriptSegments: segments,
+            edits: [],
         };
         MOCK_FILE_STORE.push(newFile);
         return newFile;
     }
 
+    // Real mode posts to the Next.js /api/upload route. That route proxies
+    // the audio to the transcription orchestrator and mirrors the resulting
+    // rows into platform.db, stashing the backend transcript IDs so later
+    // edits can co-write to poc.db at :8002 (where the retraining pipeline
+    // reads from).
     try {
-        // 1. Call the Orchestrator which handles upload, transcription, and DB registration
         const formData = new FormData();
         formData.append('file', file);
-
-        const response = await fetch(
-            'http://localhost:8001/transcribe/',
-            {
-                method: 'POST',
-                body: formData,
-            },
-        );
-
+        if (domain && domain !== 'base') formData.append('domain', domain);
+        if (language) formData.append('language', language);
+        const csrf = readCsrfToken();
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            credentials: 'include',
+            headers: csrf ? { 'X-CSRF-Token': csrf } : undefined,
+            body: formData,
+        });
         if (!response.ok) {
-            throw new Error(
-                `Orchestrator failed: ${response.status}`,
-            );
+            const text = await response.text().catch(() => '');
+            throw new Error(`Upload failed: ${response.status} ${text}`);
         }
-
-        const data = await response.json();
-
-        // 2. Construct the file object for frontend display
-        // Using the real segments returned from Whisper
-        const newFile = {
-            id: String(data.audio_file_id),
-            name: file.name,
-            audioUrl: `http://localhost:8000/audio_files/${file.name}`,
-            transcriptSegments: data.transcription.segments || [],
-        };
-
-        return newFile;
+        return await response.json();
     } catch (error) {
         console.error('Error in uploadAudio workflow:', error);
         throw error;
     }
 }
 
-// Fetch all submitted files
+// ── Audio files ────────────────────────────────────────────────────────────
 export async function fetchSubmittedFiles() {
     requireAuth();
-
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
-        return MOCK_FILE_STORE.map(
-            ({ id, name, audioUrl, uploaded_at, transcriptSegments, duration, wer, absoluteWordErrorRate, totalNumberOfWords, speakerDetection, detectedLanguage, compliance }) => {
-                const fullText = (transcriptSegments || []).map((s) => s.text).join(' ');
-                const words = fullText.split(/\s+/).filter(Boolean);
-                return {
-                    id,
-                    name,
-                    audioUrl,
-                    uploaded_at,
-                    transcriptSegments: [],
-                    transcriptHeader: words.length > 0 ? words.slice(0, 50).join(' ') : '',
-                    duration: duration || null,
-                    wer: wer ?? null,
-                    absoluteWordErrorRate: absoluteWordErrorRate ?? null,
-                    totalNumberOfWords: totalNumberOfWords ?? null,
-                    speakerDetection: speakerDetection ?? null,
-                    detectedLanguage: detectedLanguage || null,
-                    compliance: compliance || null,
-                };
-            },
-        );
+        return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map(listShapeFromMockFile);
     }
-
-    try {
-        const response = await fetch(
-            'http://localhost:8002/audio-files/',
-        ); // Call the new backend endpoint
-        if (!response.ok) {
-            throw new Error(
-                `Failed to fetch audio files: ${response.status}`,
-            );
-        }
-        const audioFiles = await response.json();
-
-        // Map the backend AudioFile array to the structure the UI expects
-        return audioFiles.map((audioFile) => ({
-            id: String(audioFile.id),
-            name: audioFile.file_name,
-            audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`,
-            transcriptSegments: [],
-            uploaded_at: audioFile.uploaded_at,
-            transcriptHeader: audioFile.transcript_header || '',
-        }));
-    } catch (error) {
-        console.error('Error fetching submitted files:', error);
-        return [];
-    }
+    return http.get('/api/audio-files?scope=submitted');
 }
 
-// Fetch all files with metadata only (for engineers viewing others' files)
+export async function fetchTrashedFiles() {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return MOCK_FILE_STORE.filter((f) => f.deleted_at).map((f) => ({
+            ...listShapeFromMockFile(f),
+            deleted_at: f.deleted_at,
+            deleted_by: f.deleted_by || 'system',
+            expires_at: f.expires_at || null,
+        }));
+    }
+    return http.get('/api/audio-files?scope=trashed');
+}
+
 export async function fetchAllFilesMetadata() {
     requireAuth();
     const currentUser = getCurrentUser();
 
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
-        return MOCK_FILE_STORE.map((f) => {
-            const fullText = (f.transcriptSegments || []).map((s) => s.text).join(' ');
-            const words = fullText.split(/\s+/).filter(Boolean);
-            return {
-                id: f.id,
-                name: f.name,
-                uploaded_at: f.uploaded_at,
-                ownerId: f.ownerId,
-                ownerName: f.ownerName,
-                isOwned: f.ownerId === currentUser?.id,
-                transcriptHeader: words.length > 0 ? words.slice(0, 50).join(' ') : '',
-                duration: f.duration || null,
-                wer: f.wer ?? null,
-                absoluteWordErrorRate: f.absoluteWordErrorRate ?? null,
-                totalNumberOfWords: f.totalNumberOfWords ?? null,
-                speakerDetection: f.speakerDetection ?? null,
-                detectedLanguage: f.detectedLanguage || null,
-                compliance: f.compliance || null,
-            };
-        });
+        return MOCK_FILE_STORE.filter((f) => !f.deleted_at).map((f) => ({
+            ...listShapeFromMockFile(f),
+            ownerId: f.ownerId,
+            ownerName: f.ownerName,
+            isOwned: f.ownerId === currentUser?.id,
+        }));
     }
 
-    // For real API, this would call a different endpoint
-    return [];
+    const rows = await http.get('/api/audio-files?scope=all');
+    return rows.map((r) => ({ ...r, isOwned: r.ownerId === currentUser?.id }));
 }
 
-// Fetch one file by ID
 export async function fetchFileDetail(id) {
     requireAuth();
-
     if (MOCK_MODE) {
         await new Promise((resolve) => setTimeout(resolve, 300));
-        return (
-            MOCK_FILE_STORE.find((f) => f.id === String(id)) || null
-        );
+        return MOCK_FILE_STORE.find((f) => f.id === String(id)) || null;
     }
-
     try {
-        // 1. Fetch AudioFile
-        const audioFileResponse = await fetch(
-            `http://localhost:8002/audio-files/${id}`,
-        );
-        if (!audioFileResponse.ok) {
-            throw new Error(
-                `Failed to fetch audio file detail for ID ${id}: ${audioFileResponse.status}`,
-            );
-        }
-        const audioFile = await audioFileResponse.json();
-
-        // 2. Fetch Raw Transcript(s) for this audio_file_id
-        // Assuming one raw transcript per audio file for simplicity
-        const rawTranscriptsResponse = await fetch(
-            `http://localhost:8002/raw-transcripts/?audio_file_id=${id}`,
-        );
-        if (!rawTranscriptsResponse.ok) {
-            throw new Error(
-                `Failed to fetch raw transcripts for audio file ID ${id}: ${rawTranscriptsResponse.status}`,
-            );
-        }
-        const rawTranscripts = await rawTranscriptsResponse.json();
-        const rawTranscript =
-            rawTranscripts.length > 0 ? rawTranscripts[0] : null; // Get the first one
-
-        let editedTranscript = null;
-        if (rawTranscript) {
-            // 3. Fetch Edited Transcript(s) for this raw_transcript_id
-            // Assuming one edited transcript per raw transcript for simplicity
-            const editedTranscriptsResponse = await fetch(
-                `http://localhost:8002/edited-transcripts/?raw_transcript_id=${rawTranscript.id}`,
-            );
-            if (!editedTranscriptsResponse.ok) {
-                throw new Error(
-                    `Failed to fetch edited transcripts for raw transcript ID ${rawTranscript.id}: ${editedTranscriptsResponse.status}`,
-                );
-            }
-            const editedTranscripts =
-                await editedTranscriptsResponse.json();
-            editedTranscript =
-                editedTranscripts.length > 0 ?
-                    editedTranscripts[0]
-                :   null; // Get the first one
-        }
-
-        // Combine all data into the frontend's expected file structure
-        const fileDetail = {
-            id: String(audioFile.id),
-            name: audioFile.file_name,
-            audioUrl: `http://localhost:8000/audio_files/${audioFile.file_name}`, // Adjust as per your audio serving setup
-            uploaded_at: audioFile.uploaded_at,
-            rawTranscript: rawTranscript, // Include raw transcript data
-            editedTranscript: editedTranscript, // Include edited transcript data
-            transcriptSegments:
-                editedTranscript ?
-                    editedTranscript.transcript_segments
-                : rawTranscript ? rawTranscript.transcript_segments
-                : [],
-        };
-
-        return fileDetail;
-    } catch (error) {
-        console.error('Error fetching file detail:', error);
+        return await http.get(`/api/audio-files/${encodeURIComponent(id)}`);
+    } catch (err) {
+        if (err?.status === 404) return null;
+        console.error('Error fetching file detail:', err);
         return null;
     }
 }
 
-// Update transcript
-export async function updateTranscript(
-    editedTranscriptId,
-    rawTranscriptId,
-    newSegments = [],
-) {
+export async function saveEdits(fileId, edits = []) {
     requireAuth();
-
     if (MOCK_MODE) {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        const file = MOCK_FILE_STORE.find(
-            (f) =>
-                f.editedTranscript &&
-                f.editedTranscript.id === editedTranscriptId,
-        );
-        if (file) {
-            file.editedTranscript.transcript_segments = newSegments;
-            file.transcriptSegments = newSegments;
-        }
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (file) file.edits = edits;
+        return { fileId: String(fileId), edits };
+    }
+    const result = await http.put(`/api/audio-files/${encodeURIComponent(fileId)}/edits`, { edits });
+    invalidateMetricsCache();
+    return result;
+}
+
+// ── Workflow: submit / approve / request-changes ───────────────────────────
+async function runPseudonymisationForFile(file, currentUser) {
+    const rawSegments = file?.rawTranscript?.transcript_segments || [];
+    if (rawSegments.length === 0) {
+        return { edits: file.edits || [], summary: { spansCount: 0, segments: 0 } };
+    }
+
+    const applied = applyEdits(rawSegments, file.edits || []);
+    const payload = applied.map((s) => ({ id: String(s.id), text: s.text || '' }));
+
+    let result;
+    try {
+        result = await pseudonymiseSegments(payload);
+    } catch (err) {
+        console.warn('[pseudonymisation] skipped — orchestrator failed:', err);
         return {
-            id: editedTranscriptId,
-            raw_transcript_id: rawTranscriptId,
-            transcript_segments: newSegments,
+            warning: {
+                reason: err?.message || 'Unknown error',
+                attemptedAt: new Date().toISOString(),
+                attemptedBy: currentUser?.id || null,
+            },
         };
     }
 
-    try {
-        const processedSegments = newSegments.map((segment) => ({
-            ...segment,
-            id:
-                Number.isInteger(Number(segment.id)) ?
-                    Number(segment.id)
-                :   null, // Convert to int or null
-        }));
+    const maskedById = new Map(
+        (result.maskedSegments || []).map((m) => [String(m.id), m.text]),
+    );
 
-        const response = await fetch(
-            `http://localhost:8002/edited-transcripts/${editedTranscriptId}`,
-            {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    raw_transcript_id: rawTranscriptId,
-                    transcript_segments: processedSegments,
-                }),
-            },
+    let nextEdits = file.edits || [];
+    const editedAt = new Date().toISOString();
+    for (const seg of applied) {
+        const masked = maskedById.get(String(seg.id));
+        if (masked == null || masked === seg.text) continue;
+        nextEdits = recomputeSegmentEdits(
+            nextEdits, seg.id, seg.originalText, masked,
+            { editedAt, editedBy: 'system' },
         );
+    }
 
-        if (!response.ok) {
-            throw new Error(
-                `Failed to update transcript: ${response.status}`,
-            );
+    return {
+        edits: nextEdits,
+        summary: {
+            spansCount: result.spansCount,
+            segments: maskedById.size,
+            modelVersion: result.modelVersion,
+            labelSetVersion: result.labelSetVersion,
+            appliedAt: editedAt,
+        },
+    };
+}
+
+export async function submitForReview(fileId, reviewerId) {
+    requireAuth();
+    const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        assertTransition(file.status || 'needs action', 'in review');
+
+        const pseudoResult = await runPseudonymisationForFile(file, currentUser);
+        if (pseudoResult.warning) {
+            file.pseudonymisationWarning = pseudoResult.warning;
+        } else {
+            file.pseudonymisationWarning = null;
+            file.edits = pseudoResult.edits;
+            file.pseudonymisationApplied = pseudoResult.summary;
         }
 
-        return await response.json();
-    } catch (error) {
-        console.error('Error updating transcript:', error);
-        throw error;
+        file.status = 'in review';
+        file.reviewerId = reviewerId;
+        file.submittedForReviewAt = new Date().toISOString();
+        file.submittedBy = currentUser?.id;
+
+        const submitterProfile = MOCK_USER_PROFILES[currentUser?.id];
+        const submitterName = submitterProfile?.name || currentUser?.email || 'A user';
+        addReviewNotification({
+            fileId: String(fileId),
+            fileName: file.name,
+            recipientId: reviewerId,
+            submittedBy: currentUser?.id,
+            submitterName,
+        });
+
+        return { fileId: String(fileId), status: 'in review', reviewerId };
     }
+
+    const file = await fetchFileDetail(fileId);
+    if (!file) throw new Error('File not found');
+    assertTransition(file.status || 'needs action', 'in review');
+
+    const pseudoResult = await runPseudonymisationForFile(file, currentUser);
+    if (!pseudoResult.warning) await saveEdits(fileId, pseudoResult.edits);
+
+    const result = await http.post(
+        `/api/audio-files/${encodeURIComponent(fileId)}/submit-for-review`,
+        { reviewerId },
+    );
+
+    // Fire off a stateful pseudonymisation run so the reviewer has spans to
+    // decide on when they open the file. Fire-and-forget: the reviewer panel
+    // polls anyway, and a failed run shouldn't block the submit.
+    triggerPseudonymisationRun(fileId, reviewerId).catch((err) =>
+        console.warn('[pseudonymisation] auto-run failed:', err?.message),
+    );
+
+    addReviewNotification({
+        fileId: String(fileId),
+        fileName: file.name,
+        recipientId: reviewerId,
+        submittedBy: currentUser?.id,
+        submitterName: currentUser?.name || currentUser?.email || 'A user',
+    });
+
+    return { fileId: String(fileId), status: 'in review', reviewerId, ...result };
+}
+
+export async function approveTranscript(fileId) {
+    requireAuth();
+    const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        assertTransition(file.status, 'completed');
+        file.status = 'completed';
+        file.reviewedBy = currentUser?.id;
+        file.reviewedAt = new Date().toISOString();
+
+        if (file.submittedBy) {
+            const reviewerProfile = MOCK_USER_PROFILES[currentUser?.id];
+            const reviewerName = reviewerProfile?.name || currentUser?.email || 'A reviewer';
+            addReviewActionNotification({
+                fileId: String(fileId),
+                fileName: file.name,
+                recipientId: file.submittedBy,
+                reviewerName,
+                action: 'approved',
+            });
+        }
+
+        return { fileId: String(fileId), status: 'completed' };
+    }
+
+    const file = await fetchFileDetail(fileId);
+    if (!file) throw new Error('File not found');
+    assertTransition(file.status || 'in review', 'completed');
+
+    const result = await http.post(`/api/audio-files/${encodeURIComponent(fileId)}/approve`);
+    invalidateMetricsCache();
+
+    addReviewActionNotification({
+        fileId: String(fileId),
+        fileName: file.name,
+        recipientId: file.ownerId,
+        reviewerName: currentUser?.name || currentUser?.email || 'A reviewer',
+        action: 'approved',
+    });
+
+    return { fileId: String(fileId), status: 'completed', ...result };
+}
+
+export async function requestChanges(fileId, reason) {
+    requireAuth();
+    const currentUser = getCurrentUser();
+
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw new Error('File not found');
+        assertTransition(file.status, 'needs action');
+        file.status = 'needs action';
+        file.reviewerId = null;
+        file.submittedForReviewAt = null;
+        file.changeRequestReason = reason || null;
+        file.changeRequestedBy = currentUser?.id;
+        file.changeRequestedAt = new Date().toISOString();
+
+        if (file.submittedBy) {
+            const reviewerProfile = MOCK_USER_PROFILES[currentUser?.id];
+            const reviewerName = reviewerProfile?.name || currentUser?.email || 'A reviewer';
+            addReviewActionNotification({
+                fileId: String(fileId),
+                fileName: file.name,
+                recipientId: file.submittedBy,
+                reviewerName,
+                action: 'needs action',
+                reason: reason || null,
+            });
+        }
+
+        return { fileId: String(fileId), status: 'needs action' };
+    }
+
+    const file = await fetchFileDetail(fileId);
+    if (!file) throw new Error('File not found');
+    assertTransition(file.status || 'in review', 'needs action');
+
+    const result = await http.post(
+        `/api/audio-files/${encodeURIComponent(fileId)}/request-changes`,
+        { reason: reason || null },
+    );
+
+    addReviewActionNotification({
+        fileId: String(fileId),
+        fileName: file.name,
+        recipientId: file.ownerId,
+        reviewerName: currentUser?.name || currentUser?.email || 'A reviewer',
+        action: 'needs action',
+        reason: reason || null,
+    });
+
+    return { fileId: String(fileId), status: 'needs action', ...result };
+}
+
+// ── Transcript versions (slice 2 of transcript-versioning-plan.md) ─────────
+
+export async function fetchVersions(fileId) {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        return { fileId: String(fileId), versions: file?.versions || [] };
+    }
+    return http.get(`/api/audio-files/${encodeURIComponent(fileId)}/versions`);
+}
+
+export async function fetchVersion(fileId, versionNo) {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        const version = (file?.versions || []).find((v) => v.versionNo === Number(versionNo));
+        if (!version) throw Object.assign(new Error('Version not found'), { status: 404 });
+        return { fileId: String(fileId), version };
+    }
+    return http.get(
+        `/api/audio-files/${encodeURIComponent(fileId)}/versions/${encodeURIComponent(versionNo)}`,
+    );
+}
+
+export async function diffVersions(fileId, versionNoA, versionNoB) {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        const versions = file?.versions || [];
+        const a = versions.find((v) => v.versionNo === Number(versionNoA));
+        const b = versions.find((v) => v.versionNo === Number(versionNoB));
+        if (!a || !b) throw Object.assign(new Error('Version not found'), { status: 404 });
+        const keyOf = (e) =>
+            `${e?.segmentId ?? ''}:${e?.wordIndex ?? ''}:${e?.op ?? ''}:${e?.before ?? ''}->${e?.after ?? ''}`;
+        const aMap = new Map((a.edits || []).map((e) => [keyOf(e), e]));
+        const bMap = new Map((b.edits || []).map((e) => [keyOf(e), e]));
+        const onlyInA = [], onlyInB = [], shared = [];
+        for (const [k, e] of aMap) (bMap.has(k) ? shared : onlyInA).push(e);
+        for (const [k, e] of bMap) if (!aMap.has(k)) onlyInB.push(e);
+        return {
+            fileId: String(fileId),
+            from: { versionNo: Number(versionNoA), editCount: (a.edits || []).length },
+            to:   { versionNo: Number(versionNoB), editCount: (b.edits || []).length },
+            onlyInA, onlyInB, shared,
+        };
+    }
+    return http.get(
+        `/api/audio-files/${encodeURIComponent(fileId)}` +
+        `/versions/${encodeURIComponent(versionNoA)}/diff/${encodeURIComponent(versionNoB)}`,
+    );
+}
+
+// Restore version `versionNo`. When the file has a non-empty draft, the
+// server returns 409 with `code: 'DIRTY_DRAFT'` unless `existingDraft`
+// is `'save'` (freeze the draft) or `'discard'` (delete it). Caller is
+// expected to surface the 409 to the user and re-call with the choice.
+export async function restoreVersion(fileId, versionNo, { existingDraft = null } = {}) {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw Object.assign(new Error('File not found'), { status: 404 });
+        const versions = file.versions || (file.versions = []);
+        const source = versions.find((v) => v.versionNo === Number(versionNo));
+        if (!source) throw Object.assign(new Error('Version not found'), { status: 404 });
+
+        const draftIdx = versions.findIndex((v) => v.isCurrent);
+        const dirty = draftIdx >= 0 && (versions[draftIdx].edits || []).length > 0;
+        if (dirty && !existingDraft) {
+            const err = new Error('A draft with unsaved edits exists.');
+            err.status = 409;
+            err.body = {
+                detail: err.message, code: 'DIRTY_DRAFT',
+                draftVersionNo: versions[draftIdx].versionNo,
+                draftEditCount: (versions[draftIdx].edits || []).length,
+            };
+            throw err;
+        }
+        let disposition = null;
+        if (draftIdx >= 0) {
+            if (existingDraft === 'save') {
+                versions[draftIdx] = { ...versions[draftIdx], isCurrent: false, frozenAt: new Date().toISOString() };
+                disposition = 'saved';
+            } else {
+                versions.splice(draftIdx, 1);
+                disposition = dirty ? 'discarded' : 'discarded-empty';
+            }
+        }
+
+        const nextNo = (versions.reduce((m, v) => Math.max(m, v.versionNo), 0)) + 1;
+        const restored = {
+            id: nextNo,
+            versionNo: nextNo,
+            label: 'restored',
+            isDraft: true,
+            isCurrent: true,
+            createdAt: new Date().toISOString(),
+            createdBy: getCurrentUser()?.id || 'system',
+            createdByName: getCurrentUser()?.name || 'System',
+            frozenAt: null,
+            parentVersionNo: source.versionNo,
+            note: null,
+            edits: [...(source.edits || [])],
+        };
+        versions.push(restored);
+        // Also surface as the file's working edits.
+        file.edits = [...restored.edits];
+        return {
+            fileId: String(fileId),
+            newVersionNo: nextNo,
+            restoredFromVersionNo: source.versionNo,
+            existingDraftDisposition: disposition,
+        };
+    }
+    return http.post(
+        `/api/audio-files/${encodeURIComponent(fileId)}` +
+        `/versions/${encodeURIComponent(versionNo)}/restore`,
+        { existingDraft },
+    );
 }

@@ -1,0 +1,1222 @@
+[
+  {
+    "id": "ds-mixed-0000",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "[體育] \"踢波時，記住positioning tool普通，可能help你防止對方cou….wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0000_audio.wav",
+    "uploaded_at": "2026-03-10T09:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "needs action",
+    "duration": "00:11",
+    "wer": 2.8,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 51,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1000,
+      "audio_file_id": 1000,
+      "transcript_segments": [
+        {
+          "id": 1,
+          "start": 0,
+          "end": 10,
+          "text": "\"踢波時，記住positioning tool普通，可能help你防止對方counter attack。\""
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0001",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "[食物] \"摊边的炒面，salty and savoury，gives off a dis….wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0001_audio.wav",
+    "uploaded_at": "2026-03-10T12:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "in review",
+    "duration": "00:17",
+    "wer": 4.7,
+    "absoluteWordErrorRate": 3,
+    "totalNumberOfWords": 64,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1002,
+      "audio_file_id": 1001,
+      "transcript_segments": [
+        {
+          "id": 11,
+          "start": 0,
+          "end": 10,
+          "text": "\"摊边的炒面，salty and savoury，gives off a distinct aroma that draws people in.\""
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0002",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "[學習] \"唔好只著眼喺grade，更加要focus喺學到嘅知識同能力。\".wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0002_audio.wav",
+    "uploaded_at": "2026-03-10T15:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "transcribed",
+    "duration": "00:22",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 32,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1004,
+      "audio_file_id": 1002,
+      "transcript_segments": [
+        {
+          "id": 21,
+          "start": 0,
+          "end": 10,
+          "text": "\"唔好只著眼喺grade，更加要focus喺學到嘅知識同能力。\""
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0003",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "[娛樂] \"喺Discovery Channel我學到好大堆嘅新知識，真係感到好amaze….wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0003_audio.wav",
+    "uploaded_at": "2026-03-10T18:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "transcribing",
+    "duration": "00:28",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 64,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 1006,
+      "audio_file_id": 1003,
+      "transcript_segments": [
+        {
+          "id": 31,
+          "start": 0,
+          "end": 10,
+          "text": "\"喺Discovery Channel我學到好大堆嘅新知識，真係感到好amazed，每次都有新嘅surprise await裏面！” "
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0004",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "[娛樂] \"我嘅weekend plan就係去維園打波，然後喺Coco都要幫我填充一下，話….wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0004_audio.wav",
+    "uploaded_at": "2026-03-10T21:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "completed",
+    "duration": "00:12",
+    "wer": 3.2,
+    "absoluteWordErrorRate": 2,
+    "totalNumberOfWords": 51,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1008,
+      "audio_file_id": 1004,
+      "transcript_segments": [
+        {
+          "id": 41,
+          "start": 0,
+          "end": 10,
+          "text": "\"我嘅weekend plan就係去維園打波，然後喺Coco都要幫我填充一下，話說佢嘅珍珠奶茶最正呀！\""
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0005",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "[天氣] \"天文台警報，可能有大雨，玩電腦可watch out吖，免得短路！\".wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0005_audio.wav",
+    "uploaded_at": "2026-03-11T00:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "needs action",
+    "duration": "00:18",
+    "wer": 5.1,
+    "absoluteWordErrorRate": 2,
+    "totalNumberOfWords": 33,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1010,
+      "audio_file_id": 1005,
+      "transcript_segments": [
+        {
+          "id": 51,
+          "start": 0,
+          "end": 10,
+          "text": "\"天文台警報，可能有大雨，玩電腦可watch out吖，免得短路！\""
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0006",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "[體育] \"進行full body workout唔單可以improve你的血液循環，同时….wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0006_audio.wav",
+    "uploaded_at": "2026-03-11T03:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "needs action",
+    "duration": "00:23",
+    "wer": 7,
+    "absoluteWordErrorRate": 4,
+    "totalNumberOfWords": 57,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1012,
+      "audio_file_id": 1006,
+      "transcript_segments": [
+        {
+          "id": 61,
+          "start": 0,
+          "end": 10,
+          "text": "\"進行full body workout唔單可以improve你的血液循環，同时仲可以提高你的metabolism。\" "
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0007",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "[旅遊] \"如果你去New Zealand，非常建議你去嗰個magnificent嘅Mil….wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0007_audio.wav",
+    "uploaded_at": "2026-03-11T06:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "in review",
+    "duration": "00:29",
+    "wer": 8.9,
+    "absoluteWordErrorRate": 7,
+    "totalNumberOfWords": 78,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 1014,
+      "audio_file_id": 1007,
+      "transcript_segments": [
+        {
+          "id": 71,
+          "start": 0,
+          "end": 10,
+          "text": "\"如果你去New Zealand，非常建議你去嗰個magnificent嘅Milford Sound，欣賞下嗰度嘅natural beauty，真係震撼到人心。\""
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0008",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "[學習] \"即使你feel difficult或者frustrated，都唔可以放棄，因為….wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0008_audio.wav",
+    "uploaded_at": "2026-03-11T09:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "transcribed",
+    "duration": "00:09",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 68,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1016,
+      "audio_file_id": 1008,
+      "transcript_segments": [
+        {
+          "id": 81,
+          "start": 0,
+          "end": 10,
+          "text": "\"即使你feel difficult或者frustrated，都唔可以放棄，因為from difficulties我哋學到最多嘅就系咁樣。\""
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-mixed-0009",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "[本地時事] \"本地嘅 youth unemployment rate 上升，政府要為年輕人提….wav",
+    "audioUrl": "/api/mock-audio/AlienKevin-mixed_cantonese_and_english_speech/audio/0009_audio.wav",
+    "uploaded_at": "2026-03-11T12:00:00.000Z",
+    "dataset": "mixed",
+    "detectedLanguage": "Cantonese + English",
+    "status": "transcribing",
+    "duration": "00:14",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 57,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1018,
+      "audio_file_id": 1009,
+      "transcript_segments": [
+        {
+          "id": 91,
+          "start": 0,
+          "end": 10,
+          "text": "\"本地嘅 youth unemployment rate 上升，政府要為年輕人提供更多 job opportunities。\""
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0000",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "wordshk_0000.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0000_audio.mp3",
+    "uploaded_at": "2026-03-11T15:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "completed",
+    "duration": "00:22",
+    "wer": 6.4,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 17,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1020,
+      "audio_file_id": 1010,
+      "transcript_segments": [
+        {
+          "id": 101,
+          "start": 0,
+          "end": 10,
+          "text": "我冇讀過政治學，有錯麻煩各位指正。"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0001",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "wordshk_0001.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0001_audio.mp3",
+    "uploaded_at": "2026-03-11T18:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:16",
+    "wer": 4.5,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 24,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1022,
+      "audio_file_id": 1011,
+      "transcript_segments": [
+        {
+          "id": 111,
+          "start": 0,
+          "end": 10,
+          "text": "上下聯對仗工整，但內容無關嘅對聯（量詞：副／對）"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0002",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "wordshk_0002.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0002_audio.mp3",
+    "uploaded_at": "2026-03-11T21:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:10",
+    "wer": 2.6,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 17,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1024,
+      "audio_file_id": 1012,
+      "transcript_segments": [
+        {
+          "id": 121,
+          "start": 0,
+          "end": 10,
+          "text": "追求一個人而令到嗰個人對自己有好感"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0003",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "wordshk_0003.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0003_audio.mp3",
+    "uploaded_at": "2026-03-12T00:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "in review",
+    "duration": "00:28",
+    "wer": 8.7,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 12,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 1026,
+      "audio_file_id": 1013,
+      "transcript_segments": [
+        {
+          "id": 131,
+          "start": 0,
+          "end": 10,
+          "text": "鍾意某人，對某人帶有愛意"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0004",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "wordshk_0004.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0004_audio.mp3",
+    "uploaded_at": "2026-03-12T03:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribed",
+    "duration": "00:20",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 19,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1028,
+      "audio_file_id": 1014,
+      "transcript_segments": [
+        {
+          "id": 141,
+          "start": 0,
+          "end": 10,
+          "text": "個蘋果好大個，不如我哋一人一半食咗佢？"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0005",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "wordshk_0005.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0005_audio.mp3",
+    "uploaded_at": "2026-03-12T06:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribing",
+    "duration": "00:15",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 10,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1030,
+      "audio_file_id": 1015,
+      "transcript_segments": [
+        {
+          "id": 151,
+          "start": 0,
+          "end": 10,
+          "text": "一直以來有嘅、存在嘅"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0006",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "wordshk_0006.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0006_audio.mp3",
+    "uploaded_at": "2026-03-12T09:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "completed",
+    "duration": "00:09",
+    "wer": 2.2,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 9,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1032,
+      "audio_file_id": 1016,
+      "transcript_segments": [
+        {
+          "id": 161,
+          "start": 0,
+          "end": 10,
+          "text": "喺一群人入面落決定"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0007",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "wordshk_0007.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0007_audio.mp3",
+    "uploaded_at": "2026-03-12T12:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:27",
+    "wer": 8.3,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 18,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 1034,
+      "audio_file_id": 1017,
+      "transcript_segments": [
+        {
+          "id": 171,
+          "start": 0,
+          "end": 10,
+          "text": "對人哋個仔嘅敬稱（量詞:名/位/個）"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0008",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "wordshk_0008.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0008_audio.mp3",
+    "uploaded_at": "2026-03-12T15:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:19",
+    "wer": 5.6,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 15,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1036,
+      "audio_file_id": 1018,
+      "transcript_segments": [
+        {
+          "id": 181,
+          "start": 0,
+          "end": 10,
+          "text": "呢次地震係黎克特震級六點八級。"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-wordshk-0009",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "wordshk_0009.mp3",
+    "audioUrl": "/api/mock-audio/AlienKevin-wordshk_cantonese_speech/audio/0009_audio.mp3",
+    "uploaded_at": "2026-03-12T18:00:00.000Z",
+    "dataset": "wordshk",
+    "detectedLanguage": "Cantonese",
+    "status": "in review",
+    "duration": "00:14",
+    "wer": 3.7,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 7,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1038,
+      "audio_file_id": 1019,
+      "transcript_segments": [
+        {
+          "id": 191,
+          "start": 0,
+          "end": 10,
+          "text": "叻、精於某樣嘢"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0000",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "大阪自由行DAY3 四天王寺 黑門市場 道頓堀水上觀光船.mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0000_audio.mp3",
+    "uploaded_at": "2026-03-12T21:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribed",
+    "duration": "00:27",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 24,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "channel": "billbillwong2001hk",
+    "snr": 4.1712751388549805,
+    "rawTranscript": {
+      "id": 1040,
+      "audio_file_id": 1020,
+      "transcript_segments": [
+        {
+          "id": 201,
+          "start": 0,
+          "end": 27.05062484741211,
+          "text": "呢度啊，就係原來嗰個武林公園啊，哦，就係呢度啊！"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0001",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "印度疫情分析 - 突顯社會結構問題，從二個投資印度小故事說起.mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0001_audio.mp3",
+    "uploaded_at": "2026-03-13T00:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribing",
+    "duration": "00:23",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 112,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "channel": "beyondKOL",
+    "snr": 46.00259780883789,
+    "rawTranscript": {
+      "id": 1042,
+      "audio_file_id": 1021,
+      "transcript_segments": [
+        {
+          "id": 211,
+          "start": 0,
+          "end": 23.338125228881836,
+          "text": "都人都知道嘅呢就係話就算中央政府想推行一個政策個政策好好都好呢可能落到地方政府嘅時候呢個阻力會好大噉由此至終呢可以睇到呢就係話嗰個政府嗰個施政能唔能夠暢順好迅速而得到各方面一齊嘅合作呢呢個呢亦都係喺印度裏面呢係一個好大嘅問題"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0002",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "【晨早直播】美媒 - 美國再爆重磅AI產品Sora，有評論稱中國可能追不上了 拜登下令調查中國智….mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0002_audio.mp3",
+    "uploaded_at": "2026-03-13T03:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "completed",
+    "duration": "00:13",
+    "wer": 3.4,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 42,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "channel": "BastillePostChannel",
+    "snr": 71.44168853759766,
+    "rawTranscript": {
+      "id": 1044,
+      "audio_file_id": 1022,
+      "transcript_segments": [
+        {
+          "id": 221,
+          "start": 0,
+          "end": 13.87125015258789,
+          "text": "歐美日嘅車廠都會滅頂之災而家就係最好個個嘅睇法呢就係話最好呢所有嘢呢都係不要來自中國"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0003",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "Speaker定Soundbar？4個買前必睇心得｜7大電腦喇叭推介｜Budget $300-$….mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0003_audio.mp3",
+    "uploaded_at": "2026-03-13T06:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:19",
+    "wer": 1.5,
+    "absoluteWordErrorRate": 2,
+    "totalNumberOfWords": 113,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "channel": "pricehongkongofficial",
+    "snr": 18.261812210083008,
+    "rawTranscript": {
+      "id": 1046,
+      "audio_file_id": 1023,
+      "transcript_segments": [
+        {
+          "id": 231,
+          "start": 0,
+          "end": 19.203750610351562,
+          "text": "返返去一開始嘅問題如果相比起音質你更加重視size同埋走線容易唔容易嘅話呢咁三巴就反而係個好啲嘅選擇喇因為有啲型號一條USB-C線接落電腦就用得但speaker因為有分左右聲道所以中間點都係會多條線所以要執返靚啲線都會麻煩少少"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0004",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "Speaker定Soundbar？4個買前必睇心得｜7大電腦喇叭推介｜Budget $300-$….mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0004_audio.mp3",
+    "uploaded_at": "2026-03-13T09:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:27",
+    "wer": 8,
+    "absoluteWordErrorRate": 12,
+    "totalNumberOfWords": 151,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "channel": "pricehongkongofficial",
+    "snr": 18.34446907043457,
+    "rawTranscript": {
+      "id": 1048,
+      "audio_file_id": 1024,
+      "transcript_segments": [
+        {
+          "id": 241,
+          "start": 0,
+          "end": 27.37125015258789,
+          "text": "最後就係Audio Engine A2+佢嘅外形簡約靚仔，四四方方嘅木製相睇加埋有紅黑白三隻色揀基本上係咩風格嘅電腦台都襯到音質方面，對比起同價位嘅產品A2+可以話係做得相當出色加上除咗3.5mm同USB之外佢仲有RCA IN可以畀用家配埋自己私火嘅USB DAC嚟用所以佢真係幾啱一啲着重音質鍾意聽歌嘅朋友㗎"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0005",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "三類高危股票 掂不得.mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0005_audio.mp3",
+    "uploaded_at": "2026-03-13T12:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "in review",
+    "duration": "00:25",
+    "wer": 6.1,
+    "absoluteWordErrorRate": 9,
+    "totalNumberOfWords": 140,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "channel": "AhJu",
+    "snr": 41.46187210083008,
+    "rawTranscript": {
+      "id": 1050,
+      "audio_file_id": 1025,
+      "transcript_segments": [
+        {
+          "id": 251,
+          "start": 0,
+          "end": 25.953750610351562,
+          "text": "最尾加返句，雖然我唔睇呢啲細嘅上市公司，但係唔代表買佢哋係一定賺唔到錢，有啲投資者係專focus落買賣細公司嘅，佢哋嘅expertise可能係炒學股，或者目的是搵下一隻蘋果或者Amazon，呢種玩法我亦都見過好成功嘅例子，但需要做嘅功課同埋對自己嘅信心要求比較高，所以唔啱一般人做"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0006",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "大阪自由行DAY3 四天王寺 黑門市場 道頓堀水上觀光船.mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0006_audio.mp3",
+    "uploaded_at": "2026-03-13T15:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribed",
+    "duration": "00:17",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 53,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "channel": "billbillwong2001hk",
+    "snr": 6.642899990081787,
+    "rawTranscript": {
+      "id": 1052,
+      "audio_file_id": 1026,
+      "transcript_segments": [
+        {
+          "id": 261,
+          "start": 0,
+          "end": 17.938125610351562,
+          "text": "所以大家，首先非常非常重要，這艘船有三個規則，為了大家的安全有三個規則，所以首先我解釋給你聽，第一個規則，"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0007",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "(附字幕) 李彤「外交短評」韓商界擔心尖端技術被中國趕超。好兄弟系列：無利用價值即棄，尹錫悅G8….mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0007_audio.mp3",
+    "uploaded_at": "2026-03-13T18:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribing",
+    "duration": "00:24",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 106,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "channel": "BastillePostChannel",
+    "snr": 49.001224517822266,
+    "rawTranscript": {
+      "id": 1054,
+      "audio_file_id": 1027,
+      "transcript_segments": [
+        {
+          "id": 271,
+          "start": 0,
+          "end": 24.46875,
+          "text": "舊年五月日本就邀請韓國參加廣島嘅G7加N峰會 一度令到韓國睇到曙光㗎韓國媒體同埋政界可以話係過於樂觀 甚至有人宣稱韓國喺心理上早已經係G8成員不過現實就係韓國連參加外圍會議嘅穩定資格都並未得到確保 面對義大利嘅G7峰會"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0008",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "《駕輛》四人組同玄學家陳定幫一齊講揸車靈異事件（附設中文字幕）｜#Up熱話 #駕輛UpCar.mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0008_audio.mp3",
+    "uploaded_at": "2026-03-13T21:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "completed",
+    "duration": "00:19",
+    "wer": 8.4,
+    "absoluteWordErrorRate": 7,
+    "totalNumberOfWords": 89,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "channel": "UpCarhkg",
+    "snr": 10.044258117675781,
+    "rawTranscript": {
+      "id": 1056,
+      "audio_file_id": 1028,
+      "transcript_segments": [
+        {
+          "id": 281,
+          "start": 0,
+          "end": 19.828125,
+          "text": "咁嗰個其中一個呢就有女人撲咗喺度啊，咁呢嗰個司機呢就嗰晚呢即係佢揸住人嘅車喇，即係嗰個主人嘅車呢，咁佢話嗰個聽聽係驚到呢係直情係都冇鎖車啊冇成啊，咁樣就咁亂咁拍，咁樣已經上咗樓喇"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-alvanlii-0009",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "大阪自由行DAY3 四天王寺 黑門市場 道頓堀水上觀光船.mp3",
+    "audioUrl": "/api/mock-audio/alvanlii-cantonese-youtube/audio/0009_audio.mp3",
+    "uploaded_at": "2026-03-14T00:00:00.000Z",
+    "dataset": "alvanlii",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:14",
+    "wer": 6.5,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 7,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "channel": "billbillwong2001hk",
+    "snr": 7.350460052490234,
+    "rawTranscript": {
+      "id": 1058,
+      "audio_file_id": 1029,
+      "transcript_segments": [
+        {
+          "id": 291,
+          "start": 0,
+          "end": 14.023124694824219,
+          "text": "哦，暫時冇見到"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0000",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "finetune_0000.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0000_audio.mp3",
+    "uploaded_at": "2026-03-14T03:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:22",
+    "wer": 6.5,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 7,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1060,
+      "audio_file_id": 1030,
+      "transcript_segments": [
+        {
+          "id": 301,
+          "start": 0,
+          "end": 10,
+          "text": "更知道這篇詩篇"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0001",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "finetune_0001.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0001_audio.mp3",
+    "uploaded_at": "2026-03-14T06:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "in review",
+    "duration": "00:28",
+    "wer": 8.4,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 9,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 1062,
+      "audio_file_id": 1031,
+      "transcript_segments": [
+        {
+          "id": 311,
+          "start": 0,
+          "end": 10,
+          "text": "原來我生命可以改變"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0002",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "finetune_0002.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0002_audio.mp3",
+    "uploaded_at": "2026-03-14T09:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribed",
+    "duration": "00:09",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 3,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1064,
+      "audio_file_id": 1032,
+      "transcript_segments": [
+        {
+          "id": 321,
+          "start": 0,
+          "end": 10,
+          "text": "是不是"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0003",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "finetune_0003.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0003_audio.mp3",
+    "uploaded_at": "2026-03-14T12:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribing",
+    "duration": "00:15",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 6,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1066,
+      "audio_file_id": 1033,
+      "transcript_segments": [
+        {
+          "id": 331,
+          "start": 0,
+          "end": 10,
+          "text": "要讓我的生命"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0004",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "finetune_0004.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0004_audio.mp3",
+    "uploaded_at": "2026-03-14T15:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "completed",
+    "duration": "00:23",
+    "wer": 6.9,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 5,
+    "speakerDetection": 3,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1068,
+      "audio_file_id": 1034,
+      "transcript_segments": [
+        {
+          "id": 341,
+          "start": 0,
+          "end": 10,
+          "text": "他看到原來"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0005",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "finetune_0005.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0005_audio.mp3",
+    "uploaded_at": "2026-03-14T18:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:29",
+    "wer": 8.8,
+    "absoluteWordErrorRate": 1,
+    "totalNumberOfWords": 8,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 1070,
+      "audio_file_id": 1035,
+      "transcript_segments": [
+        {
+          "id": 351,
+          "start": 0,
+          "end": 10,
+          "text": "很平坦的路的時候"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0006",
+    "ownerId": "u1",
+    "ownerName": "Generic User",
+    "name": "finetune_0006.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0006_audio.mp3",
+    "uploaded_at": "2026-03-14T21:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "needs action",
+    "duration": "00:11",
+    "wer": 2.7,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 8,
+    "speakerDetection": 1,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1072,
+      "audio_file_id": 1036,
+      "transcript_segments": [
+        {
+          "id": 361,
+          "start": 0,
+          "end": 10,
+          "text": "他得到上帝的安慰"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0007",
+    "ownerId": "u2",
+    "ownerName": "Engineer User",
+    "name": "finetune_0007.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0007_audio.mp3",
+    "uploaded_at": "2026-03-15T00:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "in review",
+    "duration": "00:16",
+    "wer": 4.6,
+    "absoluteWordErrorRate": 0,
+    "totalNumberOfWords": 8,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1074,
+      "audio_file_id": 1037,
+      "transcript_segments": [
+        {
+          "id": 371,
+          "start": 0,
+          "end": 10,
+          "text": "以至我們能夠得救"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0008",
+    "ownerId": "u3",
+    "ownerName": "Admin User",
+    "name": "finetune_0008.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0008_audio.mp3",
+    "uploaded_at": "2026-03-15T03:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribed",
+    "duration": "00:20",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 3,
+    "speakerDetection": 2,
+    "compliance": "FR-A01 Approved",
+    "rawTranscript": {
+      "id": 1076,
+      "audio_file_id": 1038,
+      "transcript_segments": [
+        {
+          "id": 381,
+          "start": 0,
+          "end": 10,
+          "text": "就想起"
+        }
+      ]
+    },
+    "edits": []
+  },
+  {
+    "id": "ds-edmund-0009",
+    "ownerId": "u4",
+    "ownerName": "Reviewer User",
+    "name": "finetune_0009.mp3",
+    "audioUrl": "/api/mock-audio/edmundchan70-Cantonese_fine_tune/audio/0009_audio.mp3",
+    "uploaded_at": "2026-03-15T06:00:00.000Z",
+    "dataset": "edmund",
+    "detectedLanguage": "Cantonese",
+    "status": "transcribing",
+    "duration": "00:25",
+    "wer": "NA",
+    "absoluteWordErrorRate": "NA",
+    "totalNumberOfWords": 15,
+    "speakerDetection": 3,
+    "compliance": "Pending Review",
+    "rawTranscript": {
+      "id": 1078,
+      "audio_file_id": 1039,
+      "transcript_segments": [
+        {
+          "id": 391,
+          "start": 0,
+          "end": 10,
+          "text": "相信這是神給我們一個很大的安慰"
+        }
+      ]
+    },
+    "edits": []
+  }
+]

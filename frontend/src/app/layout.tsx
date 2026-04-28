@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Inter } from 'next/font/google';
 import { siteConfig } from "./config/metadata";
+import LottieWasmInit from './components/LottieWasmInit';
 import '../styles/index.css';
 
 // To swap fonts, replace this import and variable:
@@ -30,7 +31,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={fontSans.className}>{children}</body>
+      <body className={fontSans.className} suppressHydrationWarning>
+        <LottieWasmInit />
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,171 +1,603 @@
 'use client';
 
-import { useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { getCurrentUser } from '@/services/api';
+import { users, MOCK_USER_PROFILES } from '@/services/mock_data-users';
+import {
+    getCatalogue,
+    getGroupsForUser,
+    setGroupsForUser,
+    subscribe as subscribeUserGroups,
+} from '@/services/user-groups';
+import {
+    getPendingRequests,
+    approveRequest,
+    denyRequest,
+    subscribe as subscribeCredentialRequests,
+} from '@/services/credential-requests';
+import OwnerBadge from '../components/OwnerBadge';
 
-const MOCK_USERS = [
-  { id: 1, name: "Elena Kostic", role: "Senior Analyst", access: "PREMIUM", status: "ACTIVE", lastActive: "2 mins ago", permissions: { readOnly: true, reviewEdit: true, adminControls: false, mlPipeline: false } },
-  { id: 2, name: "Marcus Thorne", role: "Data Scientist", access: "STANDARD", status: "ACTIVE", lastActive: "14 hrs ago", permissions: { readOnly: true, reviewEdit: false, adminControls: false, mlPipeline: true } },
-  { id: 3, name: "Arthur Lang", role: "System Admin", access: "PREMIUM", status: "IDLE", lastActive: "2 days ago", permissions: { readOnly: true, reviewEdit: true, adminControls: true, mlPipeline: true } },
-  { id: 4, name: "Jane Wu", role: "Reviewer", access: "BASIC", status: "OFFLINE", lastActive: "5 days ago", permissions: { readOnly: true, reviewEdit: false, adminControls: false, mlPipeline: false } },
-];
-
-function AccessBadge({ level }) {
-  const map = {
-    PREMIUM: { bg: "#1c1b1b", color: "#ffffff" },
-    STANDARD: { bg: "#7a7574", color: "#ffffff" },
-    BASIC: { bg: "#e8e5e4", color: "#1c1b1b" },
-  };
-  const s = map[level] || map.BASIC;
-  return <span className="inline-block px-2 py-0.5 text-[0.5625rem] font-semibold uppercase tracking-wider" style={{ backgroundColor: s.bg, color: s.color, borderRadius: "0px" }}>{level}</span>;
+// Role → badge colour so the list column reads at a glance.
+function RoleBadge({ role }) {
+    const map = {
+        admin: { bg: '#1c1b1b', color: '#ffffff', label: 'ADMIN' },
+        engineer: { bg: 'rgba(178, 1, 0, 0.08)', color: '#b20100', label: 'ENGINEER' },
+        reviewer: { bg: 'rgba(0, 78, 198, 0.08)', color: '#004ec6', label: 'REVIEWER' },
+        generic: { bg: '#f6f3f2', color: '#1c1b1b', label: 'OPERATOR' },
+    };
+    const s = map[role] || map.generic;
+    return (
+        <span
+            className="inline-block px-2 py-0.5 text-[0.5625rem] font-semibold uppercase tracking-widest"
+            style={{ backgroundColor: s.bg, color: s.color }}
+        >
+            {s.label}
+        </span>
+    );
 }
 
-function StatusDot({ status }) {
-  const map = { ACTIVE: "#b20100", IDLE: "#c4c4c4", OFFLINE: "#e8e5e4" };
-  return (
-    <span className="flex items-center gap-1.5 text-[0.75rem]" style={{ color: "#1c1b1b" }}>
-      <span className="w-2 h-2 inline-block" style={{ backgroundColor: map[status] || "#e8e5e4", borderRadius: "0px" }} />
-      {status}
-    </span>
-  );
+function CategoryBadge({ category }) {
+    const map = {
+        'File Organisation': '#004ec6',
+        'Access Permissions': '#b20100',
+    };
+    const color = map[category] || '#7a7574';
+    return (
+        <span
+            className="inline-block px-1.5 py-0.5 text-[0.5625rem] font-semibold uppercase tracking-widest"
+            style={{ backgroundColor: 'rgba(233, 188, 181, 0.2)', color }}
+        >
+            {category}
+        </span>
+    );
 }
 
-function ToggleSwitch({ on }) {
-  return (
-    <div className="w-10 h-5 flex items-center px-0.5 cursor-pointer" style={{ backgroundColor: on ? "#b20100" : "#e8e5e4", borderRadius: "0px" }}>
-      <div className="w-4 h-4 transition-all" style={{ backgroundColor: "#ffffff", borderRadius: "0px", marginLeft: on ? "18px" : "0px" }} />
-    </div>
-  );
+function KpiCard({ label, value, sublabel, accent }) {
+    return (
+        <div className="p-5" style={{ backgroundColor: '#ffffff' }}>
+            <p
+                className="text-[0.625rem] font-semibold uppercase tracking-widest mb-3"
+                style={{ color: '#7a7574' }}
+            >
+                {label}
+            </p>
+            <p
+                className="text-[1.75rem] font-bold leading-none tracking-tight"
+                style={{
+                    color: accent ? '#b20100' : '#1c1b1b',
+                    letterSpacing: '-0.02em',
+                }}
+            >
+                {value}
+            </p>
+            {sublabel && (
+                <p className="text-[0.6875rem] mt-2" style={{ color: '#7a7574' }}>
+                    {sublabel}
+                </p>
+            )}
+        </div>
+    );
 }
 
 export default function AdminPage() {
-  const [selected, setSelected] = useState(MOCK_USERS[0]);
-  const [tab, setTab] = useState("directory");
+    const [currentUser, setCurrentUser] = useState(null);
+    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [, forceTick] = useState(0);
+    const [pendingRequests, setPendingRequests] = useState(() => getPendingRequests());
 
-  const tabs = ["directory", "permissions", "logs"];
+    // Draft membership state while editing. Keyed by userId so multiple edits
+    // don't clobber each other, though in practice only one row is selected
+    // at a time.
+    const [draftGroups, setDraftGroups] = useState({});
+    const [savedBanner, setSavedBanner] = useState(null);
 
-  return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+    useEffect(() => {
+        setCurrentUser(getCurrentUser());
+    }, []);
+
+    useEffect(() => {
+        return subscribeCredentialRequests(() => setPendingRequests(getPendingRequests()));
+    }, []);
+
+    useEffect(() => {
+        // Any external change to the assignments map forces a re-render so
+        // the KPI counts + detail panel stay in sync.
+        return subscribeUserGroups(() => forceTick((n) => n + 1));
+    }, []);
+
+    useEffect(() => {
+        if (!savedBanner) return;
+        const t = setTimeout(() => setSavedBanner(null), 3200);
+        return () => clearTimeout(t);
+    }, [savedBanner]);
+
+    const catalogue = useMemo(() => getCatalogue(), []);
+    const catalogueById = useMemo(() => new Map(catalogue.map((g) => [g.id, g])), [catalogue]);
+
+    // Drop OperatorProfiles into a single list the table can render.
+    const personas = useMemo(
+        () => users.map((u) => {
+            const profile = MOCK_USER_PROFILES[u.id] || {};
+            return {
+                id: u.id,
+                email: u.email,
+                role: u.role,
+                fullName: u.name,
+                displayName: profile.name || u.name,
+                designation: profile.designation || u.role,
+                profilePic: profile.profilePic || null,
+                employeeId: profile.employeeId || '—',
+                department: profile.department || '—',
+                groups: getGroupsForUser(u.id),
+            };
+        }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [pendingRequests, currentUser, savedBanner, draftGroups],
+    );
+
+    const selected = personas.find((p) => p.id === selectedUserId) || null;
+    const isSelf = Boolean(selected && currentUser && selected.id === currentUser.id);
+    const draftForSelected = selected ? (draftGroups[selected.id] ?? selected.groups) : [];
+    const isDirty = selected
+        ? JSON.stringify([...draftForSelected].sort()) !==
+          JSON.stringify([...selected.groups].sort())
+        : false;
+
+    const toggleGroup = (groupId) => {
+        if (!selected || isSelf) return;
+        const current = draftGroups[selected.id] ?? selected.groups;
+        const next = current.includes(groupId)
+            ? current.filter((g) => g !== groupId)
+            : [...current, groupId];
+        setDraftGroups({ ...draftGroups, [selected.id]: next });
+    };
+
+    const saveChanges = () => {
+        if (!selected || isSelf) return;
+        const next = draftGroups[selected.id] ?? selected.groups;
+        setGroupsForUser(selected.id, next);
+        setDraftGroups((prev) => {
+            const { [selected.id]: _removed, ...rest } = prev;
+            return rest;
+        });
+        setSavedBanner(
+            `Updated group membership for ${selected.displayName} (${next.length} group${next.length === 1 ? '' : 's'}).`,
+        );
+    };
+
+    const discardChanges = () => {
+        if (!selected) return;
+        setDraftGroups((prev) => {
+            const { [selected.id]: _removed, ...rest } = prev;
+            return rest;
+        });
+    };
+
+    const totalMemberships = personas.reduce((acc, p) => acc + p.groups.length, 0);
+    const complianceGroupCount = catalogue.filter((g) => g.category === 'Compliance').length;
+
+    return (
         <div>
-          <h1 className="text-[2rem] font-bold tracking-tight" style={{ color: "#b20100", letterSpacing: "-0.02em" }}>AUSTIN-Lang Control</h1>
-        </div>
-        <button className="px-4 py-2 text-[0.8125rem] font-semibold cursor-pointer" style={{ background: "linear-gradient(135deg, #b20100, #e10000)", color: "#ffffff", border: "none", borderRadius: "0px" }}>EXPORT DATA</button>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-6 mb-6 text-[0.8125rem] font-semibold">
-        {tabs.map((t) => (
-          <button key={t} onClick={() => setTab(t)} className="pb-1 cursor-pointer uppercase tracking-wider" style={{ backgroundColor: "transparent", border: "none", borderBottom: tab === t ? "2px solid #b20100" : "2px solid transparent", color: tab === t ? "#b20100" : "#7a7574" }}>
-            {t}
-          </button>
-        ))}
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Total Users" value="1,284" sub="+10%" />
-        <KpiCard label="Pending Verifications" value="42" sub="!" accent />
-        <KpiCard label="Admins" value="18" sub="Institutional" />
-        <KpiCard label="ML Engineers" value="156" sub="Pipeline Ops" />
-      </div>
-
-      <div className="flex gap-6">
-        {/* User Directory */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-[1.25rem] font-bold uppercase tracking-tight" style={{ color: "#1c1b1b" }}>User Directory</h2>
-              <p className="text-[0.6875rem]" style={{ color: "#7a7574" }}>Institutional access control and registry management.</p>
+            {/* Breadcrumb */}
+            <div
+                className="flex items-center gap-2 text-[0.6875rem] mb-2"
+                style={{ color: '#7a7574' }}
+            >
+                <span className="uppercase tracking-widest" style={{ color: '#b20100' }}>Institutional Management</span>
+                <span>/</span>
+                <span className="uppercase tracking-widest" style={{ color: '#1c1b1b' }}>User Management</span>
             </div>
-            <button className="px-4 py-2 text-[0.8125rem] font-semibold cursor-pointer" style={{ background: "linear-gradient(135deg, #b20100, #e10000)", color: "#ffffff", border: "none", borderRadius: "0px" }}>INVITE NEW USER</button>
-          </div>
 
-          <div style={{ backgroundColor: "#ffffff" }}>
-            <div className="flex items-center px-5 py-3 text-[0.6875rem] font-semibold uppercase tracking-wider" style={{ color: "#7a7574", borderBottom: "1px solid rgba(233, 188, 181, 0.15)" }}>
-              <div className="w-8" /><div className="flex-1">Name</div><div className="w-32">Role</div><div className="w-24">Access</div><div className="w-24">Status</div><div className="w-24">Last Active</div>
-            </div>
-            {MOCK_USERS.map((user) => (
-              <div key={user.id} onClick={() => setSelected(user)} className="flex items-center px-5 py-4 cursor-pointer transition-colors" style={{ backgroundColor: selected?.id === user.id ? "#f6f3f2" : "transparent", borderBottom: "1px solid rgba(233, 188, 181, 0.08)" }}>
-                <div className="w-8">
-                  <div className="w-7 h-7 flex items-center justify-center text-[0.5625rem] font-bold" style={{ backgroundColor: "#f6f3f2", color: "#1c1b1b", borderRadius: "0px" }}>
-                    {user.name.split(" ").map(n => n[0]).join("")}
-                  </div>
+            {/* Editorial header */}
+            <div
+                className="flex items-end justify-between gap-6 mb-8 pb-6"
+                style={{ borderBottom: '2px solid #1c1b1b' }}
+            >
+                <div>
+                    <h1
+                        className="text-[2.5rem] font-bold leading-none tracking-tight uppercase"
+                        style={{ color: '#1c1b1b', letterSpacing: '-0.03em' }}
+                    >
+                        User Management
+                    </h1>
+                    <p
+                        className="text-[0.6875rem] font-semibold uppercase tracking-widest mt-4"
+                        style={{ color: '#7a7574' }}
+                    >
+                        Assign data-access groups to the four operator personas &middot; membership controls repository scope
+                    </p>
                 </div>
-                <div className="flex-1"><p className="text-[0.8125rem] font-semibold" style={{ color: "#1c1b1b" }}>{user.name}</p></div>
-                <div className="w-32 text-[0.75rem]" style={{ color: "#7a7574" }}>{user.role}</div>
-                <div className="w-24"><AccessBadge level={user.access} /></div>
-                <div className="w-24"><StatusDot status={user.status} /></div>
-                <div className="w-24 text-[0.75rem]" style={{ color: "#7a7574" }}>{user.lastActive}</div>
-              </div>
-            ))}
-          </div>
-          <p className="text-[0.625rem] mt-2" style={{ color: "#7a7574" }}>Showing {MOCK_USERS.length} of 1,284 entries</p>
-        </div>
-
-        {/* User Detail Panel */}
-        {selected && (
-          <div className="w-72 shrink-0 p-5" style={{ backgroundColor: "#ffffff" }}>
-            <p className="text-[0.625rem] uppercase tracking-wider mb-1" style={{ color: "#b20100" }}>PROFILE / MEMBER 118</p>
-            <h3 className="text-[1.125rem] font-bold mb-0.5" style={{ color: "#1c1b1b" }}>{selected.name}</h3>
-            <p className="text-[0.75rem] mb-4" style={{ color: "#7a7574" }}>{selected.role} &bull; ID-AUTH-0021-B</p>
-
-            <p className="text-[0.6875rem] font-semibold uppercase tracking-wider mb-3" style={{ color: "#7a7574" }}>Institutional Permissions</p>
-            <div className="space-y-3">
-              <PermRow label="READ-ONLY" sub="View global ledgers & statistics" on={selected.permissions.readOnly} />
-              <PermRow label="REVIEW & EDIT" sub="Modify compliance flags & items" on={selected.permissions.reviewEdit} />
-              <PermRow label="ADMIN CONTROLS" sub="Manage user groups & system nodes" on={selected.permissions.adminControls} />
-              <PermRow label="ML PIPELINE ACCESS" sub="Execute model training & deployments" on={selected.permissions.mlPipeline} accent />
+                <Link
+                    href="/admin/groups"
+                    className="px-6 py-3 text-[0.6875rem] font-semibold uppercase tracking-widest cursor-pointer no-underline"
+                    style={{
+                        backgroundColor: 'transparent',
+                        border: '1.5px solid #1c1b1b',
+                        borderRadius: '0px',
+                        color: '#1c1b1b',
+                    }}
+                >
+                    Manage Groups &rarr;
+                </Link>
             </div>
 
-            <div className="mt-6 space-y-2">
-              <button className="w-full py-2 text-[0.8125rem] font-semibold cursor-pointer" style={{ backgroundColor: "#1c1b1b", color: "#f3f0ef", border: "none", borderRadius: "0px" }}>UPDATE AUTHORIZATION</button>
-              <button className="w-full py-2 text-[0.8125rem] font-medium cursor-pointer" style={{ backgroundColor: "transparent", border: "1.5px solid rgba(233, 188, 181, 0.3)", borderRadius: "0px", color: "#1c1b1b" }}>REVOKE SESSION</button>
+            {savedBanner && (
+                <div
+                    className="mb-6 px-4 py-3 text-[0.8125rem]"
+                    style={{ backgroundColor: '#1c1b1b', color: '#ffffff', borderLeft: '3px solid #b20100' }}
+                >
+                    {savedBanner}
+                </div>
+            )}
+
+            {/* KPIs */}
+            <div
+                className="grid grid-cols-4 mb-8"
+                style={{ backgroundColor: 'rgba(233, 188, 181, 0.15)', gap: '1px' }}
+            >
+                <KpiCard label="Operator Personas" value={personas.length} sublabel="Registered accounts" />
+                <KpiCard
+                    label="Data-Access Groups"
+                    value={catalogue.length}
+                    sublabel={`${complianceGroupCount} compliance · rest business / engineering`}
+                />
+                <KpiCard
+                    label="Total Memberships"
+                    value={totalMemberships}
+                    sublabel={`Avg ${(totalMemberships / personas.length).toFixed(1)} groups / user`}
+                />
+                <KpiCard
+                    label="Pending Credential Changes"
+                    value={pendingRequests.length}
+                    sublabel={pendingRequests.length > 0 ? 'Action required' : 'All clear'}
+                    accent={pendingRequests.length > 0}
+                />
             </div>
-            <p className="text-[0.5625rem] mt-3" style={{ color: "#c4c4c4" }}>Last audit: Oct 24, 2025 by System Root</p>
-          </div>
-        )}
-      </div>
 
-      {/* Bottom Cards */}
-      <div className="grid grid-cols-2 gap-4 mt-6">
-        <div className="p-5" style={{ backgroundColor: "#b20100" }}>
-          <h3 className="text-[1rem] font-bold uppercase mb-1" style={{ color: "#ffffff" }}>Institutional Logs</h3>
-          <p className="text-[0.75rem] mb-3" style={{ color: "rgba(255,255,255,0.7)" }}>Complete immutable history of permission changes and access requests.</p>
-          <button className="text-[0.75rem] font-semibold cursor-pointer" style={{ backgroundColor: "transparent", border: "none", color: "#ffffff" }}>EXPORT PERMISSIONS LOG</button>
+            {/* Pending credential changes — preserved from the previous page */}
+            {pendingRequests.length > 0 && (
+                <div className="mb-8 p-5" style={{ backgroundColor: '#ffffff' }}>
+                    <div className="flex items-center gap-3 mb-4">
+                        <h2
+                            className="text-[0.875rem] font-bold uppercase tracking-widest"
+                            style={{ color: '#1c1b1b' }}
+                        >
+                            Pending Credential Changes
+                        </h2>
+                        <span
+                            className="inline-block px-1.5 py-0.5 text-[0.5625rem] font-semibold uppercase tracking-widest"
+                            style={{ backgroundColor: 'rgba(178, 1, 0, 0.08)', color: '#b20100' }}
+                        >
+                            {pendingRequests.length} pending
+                        </span>
+                    </div>
+                    <div className="space-y-3">
+                        {pendingRequests.map((req) => (
+                            <div
+                                key={req.id}
+                                className="flex items-center gap-4 p-4"
+                                style={{ backgroundColor: '#f6f3f2' }}
+                            >
+                                <div
+                                    className="w-9 h-9 shrink-0 overflow-hidden"
+                                    style={{ backgroundColor: '#313030', borderRadius: '50%' }}
+                                >
+                                    <img
+                                        src={req.profilePic || '/default_pfp.png'}
+                                        alt={req.userName}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[0.8125rem] font-semibold" style={{ color: '#1c1b1b' }}>
+                                        {req.userName}
+                                    </p>
+                                    <p className="text-[0.625rem] mb-1" style={{ color: '#7a7574' }}>
+                                        ID: {req.userId}
+                                    </p>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                                        {Object.entries(req.changes).map(([field, { from, to }]) => (
+                                            <span key={field} className="text-[0.6875rem]" style={{ color: '#1c1b1b' }}>
+                                                <span
+                                                    className="uppercase tracking-wider text-[0.5625rem]"
+                                                    style={{ color: '#7a7574' }}
+                                                >
+                                                    {field}:{' '}
+                                                </span>
+                                                <span style={{ textDecoration: 'line-through', color: '#7a7574' }}>
+                                                    {from}
+                                                </span>
+                                                {' → '}
+                                                <span className="font-semibold">{to}</span>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 shrink-0">
+                                    <button
+                                        onClick={() => approveRequest(req.id)}
+                                        className="px-3 py-1.5 text-[0.75rem] font-semibold cursor-pointer"
+                                        style={{
+                                            backgroundColor: '#1c1b1b',
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            borderRadius: '0px',
+                                        }}
+                                    >
+                                        Approve
+                                    </button>
+                                    <button
+                                        onClick={() => denyRequest(req.id)}
+                                        className="px-3 py-1.5 text-[0.75rem] font-semibold cursor-pointer"
+                                        style={{
+                                            backgroundColor: 'transparent',
+                                            border: '1.5px solid #1c1b1b',
+                                            borderRadius: '0px',
+                                            color: '#1c1b1b',
+                                        }}
+                                    >
+                                        Deny
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Directory + detail */}
+            <div className="flex gap-6">
+                {/* User directory */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-end justify-between mb-3">
+                        <div>
+                            <h2
+                                className="text-[0.875rem] font-bold uppercase tracking-widest"
+                                style={{ color: '#1c1b1b' }}
+                            >
+                                Operator Directory
+                                <span
+                                    className="ml-3 text-[0.6875rem] font-semibold"
+                                    style={{ color: '#7a7574' }}
+                                >
+                                    ({personas.length})
+                                </span>
+                            </h2>
+                            <p
+                                className="text-[0.6875rem] uppercase tracking-widest mt-1"
+                                style={{ color: '#7a7574' }}
+                            >
+                                Click a row to view group memberships. Your own account is read-only.
+                            </p>
+                        </div>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff' }}>
+                        <div
+                            className="flex items-center px-5 py-3 text-[0.625rem] font-semibold uppercase tracking-widest"
+                            style={{ color: '#7a7574', borderBottom: '1px solid rgba(233, 188, 181, 0.25)' }}
+                        >
+                            <div className="flex-1">Operator</div>
+                            <div className="w-28">Role</div>
+                            <div className="w-40">Department</div>
+                            <div className="w-28 text-right">Groups</div>
+                        </div>
+                        {personas.map((p) => {
+                            const isActive = selectedUserId === p.id;
+                            const isYou = currentUser?.id === p.id;
+                            return (
+                                <div
+                                    key={p.id}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => setSelectedUserId(p.id)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            setSelectedUserId(p.id);
+                                        }
+                                    }}
+                                    className="flex items-center px-5 py-4 cursor-pointer transition-colors"
+                                    style={{
+                                        backgroundColor: isActive ? 'rgba(178, 1, 0, 0.04)' : 'transparent',
+                                        borderBottom: '1px solid rgba(233, 188, 181, 0.08)',
+                                        borderLeft: isActive ? '3px solid #b20100' : '3px solid transparent',
+                                    }}
+                                >
+                                    <div className="flex-1 min-w-0 pr-3">
+                                        <div className="flex items-center gap-3">
+                                            <OwnerBadge owner={p.id} size="md" />
+                                            {isYou && (
+                                                <span
+                                                    className="px-1.5 py-0.5 text-[0.5625rem] font-semibold uppercase tracking-widest"
+                                                    style={{ backgroundColor: '#b20100', color: '#ffffff' }}
+                                                >
+                                                    You
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p
+                                            className="text-[0.6875rem] mt-1 font-mono"
+                                            style={{ color: '#7a7574' }}
+                                        >
+                                            {p.employeeId} &middot; {p.email}
+                                        </p>
+                                    </div>
+                                    <div className="w-28">
+                                        <RoleBadge role={p.role} />
+                                    </div>
+                                    <div
+                                        className="w-40 text-[0.75rem] truncate"
+                                        style={{ color: '#7a7574' }}
+                                    >
+                                        {p.department}
+                                    </div>
+                                    <div
+                                        className="w-28 text-right text-[0.875rem] font-bold"
+                                        style={{ color: '#1c1b1b' }}
+                                    >
+                                        {p.groups.length}
+                                        <span
+                                            className="ml-1 text-[0.625rem] font-normal"
+                                            style={{ color: '#7a7574' }}
+                                        >
+                                            / {catalogue.length}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Membership editor */}
+                <div className="w-96 shrink-0">
+                    {selected ? (
+                        <div style={{ backgroundColor: '#ffffff' }}>
+                            <div className="p-5" style={{ borderBottom: '1px solid rgba(233, 188, 181, 0.25)' }}>
+                                <p
+                                    className="text-[0.625rem] font-semibold uppercase tracking-widest mb-2"
+                                    style={{ color: '#b20100' }}
+                                >
+                                    Group Membership
+                                </p>
+                                <OwnerBadge owner={selected.id} size="md" />
+                                <p className="text-[0.75rem] mt-2" style={{ color: '#7a7574' }}>
+                                    {selected.designation} &middot; {selected.department}
+                                </p>
+                                <p className="text-[0.6875rem] font-mono mt-1" style={{ color: '#7a7574' }}>
+                                    {selected.email}
+                                </p>
+                            </div>
+
+                            {isSelf && (
+                                <div
+                                    className="px-5 py-3 text-[0.75rem]"
+                                    style={{
+                                        backgroundColor: '#1c1b1b',
+                                        color: '#ffffff',
+                                        borderLeft: '3px solid #b20100',
+                                    }}
+                                >
+                                    Your own account cannot be modified here. Ask another admin to amend your memberships.
+                                </div>
+                            )}
+
+                            <div className="p-5 space-y-3 max-h-[560px] overflow-y-auto">
+                                {catalogue.map((group) => {
+                                    const active = draftForSelected.includes(group.id);
+                                    return (
+                                        <label
+                                            key={group.id}
+                                            className={`flex items-start gap-3 p-3 ${isSelf ? '' : 'cursor-pointer'}`}
+                                            style={{
+                                                backgroundColor: active ? 'rgba(178, 1, 0, 0.05)' : '#f6f3f2',
+                                                borderLeft: active ? '3px solid #b20100' : '3px solid transparent',
+                                                opacity: isSelf ? 0.7 : 1,
+                                            }}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={active}
+                                                disabled={isSelf}
+                                                onChange={() => toggleGroup(group.id)}
+                                                className="mt-0.5"
+                                                style={{
+                                                    accentColor: '#b20100',
+                                                    width: '1rem',
+                                                    height: '1rem',
+                                                    cursor: isSelf ? 'not-allowed' : 'pointer',
+                                                }}
+                                            />
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p
+                                                        className="text-[0.8125rem] font-bold"
+                                                        style={{ color: '#1c1b1b' }}
+                                                    >
+                                                        {group.name}
+                                                    </p>
+                                                    <CategoryBadge category={group.category} />
+                                                </div>
+                                                <p
+                                                    className="text-[0.6875rem] mt-1 leading-relaxed"
+                                                    style={{ color: '#7a7574' }}
+                                                >
+                                                    {group.description}
+                                                </p>
+                                                <p
+                                                    className="text-[0.5625rem] uppercase tracking-widest mt-1 font-mono"
+                                                    style={{ color: '#bcb7b6' }}
+                                                >
+                                                    {group.repositorySize}
+                                                </p>
+                                            </div>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+
+                            {!isSelf && (
+                                <div
+                                    className="p-5 flex items-center justify-end gap-2"
+                                    style={{ borderTop: '1px solid rgba(233, 188, 181, 0.25)' }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={discardChanges}
+                                        disabled={!isDirty}
+                                        className="px-4 py-2 text-[0.6875rem] font-semibold uppercase tracking-widest cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                                        style={{
+                                            backgroundColor: 'transparent',
+                                            border: '1.5px solid rgba(233, 188, 181, 0.5)',
+                                            borderRadius: '0px',
+                                            color: '#7a7574',
+                                        }}
+                                    >
+                                        Discard
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={saveChanges}
+                                        disabled={!isDirty}
+                                        className="px-4 py-2 text-[0.6875rem] font-semibold uppercase tracking-widest cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                                        style={{
+                                            background: 'linear-gradient(135deg, #b20100, #e10000)',
+                                            color: '#ffffff',
+                                            border: 'none',
+                                            borderRadius: '0px',
+                                        }}
+                                    >
+                                        Save Changes
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div
+                            className="p-10 text-center"
+                            style={{ backgroundColor: '#ffffff' }}
+                        >
+                            <p className="text-[0.875rem] mb-1" style={{ color: '#1c1b1b' }}>
+                                Select an operator
+                            </p>
+                            <p className="text-[0.75rem]" style={{ color: '#7a7574' }}>
+                                Click a row in the directory to view or amend their data-access group memberships.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Footer audit strip */}
+            <div
+                className="flex items-center justify-between mt-10 pt-4 text-[0.625rem] uppercase tracking-widest"
+                style={{ color: '#7a7574', borderTop: '1px solid rgba(233, 188, 181, 0.2)' }}
+            >
+                <span>Membership persisted locally &middot; austin.user-groups</span>
+                <span>Personas seeded from mock_data-users.js</span>
+                <span>Immutable audit trail &middot; append-only</span>
+            </div>
         </div>
-        <div className="p-5" style={{ background: "linear-gradient(135deg, #b20100, #e10000)" }}>
-          <h3 className="text-[1rem] font-bold uppercase mb-1" style={{ color: "#ffffff" }}>Mass Authorization</h3>
-          <p className="text-[0.75rem] mb-3" style={{ color: "rgba(255,255,255,0.7)" }}>Update access levels for entire departments or engineering clusters.</p>
-          <button className="text-[0.75rem] font-semibold cursor-pointer" style={{ backgroundColor: "transparent", border: "none", color: "#ffffff" }}>BATCH REVIEW ACCESS</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function KpiCard({ label, value, sub, accent }) {
-  return (
-    <div className="p-4" style={{ backgroundColor: "#ffffff" }}>
-      <p className="text-[0.6875rem] font-semibold uppercase tracking-wider mb-1" style={{ color: "#7a7574" }}>{label}</p>
-      <div className="flex items-end gap-2">
-        <p className="text-[2rem] font-bold leading-none" style={{ color: "#1c1b1b" }}>{value}</p>
-        {accent && <span className="text-[0.875rem] font-bold" style={{ color: "#b20100" }}>{sub}</span>}
-        {!accent && sub && <span className="text-[0.6875rem]" style={{ color: "#7a7574" }}>{sub}</span>}
-      </div>
-    </div>
-  );
-}
-
-function PermRow({ label, sub, on, accent }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-[0.75rem] font-semibold" style={{ color: accent ? "#b20100" : "#1c1b1b" }}>{label}</p>
-        <p className="text-[0.5625rem]" style={{ color: "#7a7574" }}>{sub}</p>
-      </div>
-      <ToggleSwitch on={on} />
-    </div>
-  );
+    );
 }

@@ -12,6 +12,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Next.js's 'server-only' guard is a no-op in tests — Vite/Vitest
+      // doesn't run the bundler that enforces it, so map it to an empty
+      // shim so server modules can be imported under the jsdom environment.
+      'server-only': path.resolve(__dirname, './src/__tests__/server-only.shim.js'),
     },
   },
 });

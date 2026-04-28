@@ -18,8 +18,89 @@
       "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/admin_user_management_updated_style/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_admin.png)",
       "Bash(cp \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/docs/02 frontend/Design mock ups/Mockups/user_group_metrics_management_1/screen.png\" C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/tmp_groups.png)",
       "Bash(node -e \"console.log\\(require\\('tailwindcss/package.json'\\).version\\)\")",
-      "Bash(xargs grep:*)"
+      "Bash(xargs grep:*)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\")",
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\AlienKevin-mixed_cantonese_and_english_speech\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\mixed-cantonese-english.json\")",
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\AlienKevin-wordshk_cantonese_speech\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\wordshk-cantonese.json\")",
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\alvanlii-cantonese-youtube\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\alvanlii-youtube.json\")",
+      "Bash(cp \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\data_collection\\\\sampled_datasets\\\\edmundchan70-Cantonese_fine_tune\\\\sample.json\" \"C:\\\\Users\\\\ChunChunMaru\\\\Desktop\\\\Repos\\\\AUSTIN-Lang\\\\frontend\\\\src\\\\services\\\\sampled-data\\\\edmundchan-finetune.json\")",
+      "Bash(npx --no-install next lint --file \"src/app/\\(dashboard\\)/files/page.jsx\")",
+      "Bash(npx --no-install eslint \"src/app/\\(dashboard\\)/files/page.jsx\" \"src/app/\\(dashboard\\)/components/TipCard.jsx\")",
+      "Bash(npx --no-install next lint)",
+      "Bash(timeout 40 npx --no-install next build --no-lint)",
+      "Bash(timeout 80 npx --no-install next build)",
+      "WebSearch",
+      "Bash(awk '{print $5, $NF}')",
+      "Bash(ls .env*)",
+      "Bash(grep -q \"MOCK_MODE\\\\|NEXT_PUBLIC\" .env*)",
+      "Bash(grep \"MOCK_MODE\\\\|NEXT_PUBLIC\" .env*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/files)",
+      "Bash(grep -E \"\\\\.\\(ts|js|tsx|jsx\\)$\")",
+      "Bash(find /c/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/frontend/src -type f \\\\\\( -name \"*.jsx\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"useState\\\\|useEffect\\\\|useCallback\" {} \\\\;)",
+      "Bash(xargs ls *)",
+      "Bash(netstat -ano)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl -s http://localhost:3000/files/1)",
+      "Bash(grep -E '\\\\.\\(tsx?|jsx?\\)$')",
+      "WebFetch(domain:uxdesign.cc)",
+      "WebFetch(domain:support.google.com)",
+      "WebFetch(domain:www.customguide.com)",
+      "WebFetch(domain:9to5google.com)",
+      "WebFetch(domain:www.androidpolice.com)",
+      "WebFetch(domain:xebia.com)",
+      "WebFetch(domain:workspaceupdates.googleblog.com)",
+      "Bash(powershell *)",
+      "mcp__ide__getDiagnostics",
+      "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/platform.db\" \".schema\")",
+      "Bash(python *)",
+      "Bash(docker compose *)",
+      "Bash(sqlite3 users.db \".schema\")",
+      "Bash(sqlite3 platform.db \".schema\")",
+      "Bash(npm run *)",
+      "Bash(pip install *)",
+      "Read(//c/tmp/**)",
+      "Bash(rm -f cookies.txt)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:8002/auth/me)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' -X POST http://127.0.0.1:8002/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@example.com\",\"password\":\"wrong\"}')",
+      "Bash(curl -s -c cookies.txt -w '\\\\n%{http_code}\\\\n' -X POST http://127.0.0.1:8002/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@example.com\",\"password\":\"password123\"}')",
+      "Bash(grep -v '^$')",
+      "Bash(curl -s -b cookies.txt -w \"\\\\n%{http_code}\\\\n\" http://127.0.0.1:8002/auth/me)",
+      "Bash(curl -s -b cookies.txt -c cookies.txt -X POST http://127.0.0.1:8002/auth/logout -w \"\\\\n%{http_code}\\\\n\")",
+      "Bash(curl -s -b cookies.txt -o /dev/null -w \"%{http_code}\\\\n\" http://127.0.0.1:8002/auth/me)",
+      "Bash(curl -si -X POST http://127.0.0.1:8002/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@example.com\",\"password\":\"password123\"}')",
+      "Read(//c/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/**)",
+      "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/users.db\" \".tables\")",
+      "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/platform.db\" \".tables\")",
+      "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/users.db\" \"SELECT 'user', COUNT\\(*\\) FROM user UNION ALL SELECT 'user_profile', COUNT\\(*\\) FROM user_profile UNION ALL SELECT 'client', COUNT\\(*\\) FROM client;\")",
+      "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/platform.db\" \"SELECT 'audio_file', COUNT\\(*\\) FROM audio_file UNION ALL SELECT 'dataset', COUNT\\(*\\) FROM dataset UNION ALL SELECT 'audit_event', COUNT\\(*\\) FROM audit_event UNION ALL SELECT 'audit_action', COUNT\\(*\\) FROM audit_action UNION ALL SELECT 'metric', COUNT\\(*\\) FROM metric UNION ALL SELECT 'user_group', COUNT\\(*\\) FROM user_group UNION ALL SELECT 'processing_job', COUNT\\(*\\) FROM processing_job;\")",
+      "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/platform.db\" \"SELECT key, label, verb, category FROM audit_action;\")",
+      "Bash(sqlite3 \"C:/Users/ChunChunMaru/Desktop/Repos/AUSTIN-Lang/database\\(FE\\)/platform.db\" \"SELECT id, file_id, actor_id, actor_name, action_key, timestamp, details_json FROM audit_event LIMIT 5;\")",
+      "Bash(sqlite3 *)",
+      "Bash(grep -r \"permissions\\\\\\\\.includes\\\\|canCreate\\\\|canTrain\\\\|can[A-Z]\" src/app --include=\"*.jsx\")",
+      "Bash(grep -E \"\\\\.json$\")",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(awk -F'-' '{print $2\"-\"$3}')",
+      "Bash(npx --no-install next build)",
+      "Skill(update-config)"
     ]
   },
-  "prefersReducedMotion": true
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ],
+  "prefersReducedMotion": true,
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "async": true,
+            "command": "Add-Type -AssemblyName presentationCore; $mp = New-Object System.Windows.Media.MediaPlayer; $mp.Open([uri]'C:\\Users\\ChunChunMaru\\Desktop\\Repos\\AUSTIN-Lang\\dry-fart.mp3'); $mp.Volume = 0.1; $mp.Play(); Start-Sleep -Seconds 3"
+          }
+        ]
+      }
+    ]
+  }
 }

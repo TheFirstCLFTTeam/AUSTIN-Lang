@@ -1,0 +1,176 @@
+[
+  {
+    "id": "TRANS-LARGE-V3-FIN",
+    "status": "running",
+    "progress": 67,
+    "gpu": 94,
+    "startTime": "OCT 24, 08:00 GMT",
+    "startedAtIso": "2026-04-16T08:00:00Z",
+    "submittedBy": "u2",
+    "submittedAtIso": "2026-04-16T07:52:00Z",
+    "description": "Full fine-tune of Whisper Large-v3 on the financial call-centre code-switch set. Target is WER < 7% on the mixed held-out split.",
+    "baseModel": "Whisper Large-v3",
+    "useLora": true,
+    "rank": 16,
+    "loraAlpha": 32,
+    "lr": "3e-4",
+    "epochs": 3,
+    "currentEpoch": 2,
+    "batchSize": 8,
+    "datasetRef": "engineer@example.com/20260401T120000",
+    "datasetName": "Cantonese Telephony Edge Cases",
+    "currentStep": 4020,
+    "totalSteps": 6000,
+    "metrics": {
+      "trainLoss": 0.612,
+      "valLoss": 0.754,
+      "learningRate": 0.00021,
+      "tokensPerSec": 18420,
+      "gradNorm": 0.83
+    },
+    "lossHistory": [
+      {
+        "step": 200,
+        "loss": 2.14
+      },
+      {
+        "step": 500,
+        "loss": 1.67
+      },
+      {
+        "step": 900,
+        "loss": 1.31
+      },
+      {
+        "step": 1400,
+        "loss": 1.04
+      },
+      {
+        "step": 1900,
+        "loss": 0.89
+      },
+      {
+        "step": 2400,
+        "loss": 0.78
+      },
+      {
+        "step": 2900,
+        "loss": 0.71
+      },
+      {
+        "step": 3400,
+        "loss": 0.66
+      },
+      {
+        "step": 3900,
+        "loss": 0.62
+      }
+    ],
+    "elapsedMin": 208,
+    "etaMin": 102,
+    "infra": {
+      "cluster": "INTERNAL-SERVER-3",
+      "gpuType": "H100 × 4",
+      "region": "APAC-SG"
+    }
+  },
+  {
+    "id": "MAND-RETRAIN-A2",
+    "status": "paused",
+    "progress": 31,
+    "gpu": 0,
+    "startTime": "OCT 24, 02:15 GMT",
+    "startedAtIso": "2026-04-16T02:15:00Z",
+    "submittedBy": "u2",
+    "submittedAtIso": "2026-04-16T02:10:00Z",
+    "description": "MERaLiON adaptation for Mandarin retrain. Paused pending tokenizer fix on dataset vintage.",
+    "baseModel": "MERaLiON",
+    "useLora": true,
+    "rank": 32,
+    "loraAlpha": 64,
+    "lr": "1e-4",
+    "epochs": 5,
+    "currentEpoch": 2,
+    "batchSize": 4,
+    "datasetRef": "engineer@example.com/20260402T154000",
+    "datasetName": "Earnings Calls Q1 2026",
+    "currentStep": 1860,
+    "totalSteps": 6000,
+    "metrics": {
+      "trainLoss": 0.981,
+      "valLoss": 1.124,
+      "learningRate": 0.000094,
+      "tokensPerSec": 0,
+      "gradNorm": 1.21
+    },
+    "lossHistory": [
+      {
+        "step": 200,
+        "loss": 2.48
+      },
+      {
+        "step": 500,
+        "loss": 1.92
+      },
+      {
+        "step": 900,
+        "loss": 1.46
+      },
+      {
+        "step": 1300,
+        "loss": 1.18
+      },
+      {
+        "step": 1700,
+        "loss": 0.98
+      }
+    ],
+    "elapsedMin": 94,
+    "etaMin": null,
+    "infra": {
+      "cluster": "INTERNAL-SERVER-3",
+      "gpuType": "A100 × 2",
+      "region": "APAC-SG"
+    },
+    "pauseReason": "Tokenizer vocabulary hash mismatch between training checkpoint and dataset manifest. Resume blocked until manifest is re-baselined."
+  },
+  {
+    "id": "LLM-FINE-TUNE-CREDIT",
+    "status": "queued",
+    "progress": 0,
+    "gpu": 0,
+    "startTime": "—",
+    "startedAtIso": null,
+    "submittedBy": "u2",
+    "submittedAtIso": "2026-04-17T01:10:00Z",
+    "description": "LoRA fine-tune of Whisper Tiny on the credit-risk call subset. Queued behind TRANS-LARGE-V3-FIN for H100 allocation.",
+    "baseModel": "Whisper Tiny",
+    "useLora": true,
+    "rank": 8,
+    "loraAlpha": 16,
+    "lr": "5e-5",
+    "epochs": 2,
+    "currentEpoch": 0,
+    "batchSize": 16,
+    "datasetRef": "engineer@example.com/20260409T111500",
+    "datasetName": "Multispeaker Overlap (Hard)",
+    "currentStep": 0,
+    "totalSteps": 2400,
+    "metrics": {
+      "trainLoss": null,
+      "valLoss": null,
+      "learningRate": null,
+      "tokensPerSec": 0,
+      "gradNorm": null
+    },
+    "lossHistory": [],
+    "elapsedMin": 0,
+    "etaMin": null,
+    "infra": {
+      "cluster": "INTERNAL-SERVER-3",
+      "gpuType": "H100 × 1 (pending)",
+      "region": "APAC-SG"
+    },
+    "queuePosition": 1
+  }
+]

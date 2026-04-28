@@ -1,4 +1,4 @@
-# Environment variables
+# Environment variables - never commit real secrets
 .env
 .env.*
 !.env.example
@@ -18,11 +18,13 @@ node_modules
 __pycache__/
 backend/server/.venv/
 .coverage
+.mypy_cache/
 
 # Backend
 backend/server/cache/*
 backend/server/pretrained_weights/
 backend/retraining-pipeline/data
+backend/retraining-pipeline/adapters
 
 # Data collection
 data_collection/*/
@@ -40,6 +42,10 @@ frontend/coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Archives & media
+*.tar.gz
+*.mp3
 
 # OS
 .DS_Store
