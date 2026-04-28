@@ -1,6 +1,6 @@
 # Backend ↔ Frontend Integration Status
 
-_Last audited: 2026-04-27 (branch `ui_enhancement`)_
+_Last audited: 2026-04-28 (branch `ui_enhancement`)_
 
 Master status board for everything wired (or planned to be wired) across the Next.js frontend, the FastAPI backend services, and the surrounding infra. Consolidates the ten sibling docs in this folder so anyone can take stock without grepping through them. Each row points at the detail doc that owns the design.
 
@@ -13,14 +13,14 @@ Master status board for everything wired (or planned to be wired) across the Nex
 | Upload → transcription → edit pipeline | ✅ shipped | FE + BE | [`audio-to-edit-pipeline.md`](audio-to-edit-pipeline.md), [`file_viewing_pipeline.md`](file_viewing_pipeline.md) |
 | Pseudonymisation review loop | ✅ shipped | FE + BE | [`audio-to-edit-pipeline.md`](audio-to-edit-pipeline.md) §1.5 |
 | Security baseline — Wave 1 (15 fixes) | ✅ shipped this branch | FE + BE + Infra | [`fix-implementation-log.md`](fix-implementation-log.md) §1 |
-| Metrics → Dashboard | 🟡 stubbed (BE ready) | FE | this doc §3.1 |
+| Metrics → Dashboard | ✅ shipped this branch (live series in render path) | FE + BE | this doc §3.1, [`../06 server/metrics-service-module.md`](../06%20server/metrics-service-module.md) |
 | Leaderboard | 🟡 stubbed (no BE) | FE + BE | this doc §3.2 |
-| Retraining / Training Jobs | 🟡 stubbed (no orchestration) | FE + BE | this doc §3.3 |
+| Retraining / Training Jobs | 🟡 in progress (orchestrator skeleton landing) | FE + BE | this doc §3.3, [`training-job-pipeline.md`](training-job-pipeline.md) |
 | User profile sync | 🟡 stubbed (decision pending) | FE + BE | this doc §3.4 |
-| Redis cache middleware | 📐 specced, not built | FE + Infra | [`redis-cache-integration.md`](redis-cache-integration.md) |
-| Transcript edit versioning | 📐 specced, not built | FE + BE | [`transcript-versioning-plan.md`](transcript-versioning-plan.md) |
+| Redis cache middleware | ✅ shipped this branch (read-through file detail + per-user recents + invalidation hooks) | FE + Infra | [`redis-cache-integration.md`](redis-cache-integration.md) |
+| Transcript edit versioning | ✅ shipped this branch (data model + write/read refactor + endpoints + UI + restore-with-no-hanging-drafts) | FE + BE | [`transcript-versioning-plan.md`](transcript-versioning-plan.md) |
 | Meeting webhook ingestion (Zoom + Teams) | 📐 specced, not built | new BE service | [`meeting_recording_webhooks.md`](meeting_recording_webhooks.md) |
-| Security baseline — Wave 2 (CSRF token, etc.) | 🟡 partial | FE | [`fix-implementation-log.md`](fix-implementation-log.md) §2 |
+| Security baseline — Wave 2 (CSRF token + prod CSP) | ✅ shipped this branch | FE | [`fix-implementation-log.md`](fix-implementation-log.md) §1 |
 | FL / DP enablement (Wave 3) | ⏸ deferred (governance) | BE + Governance | [`fl-dp-risk-assessment.md`](fl-dp-risk-assessment.md), [`fix-triage-frontend-vs-backend.md`](fix-triage-frontend-vs-backend.md) Wave 3 |
 | Cloud move (Wave 4 — Azure) | ⏸ deferred (infra) | Infra | [`azure-deployment-requirements.md`](azure-deployment-requirements.md) |
 
@@ -45,7 +45,7 @@ Frontend already talks to a real backend service for these features. All of them
 **Open follow-ups inside "done" items**
 
 - `transcript_edit` schema is char-level with `add`/`delete`; UI edit model is word-level with `insert | delete | replace`. Round-trip loses `replace` info. (See [`02 frontend/integration fixes.md`](../02%20frontend/integration%20fixes.md) §3 and the JSON-in-`content` workaround in [`audio-to-edit-pipeline.md`](audio-to-edit-pipeline.md) §6.)
-- Edits are **destructively rewritten** on every save (`DELETE FROM transcript_edit … then INSERT`). Replacement design lives in [`transcript-versioning-plan.md`](transcript-versioning-plan.md).
+- ~~Edits are destructively rewritten on every save.~~ **Fixed 2026-04-28** — slice 1 of `transcript-versioning-plan.md` landed: `transcript_edit` rows are now tagged with `version_id` and the destructive `DELETE … INSERT` only matches the draft (is_current=1) version. Frozen versions are immutable. Endpoints + UI for browsing/diffing/restoring versions are deferred to slice 2.
 
 ---
 
@@ -61,10 +61,10 @@ Fifteen fixes from the security triage have landed on `ui_enhancement`. Detail p
 | F5 | Sliding-window rate limit on `/auth/login` (8/60s/IP) | Credential stuffing |
 | F6 | Upload validation — size cap, MIME allow-list, magic-byte sniff | Malicious uploads |
 | F7 | `__Host-token` cookie + security headers (XCTO, XFO, RP, PP, HSTS) via `next.config.ts` | Cookie hijack, clickjacking |
-| F8 (partial) | Origin/Referer CSRF check in `proxy.js` | CSRF (layer 1 of 2) |
+| F8 | Origin/Referer check + double-submit `__Host-csrf-token` (auto-attached by `services/http.js`, verified constant-time in `proxy.js`) | CSRF (both layers) |
 | F9 | Backend CORS hardening (`allow_origins` env-driven, methods enumerated) | Browser-side CORS abuse |
 | F10 | Dependabot extended to npm + pip (eight backend service dirs + `/frontend`) | Supply chain |
-| F11 | Per-request CSP nonces (`script-src 'self' 'nonce-X' 'strict-dynamic'`) | XSS |
+| F11 | Per-request CSP nonces (`script-src 'self' 'nonce-X' 'strict-dynamic' 'wasm-unsafe-eval'`); dotlottie WASM self-hosted from `/public` so `connect-src 'self'` stays clean; smoke-tested under `next build && next start` | XSS |
 | F13 | Generic `detail` responses; real error logged server-side only | Stack-trace leakage |
 | F17 | Auth-event logging (`login_succeeded`, `login_failed`, `logout` in `audit_event`) | Forensics |
 | F19 | `opacus==1.5.2` pinned in retraining pipeline (inert, ready for DP-SGD wire-in) | Reproducibility |
@@ -76,13 +76,37 @@ Fifteen fixes from the security triage have landed on `ui_enhancement`. Detail p
 
 ## 3. Stubbed — Backend Wiring Required
 
-### 3.1 Metrics & Dashboard ★ quickest win
-- **State:** Frontend reads from `mock_data-dashboard.js`; `getDashboardStats()` returns mock object.
-- **Backend already exists:** `metrics-service:8006` exposes `GET /metrics/dashboard` and `GET /metrics/accuracy/{file_id}`.
-- **Work:**
-  1. Add `frontend/src/app/api/metrics/route.js` that proxies to `process.env.METRICS_SERVICE_URL`.
-  2. Replace `getDashboardStats()` in `services/analytics.js` with a fetch to `/api/metrics`.
-  3. Wire per-file accuracy into the file detail page via `/api/audio-files/[id]/accuracy` → `metrics-service:8006/metrics/accuracy/{id}`.
+### 3.1 Metrics & Dashboard
+
+> Full module reference: [`../06 server/metrics-service-module.md`](../06%20server/metrics-service-module.md). This row is the integration-status summary only.
+
+- **Original state:** Frontend reads from `mock_data-dashboard.js`; `getDashboardStats()` returns mock object. Backend `metrics-service:8006` only exposed an operational WER aggregate over `database:8002`, not per-(model × dataset) evaluation. Service was never wired into `compose.yaml`.
+- **Re-scoped:** the dashboard wants base-vs-finetuned series across ~14 metrics. That needs (a) a place to store evaluation rows, (b) a way to add new metrics without touching the runner, (c) a hook that fires when training finishes. Built as one service buildout instead of FE-only proxy work.
+
+**Landed (this branch):**
+
+| Layer | What landed |
+|---|---|
+| Strategy pattern | `backend/metrics_service/strategies/` — `MetricStrategy` ABC + `Sample`/`StrategyResult` dataclasses, `@register_strategy` registry (rejects duplicates + missing names), `MetricsRunner` single-pass dispatcher, shared `_text.normalise/tokenise_words/tokenise_chars/levenshtein` helpers. Four concrete strategies: `f1` (token overlap), `wer`, `cer` (CJK-friendly), `sequence_match_rate`. Adding a new metric = one new file + one import line. |
+| Storage | `schema.sql` + `storage.py` — `model_evaluation` (with `adapter_name IS NULL` rows for the base-model baseline, mirroring PEFT's `disable_adapter()` semantics) + `evaluation_metric` with FK cascade. `MetricsStore` provides `record_evaluation`, `get_evaluation`, `list_evaluations` (with `__base__` sentinel for adapter-IS-NULL filter), `list_metrics_for_evaluation`, `list_strategy_names`, `latest_metric_pair` (base + finetuned + delta, ignores failed runs), `latest_metric_series` (chronological N points per role for chart rendering), `delete_evaluations_with_notes` (cascade-deletes via FK). Idempotent schema init via `executescript` on `CREATE IF NOT EXISTS` DDL. |
+| HTTP API | `main.py` — operational endpoints unchanged (`GET /metrics/dashboard`, `GET /metrics/accuracy/{file_id}`, `POST /metrics/refresh`); five new evaluation endpoints (`POST /evaluations/run`, `POST /evaluations/baseline`, `GET /evaluations`, `GET /evaluations/{id}`, `GET /metrics/by-dataset?series_points=N`). `/metrics/by-dataset` defaults to "strategies recorded in the DB for the (base_model, dataset)" — not just `list_strategies()` — so seeded metrics surface even before a runnable `MetricStrategy` exists. `/health` now also returns the registered strategy list. |
+| Manifest + adapter helpers | `manifest_loader.py` — JSONL → `list[Sample]` with line-numbered errors; `adapter_meta.py` — reads `base_model_name_or_path` from `adapter_config.json` (allowlisted by `_strip_published_artifacts`). |
+| Mock seeder | `seed_mock.py` — mirrors `frontend/src/services/mock_data-dashboard.js`: 14 metrics × 5 days × 2 roles (base + finetuned) = 140 metric rows. Idempotent via `notes='seed:mock'` (FK cascade clears the metric rows on re-run; real runs survive). Runnable via CLI (`python seed_mock.py`) **or** auto-fired on first boot via the `SEED_ON_BOOT` lifespan hook in `main.py` when the DB is empty (so a fresh `metrics_data` volume gets a populated dashboard with no extra step). |
+| Post-train hook | `backend/retraining-pipeline/post_train_hook.py` — extracted from `train.py` so it's testable without importing torch/transformers. `post_train_evaluate(adapter_dir, adapter_name)` reads `base_model` from `adapter_config.json` and best-effort POSTs to `${METRICS_SERVICE_URL}/evaluations/run`. **Failure is logged at WARNING and never raised** — training success does not depend on metrics availability. Resolution order per input: explicit kwarg → env var → default → skip with INFO log. Wired into `train_one_round()` step 10, after `_strip_published_artifacts()`. |
+| compose.yaml | New `metrics-service` block (port `${METRICS_SERVICE_PORT}`, depends on `database`, mounts source + adapters read-only + `metrics_data` volume). Frontend `depends_on` adds metrics-service; `METRICS_SERVICE_URL` injected. New `metrics_data` named volume. |
+| FE proxy routes | `frontend/src/app/api/metrics/route.js`, `metrics/by-dataset/route.js`, `metrics/refresh/route.js`, `audio-files/[id]/accuracy/route.js`. All `requireUser`-gated (the per-file accuracy route uses `requireOwnerOrRole` per F4 + resolves the FE's external id to the backend's `backend_audio_file_id`). 15s `AbortController` timeouts. Distinguish 404 (no metrics yet) from 502 (upstream down) so the UI can render an empty state. |
+| FE client | `frontend/src/services/metrics.js` rewritten to call same-origin proxy paths only — `NEXT_PUBLIC_METRICS_SERVICE_URL` retired. Exposes `fetchDashboardMetrics`, `fetchFileAccuracy`, `fetchMetricsByDataset({dataset, baseModel, strategies?, seriesPoints?})`, `refreshMetricsCache`. |
+| FE merge layer | `frontend/src/services/live-dashboard-metrics.js` — `useDashboardSeries({dataset, baseModel, seriesPoints})` hook (no-op in mock mode), `mergeMetricsWithLive(mockMetrics, apiResponse)` overlays `value`/`sublabel`/`series.{baseModel,fineTuned,currentValue,difference}` per id-matched metric, mock supplies `unit`/`yMin`/`yMax`. **Falls back to mock on any backend failure** so the dashboard never breaks. Hook + merge wired into `frontend/src/app/(dashboard)/dashboard/page.jsx` (3-line change). |
+| Tests | **106 total**: 87 metrics-service (strategies 17, storage 12, storage-extras 4, metric-series 6, manifest-loader 8, adapter-meta 7, seed-mock 6, text-strategies 27) + 9 retraining-pipeline (post-train hook) + 10 FE merge layer. |
+
+End-to-end loop: `train.py` → `post_train_hook` → `POST /evaluations/run` → `metrics.db` → `GET /metrics/by-dataset` → `/api/metrics/by-dataset` → `useDashboardSeries` → `MetricChart`. Falls back to seeded mock when no real evaluation rows exist; falls back to FE mock when the metrics service is unreachable.
+
+**Pending follow-ups:**
+
+1. Implementations for the remaining dashboard metrics. WER, CER, SMR shipped this branch alongside F1; nine remain (W-WER, L-CER, CS-PIER, WDER, F-NER, etc.). Each is one file in `strategies/` + one import line + a unit test — see [`../06 server/metrics-service-module.md`](../06%20server/metrics-service-module.md) §4.5. Most of the remaining nine need richer per-sample metadata (language tags, entity tags, speaker labels, word weights) — that's a manifest-format addition, separate from the strategy itself.
+2. Inference fan-out in `/evaluations/run` — today the eval manifest must carry `hypothesis`. A follow-up PR will let it be omitted and have metrics-service POST each clip to `transcription-service-2:/transcribe?domain=<adapter>` to fill it in.
+3. `METRICS_BASELINE_FRESHNESS_DAYS` enforcement — the schema and pair query support it; the post-train hook doesn't yet check it before triggering a baseline re-run. Default 30 days.
+4. Per-dataset / per-base-model selection in the dashboard (currently hardcoded to `default_eval` + `openai/whisper-large-v3-turbo`). Becomes relevant when multiple datasets are evaluated.
 
 ### 3.2 Leaderboard
 - **State:** `leaderboard/page.jsx` populates from `getCustomMockLeaderboard()` (`mock_data-leaderboard.js`, `mock_data-leaderboard-custom.js`).
@@ -92,17 +116,43 @@ Fifteen fixes from the security triage have landed on `ui_enhancement`. Detail p
   2. Apply `getGroupIdForRole`-based scoping server-side (per `leaderboard_research.md` §5.6 — currently copy-only on the page).
   3. Reconcile mock engineer IDs (`eng-priya`, `eng-andreas`, `eng-james`) with real `users.db` rows — they don't exist today.
 
-### 3.3 Retraining / Training Jobs ★ biggest gap
+### 3.3 Retraining / Training Jobs
+
+> Full end-to-end design (sidebar → dialog → resource → base-model registry → progress → metrics → leaderboard): [`training-job-pipeline.md`](training-job-pipeline.md). This row is the integration-status summary only.
+
 - **State:**
   - `triggerRetraining()` in `/services/analytics.js` is a 2 s `setTimeout` stub (its log even says "BACKEND HANDOVER").
   - `/api/processing-jobs` lists from `platform.db` only; no orchestration.
   - `/training` page reads `MOCK_PROCESSING_JOBS`.
+  - "New Train Job" dialog (`training/page.jsx:147–540`) captures every field but the LAUNCH button just closes the modal — no submission contract.
   - Retraining pipeline only runs as manual CLI in `backend/retraining-pipeline/`.
-- **Backend:** No orchestration endpoint exists yet.
-- **Work:**
-  1. Stand up a job-queue API (FastAPI service, suggest port 8007) with `POST /jobs/retrain`, `GET /jobs`, `GET /jobs/{id}`.
-  2. Frontend: replace `triggerRetraining()` with a real fetch; have `/api/processing-jobs` proxy `GET /jobs`.
-  3. Add `data_zone` (green/red) on the training job record per FR-M05 / NFR-P02 while the schema is being designed (cross-ref [`azure-deployment-requirements.md`](azure-deployment-requirements.md) §3).
+  - No `training_job` / `base_model` / `training_artifact` tables in `database/main.py`.
+  - No FL framework imported (`requirements.txt` ships `peft` + `transformers` + `opacus==1.5.2` pinned but inert; no `flwr` / `nvflare` / `syft`).
+**Landed (this branch — orchestrator skeleton):**
+
+| Layer | What landed |
+|---|---|
+| New service | `backend/training_orchestrator/` (port `${TRAINING_ORCHESTRATOR_PORT}` = 8008; 8007 is taken by `meeting-webhooks`, **doc reference to "port 8007 suggested" is now stale** in both this doc and `training-job-pipeline.md` §1 — orchestrator runs on 8008). FastAPI app, own SQLite DB on a `training_orchestrator_data` volume. |
+| Schema | `schema.sql` — `training_job` (id, name, submitted_by, submitted_at, status, target, base_model, dataset_ref, data_zone, env_json, fl_enabled, dp_enabled, progress_pct, started_at, finished_at, failure_reason). Indexed on submitter + status. Carries `data_zone` from day one per FR-M05 / NFR-P02. Subset of the design schema in [`training-job-pipeline.md`](training-job-pipeline.md) §4.2 — `base_model` and `training_artifact` registry tables defer to a follow-up slice (architecture-deviation work — design open question 3 on trust boundary). |
+| Storage | `storage.py` — `JobStore` with `submit`, `get`, `list` (filterable by submitter/status), `transition` (state machine — `queued → preparing → running → evaluating → published`, plus `paused` / `cancelled` / `failed` off-paths; rejects illegal jumps with `JobError` carrying status code), `cancel` helper. State milestones stamp `started_at` / `finished_at` automatically. Microsecond-precision UTC timestamps so consecutive submissions sort deterministically. Federated runs guard-rejected with HTTP 501 referencing F25 ADR. |
+| HTTP API | `main.py` — `POST /jobs`, `GET /jobs`, `GET /jobs/{id}`, `POST /jobs/{id}/cancel`, `POST /jobs/{id}/transitions/{new_status}` (worker-side), `GET /health`. Pydantic models for request + response. Validation errors propagate the JobStore's status code (400 / 404 / 409 / 501). |
+| compose.yaml | `training-orchestrator` block + `training_orchestrator_data` volume. Frontend `depends_on` adds it; new `TRAINING_ORCHESTRATOR_URL` env injected. `TRAINING_ORCHESTRATOR_PORT=8008` in `backend/.env`. |
+| FE proxies | `frontend/src/app/api/training-jobs/route.js` (GET list, POST submit), `[id]/route.js`, `[id]/cancel/route.js`. All `requireUser`-gated, 15s `AbortController` timeouts. **POST stamps `submitted_by` from the cookie session** — clients can't claim to be another user (F4 spirit). Upstream validation errors (400 / 501) pass through unchanged so the dialog can surface the orchestrator's reason. |
+| FE client | `frontend/src/services/training-jobs.js` — new exports `submitTrainingJob`, `listTrainingJobs`, `getTrainingJobDetail`, `cancelTrainingJob` (mock list + log helpers preserved for now). |
+| FE wiring | `frontend/src/app/(dashboard)/training/page.jsx` — "LAUNCH EXPERIMENT" button now submits via `submitTrainingJob` (was `setShowExperiment(false)`). Loading state ("SUBMITTING…"), inline error surface, base-model display name → HF id mapping (`Whisper Large-v3` → `openai/whisper-large-v3-turbo`, etc.). |
+| Tests | **29 total**: 20 storage (submit validation, federated guards, state machine happy path + illegal jumps + terminal-state guard, list filters, ordering, cascade FK, idempotent re-init) + 9 endpoint (TestClient: health, submit 201, validation 400, federated 501, list filters, cancel + double-cancel 409, lifecycle sequence, illegal jump 409). |
+
+**Worker (simulated, this branch):** `worker.py` — `SimulatedWorker` claims oldest queued job (FIFO), transitions `preparing → running → evaluating → published` with periodic progress updates over `WORKER_SIMULATED_DURATION_SECONDS` (default 30s). Spawned on FastAPI startup as a daemon thread when `WORKER_ENABLED=true` (default). Race-safe (skip-and-continue if claim loses), cancellation-aware (bails when an external cancel fires), error-isolated (`run_forever` swallows per-iteration exceptions so one bad job can't kill the loop). **Honest about what it is:** the module docstring + log lines call out "simulated — does not run real training". Real training stays a CLI-on-a-GPU-box concern (`cloud_train_sync.sh` SSH path); when a real worker container takes the queue, set `WORKER_ENABLED=false` here and the orchestrator API is unchanged. 10 worker tests added (claim happy path, oldest-first ordering, skip non-queued, full lifecycle drive-through, monotonic progress, cancel-mid-run bail, run_once true/false return, run_forever stops + survives a poisoned `simulate`).
+
+**Pending (not in this slice):**
+
+1. **Real-training worker.** The simulated worker proves the loop closes; a real worker still needs to land — design open question 1 in [`training-job-pipeline.md`](training-job-pipeline.md) §6 (orchestrator-owned subprocess vs CLI-driven where the orchestrator just records). The `target='cloud'` SSH path in `backend/retraining-pipeline/cloud_train_sync.sh` already trains real models; wiring it under the orchestrator transitions is the natural next slice.
+2. **Heartbeat + log SSE** for the detail page — replaces `MOCK_COMPLETION_DELAY_MS = 8000` and `getTrainingLogs()`. ([`training-job-pipeline.md`](training-job-pipeline.md) §4.5)
+3. **Script upload** (`POST /jobs/{id}/script`) — multipart, size-capped, MIME-sniffed (same harness as F6).
+4. **`base_model` + `training_artifact` registry tables** + **architecture-deviation check** ([`training-job-pipeline.md`](training-job-pipeline.md) §4.3). The fingerprint must be computed orchestrator-side, never trust the worker's claim.
+5. **Federated path** — schema carries `fl_enabled` + `target='federated'`; runtime returns 501 until F25 (FL framework ADR) lands.
+6. **Leaderboard endpoint** on metrics-service joining `model_evaluation` ⇄ `training_artifact` ⇄ `training_job` ⇄ `user` ([`training-job-pipeline.md`](training-job-pipeline.md) §4.7) — depends on (4).
+7. **List page real-data swap.** `/training` page still reads the `TRAINING_JOBS` mock for its table render. The orchestrator returns the canonical list now via `listTrainingJobs()`; the table can swap when the worker exists and produces non-empty rows for the e2e demo.
 
 ### 3.4 User Profile
 - **State:** `/api/user-profile` reads `users.db` (SQLite) only; no backend sync.
@@ -112,17 +162,29 @@ Fifteen fixes from the security triage have landed on `ui_enhancement`. Detail p
 
 ## 4. Specced — Awaiting Implementation
 
-Three substantial workstreams have been designed in detail but no code has landed yet. Each has its own dedicated doc; the lines below are the one-paragraph summary plus the integration touchpoints into the rest of this status board.
+Four substantial workstreams have been designed in detail but no code has landed yet. Each has its own dedicated doc; the lines below are the one-paragraph summary plus the integration touchpoints into the rest of this status board.
 
 ### 4.1 Redis cache middleware — [`redis-cache-integration.md`](redis-cache-integration.md)
 
-Adds a Redis cache between `GET /api/audio-files/{id}` and `getAudioFileDetail()`, plus a server-side per-user "recently viewed" list (the existing `src/lib/recents.js` is `localStorage`-only and doesn't survive device-switching). All cache calls are **fail-open** — Redis outage degrades to today's SQLite latency, never to 5xx. Invalidates on every transcript edit, status change, and (when §4.2 lands) version freeze.
+**Shipped this branch (2026-04-28).** Read-through Redis cache between `GET /api/audio-files/{id}` and `getAudioFileDetail()`, plus a server-side per-user "recently viewed" list. All cache calls are fail-open — a Redis outage degrades to today's SQLite latency, never to a 5xx.
 
-- **New service** in `compose.yaml`: `redis:7-alpine`, `allkeys-lru`, no AOF.
-- **New module:** `frontend/src/server/cache.js`.
-- **New endpoint:** `GET /api/recents`.
-- **Env:** `REDIS_URL=redis://redis:6379`.
-- **Cross-cuts:** invalidation hooks live in `writeEditsForFile()` (mutated by §4.2 too) and `setAudioFileStatus()`.
+What landed:
+
+- **New service** in `compose.yaml`: `redis:7-alpine` with `--appendonly no` (cache is fully reconstructible from `platform.db`) + `--maxmemory 256mb --maxmemory-policy allkeys-lru` so even un-TTL'd keys get evicted under memory pressure. Healthcheck + frontend `depends_on`. The previously-staged-but-commented-out block was uncommented and aligned to the spec's no-AOF rationale.
+- **New module:** `frontend/src/server/cache.js` — `getCachedDetail` / `setCachedDetail` / `invalidateDetail` for the file-detail payload (120 s soft TTL + explicit invalidation), `recordRecent` / `listRecents` for the user's recently-viewed list (LPUSH + LREM dedupe + LTRIM cap-at-50, mirrored into a hash for `accessedAt` lookups). Singleton `ioredis` client with `maxRetriesPerRequest: 1` + `enableOfflineQueue: false` so requests fail fast instead of queueing under outage. Every public function wraps in try/catch — the module disabled (no `REDIS_URL`, or `NEXT_PUBLIC_MOCK_API=true`) returns the documented no-cache sentinels (`null`, `[]`, `undefined`) without throwing.
+- **Route wiring:** `frontend/src/app/api/audio-files/[id]/route.js` is now read-through; `recordRecent(user.id, id)` fires-and-forgets on every successful detail read.
+- **Invalidation hooks** added at `writeEditsForFile` (slice 1's draft saves), `setAudioFileStatus` (the freeze hook), `restoreVersion` (slice 2's new draft creation), and the two pseudonymisation routes (`/run` + `/spans/[spanId]/decision` — both can flip `pseudonymisationApplied` / `pseudonymisationWarning` flags surfaced in the cached payload). `writeEditsForFile` and `restoreVersion` are now async to await the invalidation; the existing route callers + tests were updated.
+- **New endpoint:** `frontend/src/app/api/recents/route.js` → `{ items: [{ id, accessedAt }, …] }`. `requireUser`-gated.
+- **Client hydration:** `src/lib/recents.js` gained `hydrateFromServer(userId)` — fetches `/api/recents`, merges into the `localStorage` map (server entries win on tie), dispatches the existing `RECENTS_EVENT` so subscribed widgets re-render. Wired into `AuthHydrator.jsx` so it fires once per dashboard mount.
+- **Env wiring:** `REDIS_URL` injected into the frontend container (commented placeholder uncommented), `REDIS_PORT` added to `backend/.env`.
+- **Tests** — 7 new vitest cases in `src/__tests__/cache.test.js` against an in-memory ioredis fake: read-through hit/miss, invalidation, recents dedupe + 50-cap + meta hash pruning, empty-recents path, plus two fail-open cases (no `REDIS_URL`; `NEXT_PUBLIC_MOCK_API=true`). All slice 1/2 versioning tests still pass after the async-conversion of `writeEditsForFile` and `restoreVersion` — total 33 tests on the branch.
+
+Pending follow-ups (left as deferred from spec §9):
+
+1. **Pseudonymisation span caching** — out of scope for v1; add `pseudo:spans:{fileId}` if `/api/pseudonymisation/{fileId}/spans` becomes a hot path.
+2. **Single-flight stampede protection** — soft TTL bounds blast radius; add `SET NX PX 2000` lock only if logs show concurrent cold reads.
+3. **Role-aware cache key** — flag for the day a per-role payload variant lands (`audio:detail:{fileId}:{role}`).
+4. **Cluster move (Azure Cache for Redis)** — `REDIS_TLS=true` + `rediss://` switch when this hits the cloud.
 
 ### 4.2 Transcript edit versioning — [`transcript-versioning-plan.md`](transcript-versioning-plan.md)
 
@@ -141,14 +203,27 @@ New public-HTTPS service `meeting-webhook-receiver` plus a `meeting-recording-wo
 - **Mapping** organiser → internal user via email (Zoom) or AAD object id (Teams); falls back to a system "external/unmapped" user with an admin re-attribution view.
 - **Provider-context column + UI badge** lets the file list show "Source: Zoom" / "Source: Teams" alongside the existing manual uploads.
 
+### 4.4 Training-job pipeline (sidebar → leaderboard) — [`training-job-pipeline.md`](training-job-pipeline.md)
+
+New `training-orchestrator` service (port 8007) sits between the `/training` page's "New Train Job" dialog and the existing `retraining-pipeline/train.py`, owning the full lifecycle: submission → script + env-var capture → resource pull → training → architecture-deviation check → post-train metrics hook → leaderboard publish. Schema adds three tables (`training_job`, `base_model`, `training_artifact`) — none exist today; `database/main.py` only models audio/transcripts. The eight-step user flow (sidebar → dialog → script upload → resource → derived-base spawn → progress page → metrics fan-out → leaderboard) is not implemented end-to-end and was not designed end-to-end before this branch.
+
+- **New service:** `training-orchestrator` (FastAPI, port 8007). `POST /jobs`, `GET /jobs/{id}`, lifecycle (`pause` / `resume` / `cancel`), heartbeat + log SSE.
+- **Schema:** `training_job` (`status`, `target ∈ cloud|local|federated`, `data_zone`, `env_json`, `script_sha256`, `dp_enabled`, snapshot fields), `base_model` (vendor + user-derived; `architecture_fingerprint`, `parent_base_model_id`, `owner_user_id`), `training_artifact` (links job → adapter / new base model / checkpoint).
+- **New endpoint on metrics-service:** `GET /leaderboard?dataset_id=…` joining `model_evaluation` ⇄ `training_artifact` ⇄ `training_job` ⇄ `user`. Replaces today's `getCustomMockLeaderboard()` mock data.
+- **Architecture-fingerprint check:** orchestrator (not the worker) hashes `model.config` + named parameter shapes after each run; mismatch with the base ⇒ insert a new `base_model` row owned by the engineer.
+- **Cross-cuts:** F25 (FL framework ADR) gates `target='federated'`; F19 / F22 / F23 gate `dp_enabled=true`; F29 (manifest provenance) gates the resource's pull step; [`redis-cache-integration.md`](redis-cache-integration.md) cache must be invalidated on each `published` transition; [`azure-deployment-requirements.md`](azure-deployment-requirements.md) §3 owns `data_zone` propagation through every row.
+- **FE impact:** wire the no-op LAUNCH button at `training/page.jsx:532`, replace `MOCK_COMPLETION_DELAY_MS = 8000` with an SSE subscription, swap `getCustomMockLeaderboard()` for `GET /api/leaderboard`.
+
 ---
 
-## 5. In Progress — Security baseline (Wave 2, partial)
+## 5. Done — Security baseline (Wave 2)
 
-Two Wave-1 fixes landed only partially. Tracked in [`fix-implementation-log.md`](fix-implementation-log.md) §2.
+Both Wave-2 partials closed on this branch (2026-04-28). Detail in [`fix-implementation-log.md`](fix-implementation-log.md) §1.
 
-- **F8 — CSRF (full double-submit token).** Origin/Referer check shipped; the token side requires sweeping every `services/*.js` `http.post/put/del` call site. Suggested approach: bake the token into `services/http.js` so all callers pick it up automatically, then audit for direct `fetch()` use.
-- **F11 — CSP production smoke test.** Header is in place, dev path uses `'unsafe-eval'` per the Next.js doc. Production CSP not yet exercised end-to-end with `next build && next start`. Watch out for `@lottiefiles/dotlottie-react` runtime-injected scripts.
+- **F8 — full double-submit CSRF token.** `proxy.js` issues a non-HttpOnly `__Host-csrf-token` cookie (32 random bytes, 12 h TTL, `SameSite=Lax`) on first response. `services/http.js` exposes `readCsrfToken()` and auto-attaches `X-CSRF-Token` on POST/PUT/PATCH/DELETE; the proxy compares header to cookie in constant time and 403s on mismatch. Direct-`fetch()` callers were swept and patched: multipart upload (`services/api.js`), `services/metrics.js` `request()`, `services/training-jobs.js` `_request()`, and the integrations page. `/auth/*` exempt (login bootstraps before any cookie). Verified via curl: no token → 403, mismatch → 403, matched + same-origin → passes through.
+- **F11 — production CSP smoke test.** `next build` clean. Live `next start` returns the expected CSP header (`script-src 'self' 'nonce-…' 'strict-dynamic' 'wasm-unsafe-eval'`), the per-request `x-nonce`, and the new CSRF cookie. The `@lottiefiles/dotlottie-react` WASM (which defaults to fetching from `cdn.jsdelivr.net`) is now self-hosted at `/public/dotlottie-player.wasm` with `setWasmUrl()` wired into a top-level `LottieWasmInit` client component, so `connect-src 'self'` does not need a CDN allowance. `'wasm-unsafe-eval'` covers `WebAssembly.compile`/`instantiate` only — it does not enable JS `eval`.
+
+A full browser walkthrough across every authed page (console open, watching for CSP violations) still belongs on the pre-merge verification checklist — F11 entry there has been annotated.
 
 ---
 
@@ -217,10 +292,20 @@ Not part of FL/DP and not blocked on cloud move, but listed deferred in [`fix-im
 | `ALLOWED_ORIGINS` | BE CORS allow-list (F9) | ✅ wired |
 | `NEXT_PUBLIC_MOCK_API` | dev mock toggle (defaults `true` in dev) | ✅ wired |
 | `MAX_UPLOAD_BYTES` | upload size cap (F6) | ✅ wired |
-| `METRICS_SERVICE_URL` | metrics-service:8006 | ❌ pending §3.1 |
+| `METRICS_SERVICE_URL` | metrics-service:8006 (FE proxy target) | ✅ wired |
+| `METRICS_DB_PATH` | path to metrics.db inside the container (default `/app/data/metrics.db`) | ✅ wired |
+| `ADAPTERS_DIR` | adapter directory mount inside the metrics-service container (read-only) | ✅ wired |
+| `METRICS_SEED_ON_BOOT` | dev convenience: seed mock dashboard on first boot of an empty DB (default `true`) | ✅ wired |
+| `METRICS_BASELINE_FRESHNESS_DAYS` | how long a baseline row is reused before re-running (default 30) | ❌ pending §3.1 |
 | `LEADERBOARD_SERVICE_URL` | new leaderboard service | ❌ pending §3.2 |
-| `RETRAINING_SERVICE_URL` | new job-queue service (port 8007 suggested) | ❌ pending §3.3 |
-| `REDIS_URL`, `REDIS_PORT` | cache middleware | ❌ pending §4.1 |
+| `TRAINING_ORCHESTRATOR_URL` | training-orchestrator:8008 (FE proxy target) | ✅ wired |
+| `TRAINING_ORCHESTRATOR_PORT` | training-orchestrator listen port (8008 — `8007` was already taken by `meeting-webhooks`) | ✅ wired |
+| `TRAINING_DB_PATH` | training-orchestrator's SQLite path inside the container | ✅ wired |
+| `WORKER_ENABLED` | dev convenience: spawn the simulated worker on boot (default `true`; set `false` when a real worker takes the queue) | ✅ wired |
+| `WORKER_POLL_INTERVAL_SECONDS` | how often the simulated worker checks for queued jobs (default 2.0) | ✅ wired |
+| `WORKER_SIMULATED_DURATION_SECONDS` | total simulated training duration per job (default 30.0) | ✅ wired |
+| `REDIS_URL` | `redis://redis:6379` — read-through file-detail cache + per-user recents | ✅ wired |
+| `REDIS_PORT` | host port for the redis container (default 6379) | ✅ wired |
 | `ZOOM_WEBHOOK_SECRET_TOKEN`, Zoom S2S OAuth client id/secret | webhook ingestion | ❌ pending §4.3 |
 | Teams: tenant id, app client id/secret, encryption cert id/thumbprint | webhook ingestion | ❌ pending §4.3 |
 | `DP_ENABLED` | gates 4-bit quantisation in `train.py` (F23) | ❌ pending Wave 3 |
@@ -231,7 +316,8 @@ Not part of FL/DP and not blocked on cloud move, but listed deferred in [`fix-im
 
 These run in `compose.yaml` but no API route in `frontend/src/app/api/` calls them. Worth confirming whether they are dead, internal-only, or pending integration.
 
-- `metrics-service:8006` — see §3.1.
+- `metrics-service:8006` — operational endpoints exist; evaluation endpoints landing per §3.1. Full reference: [`../06 server/metrics-service-module.md`](../06%20server/metrics-service-module.md).
+- `training-orchestrator:8008` — `/jobs` endpoints + simulated worker wired; submitted jobs run through the full `queued → preparing → running → evaluating → published` lifecycle in ~30s of simulated time (§3.3). Real-training worker still pending.
 - `8000` audio-submission service (called by orchestrator only).
 - `8003` transcription server (legacy / fallback path).
 - `8004` auth (consumed via cookie middleware only).
@@ -243,10 +329,10 @@ These run in `compose.yaml` but no API route in `frontend/src/app/api/` calls th
 
 Reconciles the four "waves" from [`fix-triage-frontend-vs-backend.md`](fix-triage-frontend-vs-backend.md) §7 with the integration backlog above.
 
-1. **Wave 2 finish-up** — close F8 (full CSRF token) and F11 (production CSP smoke test).
+1. ~~**Wave 2 finish-up** — close F8 (full CSRF token) and F11 (production CSP smoke test).~~ _Done 2026-04-28._
 2. **Specced workstreams (parallelisable)** —
-   - §4.2 transcript versioning (largest design surface; affects every edit save).
-   - §4.1 Redis cache (depends on §4.2's invalidation hooks landing in the same PR series, but the Redis container + module skeleton can land independently).
+   - ~~§4.2 transcript versioning (largest design surface; affects every edit save).~~ _Done 2026-04-28._
+   - ~~§4.1 Redis cache (depends on §4.2's invalidation hooks landing in the same PR series, but the Redis container + module skeleton can land independently).~~ _Done 2026-04-28._
    - §3.1 metrics → dashboard (low effort, backend ready, immediate user-visible win).
    - §3.3 retraining orchestration (largest design work; unblocks `/training` and the leaderboard refresh story).
 3. **Webhook ingestion (§4.3)** — phase 1 (Zoom-only, no resource-data encryption) is a self-contained land; Teams phase 2 adds the X.509 cert + renewal cron.
@@ -271,9 +357,34 @@ Every doc in this folder, with what to read it for:
 | [`redis-cache-integration.md`](redis-cache-integration.md) | Read-through Redis cache for `getAudioFileDetail`, per-user `LPUSH`/`LTRIM` recents list, fail-open semantics, eight implementation steps. |
 | [`security overview.md`](security%20overview.md) | 2026 security baseline checklist (CORS, CSP, HSTS, CSRF, cookies, supply chain, rate limiting, plus 9 deeper categories). The original prompt for the F1–F30 triage. |
 | [`transcript-versioning-plan.md`](transcript-versioning-plan.md) | Append-only version-pointer model for transcript edits, backed by MongoDB document-versioning + Google Docs revisions + SQL temporal-table research. Migration script + 11 sections of design. |
+| [`training-job-pipeline.md`](training-job-pipeline.md) | End-to-end engineer training-job flow — `/training` sidebar → New-Train-Job dialog → script + env-var upload → resource pulls weights/dataset → architecture-deviation registry → progress page → post-train metrics hook → leaderboard surfacing. New `training-orchestrator` service (port 8007) + `training_job` / `base_model` / `training_artifact` schema. |
 
 External / older docs still relevant:
 
 - [`02 frontend/integration fixes.md`](../02%20frontend/integration%20fixes.md) — taxonomy clashes, schema mismatches, PRD gaps.
 - [`02 frontend/Project_Requirements_Document.md`](../02%20frontend/Project_Requirements_Document.md) — FR/NFR clauses cited throughout.
 - [`02 frontend/metrics_research/`](../02%20frontend/metrics_research/) — metrics surface design.
+
+---
+
+## 11. Training-job pipeline (sidebar → leaderboard) — addendum
+
+Audited 2026-04-28 against the eight-step engineer flow: visit Train Jobs tab → fill New-Train-Job dialog → upload script + env-var metadata → resource pulls weights/dataset and trains (ideally federated) → store as a new user-owned base model when architecture deviates → view progress on the detail page → on completion auto-register and push to metrics → surface on leaderboard.
+
+**Verdict:** not implemented end-to-end and not _designed_ end-to-end anywhere prior to this branch. Frontend has production-quality UI for steps 1, 2, 6, 8 driven entirely by mock data; backend has a real CLI-only `retraining-pipeline/train.py` and a real metrics-service evaluation hook (`POST /evaluations/run`). The connective tissue — job-queue API, base-model registry, FL runtime, real leaderboard endpoint — does not exist.
+
+The full design now lives in [`training-job-pipeline.md`](training-job-pipeline.md):
+
+- **§1** per-step status table (FE state × BE state for all eight steps).
+- **§2** what exists today — file:line references for the dialog, detail page, mocks, real `train.py` entrypoint, real post-train hook, metrics-service surface.
+- **§3** cross-cuts to FL/DP risk assessment (F19, F22, F23, F25, F29), Azure deployment (`data_zone`), metrics-service module, leaderboard research, Redis cache invalidation.
+- **§4** proposed design — new `training-orchestrator` service on port 8007; `POST /jobs`, `GET /jobs/{id}`, heartbeat + log SSE; `training_job` / `base_model` / `training_artifact` schema; architecture-fingerprint check for the step-5 deviation case; FL deferred behind F25; new `GET /leaderboard` endpoint on metrics-service.
+- **§5** sequencing (cloud/local first, leaderboard second, deviation-registry third, FL fourth).
+- **§6** open questions — script execution model (CLI vs. orchestrator-owned), local-target progress reporting, trust boundary on the deviation check, derived-base-model leaderboard fairness, weights storage backend.
+
+Biggest blockers called out there that this status board should track:
+
+- **Submit handler missing.** `training/page.jsx:532` "LAUNCH EXPERIMENT" closes the modal and emits nothing — there is no contract to integrate against until the orchestrator + `POST /jobs` schema land.
+- **No base-model registry.** Step 5 has nowhere to write today; needs a `base_model` table with `owner_user_id`, `parent_base_model_id`, `architecture_fingerprint`.
+- **No FL framework.** Step 4's "federated" wording in the user flow is aspirational; current `retraining-pipeline` is single-machine LoRA. Holds behind F25 ADR.
+- **Leaderboard ranking shape.** Metrics-service today exposes per-pair (`/metrics/by-dataset`) and per-eval (`/evaluations`) shapes, not a ranked list keyed by engineer. Needs a new `GET /leaderboard?dataset_id=…` endpoint joining `model_evaluation` ⇄ `training_artifact` ⇄ `training_job` ⇄ `user`.

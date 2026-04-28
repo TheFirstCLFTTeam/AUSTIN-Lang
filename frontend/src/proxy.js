@@ -1,8 +1,32 @@
 import { NextResponse } from 'next/server';
 
-// Edge-runtime safe constant. Mirrors the one in src/server/auth.js — kept in
-// sync manually because proxy.js can't import 'server-only' modules.
+// Edge-runtime safe constants. Mirror the ones in src/server/auth.js (auth
+// cookie) and src/services/http.js (CSRF cookie) — kept in sync manually
+// because proxy.js can't import 'server-only' modules.
 const COOKIE_NAME = process.env.NODE_ENV === 'production' ? '__Host-token' : 'token';
+const CSRF_COOKIE_NAME =
+    process.env.NODE_ENV === 'production' ? '__Host-csrf-token' : 'csrf-token';
+const CSRF_TTL_SEC = 12 * 60 * 60;
+
+function generateCsrfToken() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    let s = '';
+    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+// Constant-time compare to avoid leaking the token via timing differences.
+function csrfTokenMatches(request) {
+    const cookie = request.cookies.get(CSRF_COOKIE_NAME)?.value;
+    const header = request.headers.get('x-csrf-token');
+    if (!cookie || !header || cookie.length !== header.length) return false;
+    let diff = 0;
+    for (let i = 0; i < cookie.length; i++) {
+        diff |= cookie.charCodeAt(i) ^ header.charCodeAt(i);
+    }
+    return diff === 0;
+}
 
 // In-memory sliding-window rate limiter for /auth/login POSTs. Single-instance
 // only — for multi-instance deploys, swap to @upstash/ratelimit or similar.
@@ -48,7 +72,10 @@ function originIsSameSite(request) {
 function buildCsp(nonce, isDev) {
     return [
         "default-src 'self'",
-        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
+        // 'wasm-unsafe-eval' is for @lottiefiles/dotlottie-react, which
+        // compiles a self-hosted WASM player at runtime (see LottieWasmInit).
+        // It only enables WebAssembly.compile / instantiate, NOT JS eval.
+        `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ''}`,
         `style-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-inline'" : ''}`,
         "img-src 'self' blob: data:",
         "font-src 'self' data:",
@@ -99,6 +126,21 @@ export function proxy(request) {
         );
     }
 
+    // 2b. CSRF double-submit token check. /auth/* still bootstraps via the
+    // origin check + SameSite cookie; everything else under /api/ must echo
+    // the cookie value in X-CSRF-Token. Cookie is issued by withSecurityHeaders
+    // on any prior page load, so any browser that has rendered a page has it.
+    if (
+        pathname.startsWith('/api/') &&
+        STATE_CHANGING_METHODS.has(method) &&
+        !csrfTokenMatches(request)
+    ) {
+        return new NextResponse(
+            JSON.stringify({ detail: 'CSRF token missing or invalid.' }),
+            { status: 403, headers: { 'Content-Type': 'application/json' } },
+        );
+    }
+
     // 3. Auth redirect (existing behaviour).
     const token = request.cookies.get(COOKIE_NAME)?.value;
 
@@ -122,9 +164,18 @@ export function proxy(request) {
 // when it sees the CSP header on the request — see node_modules/next/dist/docs
 // /01-app/02-guides/content-security-policy.md.
 function withSecurityHeaders(response, request, isDev) {
+    // Issue the CSRF cookie if the browser doesn't have one yet. Done for
+    // both pages and /api/ responses so that SPA-only entry paths (a tab that
+    // boots straight into an API call after a hard refresh) eventually get a
+    // token; the next state-changing request will then carry it.
+    const needsCsrf = !request.cookies.get(CSRF_COOKIE_NAME);
+
     // Skip CSP on API routes — JSON responses don't render scripts and the
     // nonce serves no purpose there.
-    if (request.nextUrl.pathname.startsWith('/api/')) return response;
+    if (request.nextUrl.pathname.startsWith('/api/')) {
+        if (needsCsrf) attachCsrfCookie(response, isDev);
+        return response;
+    }
 
     const nonce = btoa(crypto.randomUUID());
     const csp = buildCsp(nonce, isDev);
@@ -140,13 +191,29 @@ function withSecurityHeaders(response, request, isDev) {
     // request header rewrite (no rendering happens).
     if (response.headers.get('location')) {
         response.headers.set('Content-Security-Policy', csp);
+        if (needsCsrf) attachCsrfCookie(response, isDev);
         return response;
     }
 
     const out = NextResponse.next({ request: { headers: requestHeaders } });
     out.headers.set('Content-Security-Policy', csp);
     out.headers.set('x-nonce', nonce);
+    if (needsCsrf) attachCsrfCookie(out, isDev);
     return out;
+}
+
+function attachCsrfCookie(response, isDev) {
+    response.cookies.set({
+        name: CSRF_COOKIE_NAME,
+        value: generateCsrfToken(),
+        sameSite: 'lax',
+        secure: !isDev,
+        path: '/',
+        // Deliberately NOT httpOnly — the double-submit pattern requires JS to
+        // read it and echo it in X-CSRF-Token. SameSite=Lax + the origin check
+        // above keep it from being usable cross-site.
+        maxAge: CSRF_TTL_SEC,
+    });
 }
 
 export const config = {

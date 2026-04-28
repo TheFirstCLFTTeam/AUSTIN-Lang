@@ -52,6 +52,44 @@ export function clearAccess(userId, fileId) {
     } catch {}
 }
 
+// Pull the server-side recents list (Redis-backed) and merge it into the
+// per-user localStorage map. Server entries win on tie — they reflect
+// cross-device truth. Fail-quiet: a fetch error or a Redis-down server
+// just leaves the local map untouched.
+//
+// Suggested call site: dashboard layout mount (so it runs once per app load
+// and lets every page that reads getAccessMap pick up the merged state).
+export async function hydrateFromServer(userId) {
+    if (typeof window === "undefined") return;
+    try {
+        const res = await fetch("/api/recents", { credentials: "include" });
+        if (!res.ok) return;
+        const { items } = await res.json();
+        if (!Array.isArray(items) || items.length === 0) return;
+
+        const key = storageKey(userId);
+        let local;
+        try {
+            local = JSON.parse(window.localStorage.getItem(key) || "{}");
+        } catch {
+            local = {};
+        }
+        let changed = false;
+        for (const { id, accessedAt } of items) {
+            if (!id || !accessedAt) continue;
+            if (!local[id] || new Date(accessedAt) > new Date(local[id])) {
+                local[id] = accessedAt;
+                changed = true;
+            }
+        }
+        if (!changed) return;
+        window.localStorage.setItem(key, JSON.stringify(local));
+        window.dispatchEvent(new CustomEvent(RECENTS_EVENT, { detail: { hydrated: true } }));
+    } catch {
+        /* silent */
+    }
+}
+
 // Group a list of { id, accessedAt } into Today / Yesterday / This week /
 // month/year buckets, preserving within-bucket order.
 export function groupByDateBucket(items, now = new Date()) {

@@ -10,6 +10,10 @@ import {
   MOCK_ACCURACY_LOGS,
 } from "../../../services/mock_data-dashboard";
 import { getSelectedMetrics } from "../../../services/metrics-config";
+import {
+  mergeMetricsWithLive,
+  useDashboardSeries,
+} from "../../../services/live-dashboard-metrics";
 
 function KpiCard({ label, value, sublabel, accent, active, onClick, selectable }) {
   const borderColor = active ? "#b20100" : "transparent";
@@ -234,7 +238,15 @@ export default function DashboardPage() {
     setActiveMetricId((prev) => prev ?? metrics[0]?.id ?? null);
   }, []);
 
-  const activeMetric = selectedMetrics.find((m) => m.id === activeMetricId) || selectedMetrics[0] || null;
+  // Live series from /api/metrics/by-dataset overlays the mock display
+  // values when available (real mode + non-empty DB). In mock mode this
+  // is a no-op — same behaviour as before.
+  const { liveData } = useDashboardSeries();
+  const renderedMetrics = liveData
+    ? mergeMetricsWithLive(selectedMetrics, liveData)
+    : selectedMetrics;
+
+  const activeMetric = renderedMetrics.find((m) => m.id === activeMetricId) || renderedMetrics[0] || null;
 
   const handleRetrain = async () => {
     setTraining(true);
@@ -280,7 +292,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
-        {selectedMetrics.map((kpi) => (
+        {renderedMetrics.map((kpi) => (
           <KpiCard
             key={kpi.id}
             label={kpi.name}

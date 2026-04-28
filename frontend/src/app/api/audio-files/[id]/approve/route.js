@@ -60,7 +60,7 @@ export const POST = requireOwnerOrRole(async (_request, { params, user }) => {
     }
 
     try {
-        const result = setAudioFileStatus(id, 'completed', user, {
+        const result = await setAudioFileStatus(id, 'completed', user, {
             actionKey: 'approved',
             details: null,
         });

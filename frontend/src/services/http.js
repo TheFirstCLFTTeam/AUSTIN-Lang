@@ -6,6 +6,24 @@
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const CSRF_COOKIE_NAME =
+    process.env.NODE_ENV === 'production' ? '__Host-csrf-token' : 'csrf-token';
+
+// Browser-only: read the double-submit CSRF token issued by proxy.js. Returns
+// null on the server (no document) or when the cookie hasn't been set yet (the
+// proxy issues it on first non-API response).
+export function readCsrfToken() {
+    if (typeof document === 'undefined') return null;
+    const prefix = `${CSRF_COOKIE_NAME}=`;
+    for (const part of document.cookie.split('; ')) {
+        if (part.startsWith(prefix)) {
+            return decodeURIComponent(part.slice(prefix.length));
+        }
+    }
+    return null;
+}
+
 async function request(method, path, body, { headers = {}, signal, server } = {}) {
     const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
     const init = {
@@ -21,6 +39,10 @@ async function request(method, path, body, { headers = {}, signal, server } = {}
     if (server && server.cookieHeader) {
         // Server-side caller is forwarding the browser's Cookie header.
         init.headers.Cookie = server.cookieHeader;
+    }
+    if (STATE_CHANGING_METHODS.has(method) && !init.headers['X-CSRF-Token']) {
+        const csrf = readCsrfToken();
+        if (csrf) init.headers['X-CSRF-Token'] = csrf;
     }
 
     let res;

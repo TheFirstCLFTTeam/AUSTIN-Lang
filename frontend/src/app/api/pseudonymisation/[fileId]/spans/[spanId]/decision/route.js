@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { requireUser } from '@/server/route-helpers';
+import { invalidateDetail } from '@/server/cache';
 
 const ORCHESTRATOR_URL =
     process.env.PSEUDONYM_ORCHESTRATOR_URL ||
@@ -51,6 +52,10 @@ export const POST = requireUser(async (request, { params, user }) => {
                 { status: res.status },
             );
         }
+        // A span decision can flip pseudonymisationApplied / Warning flags
+        // surfaced in the cached file-detail payload — invalidate so the
+        // next /api/audio-files/{id} read repopulates from SQLite.
+        await invalidateDetail(fileId);
         return new NextResponse(text, {
             status: 200,
             headers: { 'Content-Type': 'application/json' },

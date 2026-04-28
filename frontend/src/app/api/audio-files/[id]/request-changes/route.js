@@ -13,7 +13,7 @@ export const POST = requireOwnerOrRole(async (request, { params, user }) => {
     }
     const reason = body?.reason ?? null;
     try {
-        const result = setAudioFileStatus(id, 'needs action', user, {
+        const result = await setAudioFileStatus(id, 'needs action', user, {
             actionKey: 'requested_changes',
             details: { comment: reason },
         });

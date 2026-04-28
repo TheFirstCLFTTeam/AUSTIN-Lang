@@ -11,6 +11,37 @@ Sibling reading:
 
 ---
 
+## 0. Status
+
+**Slice 1 landed on `ui_enhancement` (2026-04-28).** What landed:
+
+- **Migration framework.** New `database(FE)/seed/migrate.py` runner — applies SQL files from `seed/migrations/<target>/` in lex order, tracks applied state + checksums in a `_schema_migrations` table, fails loudly on checksum drift. End-to-end verified: forward apply backfills, second run is no-op, edited applied file is detected. Fresh seeds via `seed_platform_db.py` call `stamp()` so migrations are recorded as applied without re-execution (alembic-style).
+- **0001 migration.** `seed/migrations/platform/0001_add_transcript_versioning.sql` — creates `transcript_version`, adds `version_id` FK on `transcript_edit`, backfills any existing edit rows under a single frozen v1.
+- **Schema parity.** `database(FE)/schema_platform.sql` updated for fresh-seed parity.
+- **Write path.** `writeEditsForFile` rewritten to find-or-create the draft version (is_current=1), delete only that draft's edits, insert new ones tagged with `version_id = draft.id`. Frozen versions are protected by the WHERE clause and never touched. Audit detail now carries `versionNo`.
+- **Freeze + co-write hook.** `setAudioFileStatus` is now async; on `submitted_for_review` / `approved` / `requested_changes` it freezes the current draft (label transition + `frozen_at` stamp) and co-writes the applied segment state to the backend `edited_transcript`. Co-write was moved out of `writeEditsForFile` so the retraining pipeline only sees committed corrections (Q2 decision below).
+- **Read path.** `getAudioFileDetail` filters `transcript_edit` to the draft if one exists, else the most recent frozen version.
+- **Tests.** 7 vitest cases in `src/__tests__/transcript-versioning.test.js` covering: first save creates a draft, frozen edits survive subsequent saves (the load-bearing invariant), only one is_current=1 row across many saves, approve/request-changes label mapping, freeze-with-no-draft no-op, read returns draft, read falls back to latest frozen.
+
+**Decisions baked in (Q1–Q3 from the slice 1 sketch):**
+
+- **Q1 — migration framework now, not later.** Built ahead of prod (Wave 4) so the convention is in place when the first un-wipeable DB lands. Postgres migration to F16 will reuse the same runner with a swapped driver.
+- **Q2 — co-write only on freeze.** `coWriteEditedTranscriptToBackend` no longer fires on every save; it fires once per submit/approve/request-changes. Backend `edited_transcript` reflects committed corrections only — drafts stay FE-only. Welcome behavioural cleanup for the retraining pipeline.
+- **Q3 — no hanging drafts on restore.** Slice 2's restore endpoint will refuse with HTTP 409 when a non-empty draft exists; UI modal forces "submit current first" or "discard current and restore." Slice 1 already records `versionNo` in the audit-event payload of every freeze so the chain is reconstructible.
+
+**Slice 2 also landed on `ui_enhancement` (2026-04-28).** What landed:
+
+- **Server module.** `frontend/src/server/transcript-versions.js` — `listVersions` (newest-first, with creator names resolved against `users.db`), `getVersion` (full edits + applied segments + raw segments), `diffVersions` (symmetric difference keyed on segmentId/wordIndex/op/before→after, plus a `shared` bucket), `restoreVersion` (handles 409 DIRTY_DRAFT + `existingDraft: 'save' | 'discard'` dispositions).
+- **API routes.** Four `requireOwnerOrRole`-gated routes under `frontend/src/app/api/audio-files/[id]/versions/` — `GET /` (list), `GET /[vNo]` (fetch), `GET /[vNo]/diff/[b]` (diff vs another version), `POST /[vNo]/restore` (restore). The diff path collapsed under `[vNo]` rather than its sibling letter to satisfy Next.js's "dynamic segments must agree at each level" rule.
+- **Service-layer helpers.** `frontend/src/services/api.js` — `fetchVersions`, `fetchVersion`, `diffVersions`, `restoreVersion`. Mock-mode branches reading from `MOCK_FILE_STORE`; the real-mode `restoreVersion` propagates the 409 with `code: 'DIRTY_DRAFT'` so the UI can surface the choice modal.
+- **Mock parity.** `frontend/src/services/mock-data.js` — three of the seeded files now carry version histories (one with three frozen versions including a `changes_requested` cycle, one with a single `approved`, one with a frozen+current draft pair) so the chip + panel + diff viewer have something to render in dev.
+- **UI.** `frontend/src/app/(dashboard)/components/TranscriptVersioning.jsx` — self-contained component placed next to the file's status badge on `/files/[id]`. Renders a chip (`v3 · submitted · 2h ago`) that opens a right-side slide-out panel listing every version with author + relative time + per-version `Compare` and `Restore` buttons. `Compare with current` expands an inline diff (red removed-in-target / green added-in-target) under the row. `Restore` on a clean state rebuilds the draft transparently; on a dirty draft the 409 surfaces a `<Dialog>` with three buttons: "Save current as a snapshot, then restore" / "Discard current and restore" / "Cancel" — Q3's no-hanging-drafts rule baked in.
+- **Audit.** New `version_restored` audit-action key — runtime-upserted via `audit.js` so existing seeded DBs don't need a re-seed, and added to `seed/fixtures/audit_actions.json` for fresh seeds. Carries `{ from, to, existingDraftDisposition }` in `details_json`.
+- **Bug fixed during slice 2.** First implementation of `restoreVersion`'s discard path was reusing the discarded draft's `version_no` because `MAX(version_no)+1` was computed AFTER the delete. Reordered: nextNo is locked in BEFORE any draft mutation, so version numbers monotonically increase even across discards.
+- **Tests.** 9 new vitest cases in `src/__tests__/transcript-versioning-slice2.test.js`: list-newest-first + creator-name resolution, getVersion shape, getVersion 404, diffVersions symmetric (including shared bucket + reverse-direction), restore-empty-draft, restore-DIRTY_DRAFT throw, restore-with-save freezes + preserves, restore-with-discard deletes + monotonic version_no, restore unknown vNo. Slice 1's 7 tests still pass — total 16 versioning tests on the branch.
+
+---
+
 ## 1. Goals & non-goals
 
 ### Goals

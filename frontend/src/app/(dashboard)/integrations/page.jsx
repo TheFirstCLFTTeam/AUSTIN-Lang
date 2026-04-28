@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { readCsrfToken } from '../../../services/http';
 
 const PROVIDER_META = {
     teams: {
@@ -49,9 +50,13 @@ export default function IntegrationsPage() {
         setBusy(providerId);
         setError(null);
         try {
+            const csrf = readCsrfToken();
             const r = await fetch(`/api/integrations/${providerId}/connect`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(csrf ? { 'X-CSRF-Token': csrf } : {}),
+                },
                 credentials: 'include',
                 body: JSON.stringify({}),
             });
@@ -74,9 +79,11 @@ export default function IntegrationsPage() {
         setBusy(providerId);
         setError(null);
         try {
+            const csrf = readCsrfToken();
             const r = await fetch(`/api/integrations/${providerId}/disconnect`, {
                 method: 'POST',
                 credentials: 'include',
+                headers: csrf ? { 'X-CSRF-Token': csrf } : undefined,
             });
             if (!r.ok) {
                 const body = await r.json().catch(() => ({}));

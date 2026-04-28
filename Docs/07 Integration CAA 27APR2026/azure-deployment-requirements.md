@@ -81,7 +81,7 @@
 2. **SQLite must go** — migrate `users.db` and `platform.db` to Postgres; rewrite the seeding scripts in `database(FE)/seed/` to target Postgres.
 3. **No `data_zone` tagging** on training jobs / model weights in the schema — required for two-zone enforcement and for the FL/DP use case.
 4. **Opacus / Flower not yet in `requirements.txt`** — the DP+FL story is documented but unimplemented; pin versions before baking the restricted ACR image so the image build is reproducible.
-5. **HF model download at runtime** — will not work in a network-isolated red zone; pre-bake into the image or pre-stage to Blob + mount.
+5. **HF model download at runtime** — will not work in a network-isolated red zone; pre-bake into the image or pre-stage to Blob + mount. See §10 for the one-time upload procedure.
 6. **Commercial-user access tiers** (`max_uploads_per_day`, `max_storage_mb`) referenced in the PRD but not modeled — needed before exposing the upload path publicly.
 
 ---
@@ -385,3 +385,44 @@ A **P1 (6 GB)** instance is well over-provisioned for current scope and is the s
 - **Pseudonymisation spans.** Encrypted at rest in Postgres per §2; same reasoning.
 - **Long-lived secrets.** That's Key Vault's job.
 - **Anything that needs to survive a region-wide Redis outage.** Any Redis-stored value should be reconstructible from a durable source within the SLO window.
+
+---
+
+## 10. One-time model weights upload to Azure Blob
+
+Today the base ASR weights live under `backend/server/pretrained_weights/{vendor}/{model}/` (Whisper base, Qwen3-ASR-1.7B, MERaLiON-2-10B-ASR, Voxtral Mini 4B) — checked into the repo via git LFS, in HuggingFace `safetensors` format. Loaders in `backend/server/model_interface.py` try the local path first and fall back to `huggingface_hub.snapshot_download()` (auth via `HF_TOKEN` from `backend/.env`, gated by `MODEL_SIZE_THRESHOLD_GB=17`). LoRA adapters live separately under `backend/retraining-pipeline/adapters/{name}/` (~6–8 MB each) with `base_model_name_or_path` recorded in `adapter_config.json`.
+
+That fallback download path **will not function inside the red-zone VNet** (no public egress to `huggingface.co`). Largest single artifact today is MERaLiON-2-10B-ASR at ~16 GB, so the weights have to land in Blob Storage *before* any compute revision starts. This is a sysadmin-authorized, one-time operation per model version — repeated only when a base model is upgraded or a new vendor weight is introduced.
+
+### 10.1 Process (sysadmin-authorized, engineer-executed)
+
+1. **Provision the landing zone.** Sysadmin creates a dedicated **Azure Storage Account** (Blob, Hot tier, RA-GRS) inside the red-zone subscription with `publicNetworkAccess: Disabled` and a **private endpoint** into the red-zone VNet. Containers: `model-weights/` (immutable, versioned, CMK-encrypted) and `adapters/` (versioned, append-only). Lifecycle policies mirror §2 — these blobs are *not* subject to the 7-day audio deletion rule.
+2. **Grant time-boxed permissions.** Sysadmin issues either a **user-delegation SAS token** (preferred — short TTL, scoped to `Write,Create` on the specific container, IP-pinned to the engineer's staging host) or assigns the engineer's Entra ID principal the **Storage Blob Data Contributor** RBAC role on the container only. No account keys, ever. Permission revoked immediately after the upload window closes.
+3. **Execute the transfer.** From a secure staging host (jump box or developer laptop on the corporate VPN), use **AzCopy** or **Azure Storage Explorer** over HTTPS:
+
+   ```powershell
+   # Example: stage Whisper base + MERaLiON-2-10B to the red-zone account
+   azcopy login --tenant-id <tenant>            # Entra ID device-code flow
+   azcopy copy `
+     "C:\Users\ChunChunMaru\Desktop\Repos\AUSTIN-Lang\backend\server\pretrained_weights\*" `
+     "https://<account>.blob.core.windows.net/model-weights/v2026-04-27/" `
+     --recursive=true --put-md5 --check-md5 FailIfDifferent
+   ```
+
+   `--put-md5` + `--check-md5` give per-blob integrity verification end-to-end. For the 16 GB MERaLiON shard, AzCopy's parallel block upload keeps this to minutes over a corporate uplink.
+4. **Mount into compute.** Once uploaded, the weights are exposed to runtime compute as a local-looking volume:
+   - **Azure ML jobs** (training / `retraining-pipeline`): register the container as a **datastore**, then mount via `Input(type='uri_folder', path='azureml://datastores/model_weights/paths/v2026-04-27/')`. Files appear at `/mnt/model_weights/...` inside the job.
+   - **Azure Container Apps / AKS** (inference, `transcription-service-2`, `gliner-service`): mount via **Azure Files (NFS / SMB) backed by the same storage account** at `/app/pretrained_weights/`, then point `MODEL_ID` at the local path so `from_pretrained()` resolves locally and never reaches the hub. `HF_HOME` set to the mounted directory ensures HF caches are read-only-friendly.
+
+### 10.2 Versioning + zone discipline
+
+- **Immutable blob versioning** on `model-weights/`; each upload goes under a date- or hash-prefixed virtual directory (`v2026-04-27/`, `sha256-…/`). Never overwrite in place — Azure ML revisions reference the path, and silent mutation breaks reproducibility for DP/FL audits.
+- **`data_zone` blob index tag** (`red` | `green`) on every artifact, mirroring §3. Green-zone compute mounts only `data_zone=green` blobs via SAS scoping.
+- **Adapter uploads** follow the same pattern but go to the `adapters/` container, tagged with `base_model_version` so the inference service can refuse to load an adapter against an incompatible base.
+- **CI step** (separate from the sysadmin-authorized base-model upload): the retraining pipeline pushes new adapters to `adapters/` automatically using its workload identity — adapters are small and frequent, base weights are large and rare.
+
+### 10.3 What this replaces
+
+- The git-LFS copies under `backend/server/pretrained_weights/` stay in the repo for *local dev only*. Cloud builds neither bake the weights into the image nor pull from LFS at deploy time.
+- `backend/server/utils/preload.py`'s `huggingface_hub.snapshot_download()` fallback is disabled in red-zone images (env flag), so a missing local file fails fast instead of silently attempting a public-internet download that the firewall would drop.
+- `HF_TOKEN` is no longer required at runtime in the red zone (only for the engineer's one-time pull from HF on the staging host *before* AzCopy upload). It stays in Key Vault for the green zone / training pipeline only.

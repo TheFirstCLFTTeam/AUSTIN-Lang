@@ -2,6 +2,7 @@ import 'server-only';
 
 import { platformDb, usersDb } from './db';
 import { recordAuditEvent } from './audit';
+import { invalidateDetail } from './cache';
 import { applyEdits } from '../lib/transcriptEdits';
 
 // URL of the backend database service (poc.db, FastAPI at :8002). It's the
@@ -130,14 +131,28 @@ export function getAudioFileDetail(externalOrIntId) {
     }
 
     // Edit rows use a JSON-in-content encoding (see writeEditsForFile below).
+    // Read the draft (is_current=1) if one exists; otherwise fall back to
+    // the most recent frozen version. This keeps the user looking at their
+    // working copy when there is one and the latest committed state when
+    // there isn't.
     let edits = [];
     if (rawTranscript) {
         const rows = db
             .prepare(
-                `SELECT content FROM transcript_edit
-                  WHERE raw_transcript_id = ? ORDER BY edited_at, id`
+                `SELECT te.content
+                   FROM transcript_edit te
+                   JOIN transcript_version tv ON tv.id = te.version_id
+                  WHERE tv.raw_transcript_id = ?
+                    AND tv.id = COALESCE(
+                        (SELECT id FROM transcript_version
+                          WHERE raw_transcript_id = ? AND is_current = 1),
+                        (SELECT id FROM transcript_version
+                          WHERE raw_transcript_id = ?
+                          ORDER BY version_no DESC LIMIT 1)
+                    )
+                  ORDER BY te.edited_at, te.id`
             )
-            .all(rawTranscript.id);
+            .all(rawTranscript.id, rawTranscript.id, rawTranscript.id);
         for (const r of rows) {
             try {
                 const parsed = JSON.parse(r.content);
@@ -274,17 +289,57 @@ async function coWriteEditedTranscriptToBackend(
     }
 }
 
-// Replaces the edits list for a file's raw transcript. Each UI edit is stored
-// as a single row in `transcript_edit` with the full edit JSON-encoded into
-// the `content` column — a pragmatic overload because the char-level schema
-// can't losslessly express the UI's word-level edit shape (TODO: align).
+// Find-or-create the current draft version for a raw_transcript. The partial
+// unique index ux_transcript_version_current serialises concurrent inserts at
+// the SQL level — we still need the lookup-then-insert dance because there's
+// no UPSERT on a partial index.
+function findOrCreateDraftVersion(db, rawTranscriptId, actor) {
+    const existing = db.prepare(
+        `SELECT id, version_no FROM transcript_version
+          WHERE raw_transcript_id = ? AND is_current = 1`
+    ).get(rawTranscriptId);
+    if (existing) return existing;
+
+    const nextNo = db.prepare(
+        `SELECT COALESCE(MAX(version_no), 0) + 1 AS n
+           FROM transcript_version WHERE raw_transcript_id = ?`
+    ).get(rawTranscriptId).n;
+
+    // Find the most recent frozen version (if any) so the new draft's
+    // parent_version_id records the lineage.
+    const parent = db.prepare(
+        `SELECT id FROM transcript_version
+          WHERE raw_transcript_id = ? AND is_current = 0
+          ORDER BY version_no DESC LIMIT 1`
+    ).get(rawTranscriptId);
+
+    const info = db.prepare(
+        `INSERT INTO transcript_version
+             (raw_transcript_id, version_no, parent_version_id,
+              label, is_current, created_by)
+         VALUES (?, ?, ?, 'draft', 1, ?)`
+    ).run(rawTranscriptId, nextNo, parent?.id ?? null, actor?.id ?? 'system');
+
+    return { id: info.lastInsertRowid, version_no: nextNo };
+}
+
+// Replaces the edits list for a file's raw transcript by mutating the draft
+// version only — frozen versions' rows are protected by the WHERE
+// version_id = <draft.id> guard and are never touched.
+//
+// Each UI edit is stored as a single row in `transcript_edit` with the full
+// edit JSON-encoded into the `content` column — a pragmatic overload because
+// the char-level schema can't losslessly express the UI's word-level edit
+// shape (TODO: align).
+//
+// Backend co-write to poc.db is NOT done here (see freezeAndCoWrite in
+// setAudioFileStatus): the retraining pipeline only sees committed
+// corrections, never in-progress drafts.
 export async function writeEditsForFile(fileId, edits, actor) {
     const db = platformDb();
     const row = db
         .prepare(
-            `SELECT af.id, rt.id AS raw_transcript_id,
-                    af.backend_raw_transcript_id AS backend_rt_id,
-                    af.backend_edited_transcript_id AS backend_et_id
+            `SELECT af.id, af.external_id, rt.id AS raw_transcript_id
                FROM audio_file af
                LEFT JOIN raw_transcript rt ON rt.audio_file_id = af.id
               WHERE af.external_id = ? OR af.id = ?`
@@ -295,25 +350,23 @@ export async function writeEditsForFile(fileId, edits, actor) {
         throw new Error('File has no raw_transcript; cannot store edits');
     }
 
-    const rawSegments = db
-        .prepare(
-            `SELECT id, start, end, text FROM raw_transcript_segment
-              WHERE raw_transcript_id = ? ORDER BY start`
-        )
-        .all(row.raw_transcript_id);
-
     const tx = db.transaction((items) => {
-        db.prepare(`DELETE FROM transcript_edit WHERE raw_transcript_id = ?`).run(
-            row.raw_transcript_id
-        );
+        const draft = findOrCreateDraftVersion(db, row.raw_transcript_id, actor);
+
+        // Mutate ONLY the draft. The WHERE version_id = ? clause is the
+        // load-bearing guard — frozen versions are never matched.
+        db.prepare(`DELETE FROM transcript_edit WHERE version_id = ?`).run(draft.id);
+
         const ins = db.prepare(
             `INSERT INTO transcript_edit
-                (raw_transcript_id, start_char, content, operation, editor_id, edited_at)
-             VALUES (?, ?, ?, ?, ?, ?)`
+                (raw_transcript_id, version_id, start_char, content,
+                 operation, editor_id, edited_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`
         );
         for (const e of items) {
             ins.run(
                 row.raw_transcript_id,
+                draft.id,
                 typeof e.wordIndex === 'number' ? e.wordIndex : 0,
                 JSON.stringify(e),
                 e.op === 'delete' ? 'delete' : 'add',
@@ -321,51 +374,132 @@ export async function writeEditsForFile(fileId, edits, actor) {
                 e.editedAt || new Date().toISOString(),
             );
         }
+        return draft;
     });
-    tx(edits || []);
-
-    const externalId = db
-        .prepare(`SELECT external_id FROM audio_file WHERE id = ?`)
-        .get(row.id)?.external_id || String(row.id);
+    const draft = tx(edits || []);
 
     recordAuditEvent({
-        fileId: externalId,
+        fileId: row.external_id || String(row.id),
         actor,
         actionKey: 'edited',
-        details: { editCount: (edits || []).length },
+        details: { editCount: (edits || []).length, versionNo: draft.version_no },
     });
 
-    const editedSegments = applyEdits(rawSegments, edits || []);
-    await coWriteEditedTranscriptToBackend(
-        row.backend_rt_id,
-        row.backend_et_id,
-        editedSegments,
-    );
+    // Cache invalidation. Fail-open — if Redis is down, cache miss next read
+    // and we eat one cold SQLite hit.
+    await invalidateDetail(row.external_id || String(row.id));
 }
 
-// Updates audio_file.status and records an audit event. Caller provides the
-// audit_action key (must exist in audit_action catalog) and any free-form
-// details that will be JSON-encoded into audit_event.details_json.
-export function setAudioFileStatus(fileId, newStatus, actor, { actionKey, details }) {
+// Maps an audit_action key to the transcript_version label that should be
+// stamped on the draft when this status transition fires. Returning null
+// means "this transition does not freeze the draft" — most edits, deletes,
+// uploads, etc.
+function freezeLabelFor(actionKey) {
+    switch (actionKey) {
+        case 'submitted_for_review': return 'submitted';
+        case 'approved':             return 'approved';
+        case 'requested_changes':    return 'changes_requested';
+        default:                     return null;
+    }
+}
+
+// Updates audio_file.status, freezes the current draft if the transition
+// calls for it, records an audit event, and (on freeze only) co-writes the
+// applied transcript to poc.db so the retraining pipeline sees the
+// committed correction. Caller provides the audit_action key (must exist
+// in audit_action catalog) and any free-form details that will be
+// JSON-encoded into audit_event.details_json.
+//
+// Async because the co-write to the backend service is best-effort but
+// awaited so failures are visible in the route's response.
+export async function setAudioFileStatus(fileId, newStatus, actor, { actionKey, details }) {
     const db = platformDb();
     const row = db
         .prepare(
-            `SELECT id, external_id FROM audio_file WHERE external_id = ? OR id = ?`
+            `SELECT af.id, af.external_id, rt.id AS raw_transcript_id,
+                    af.backend_raw_transcript_id AS backend_rt_id,
+                    af.backend_edited_transcript_id AS backend_et_id
+               FROM audio_file af
+               LEFT JOIN raw_transcript rt ON rt.audio_file_id = af.id
+              WHERE af.external_id = ? OR af.id = ?`
         )
         .get(String(fileId), Number(fileId) || -1);
     if (!row) throw new Error('File not found');
 
     const externalId = row.external_id || String(row.id);
+    const freezeLabel = freezeLabelFor(actionKey);
+
+    let frozenVersionNo = null;
+    let appliedSegmentsForCoWrite = null;
+
     const tx = db.transaction(() => {
         db.prepare(`UPDATE audio_file SET status = ? WHERE id = ?`).run(newStatus, row.id);
+
+        if (freezeLabel && row.raw_transcript_id) {
+            const draft = db.prepare(
+                `SELECT id, version_no FROM transcript_version
+                  WHERE raw_transcript_id = ? AND is_current = 1`
+            ).get(row.raw_transcript_id);
+
+            if (draft) {
+                db.prepare(
+                    `UPDATE transcript_version
+                        SET label = ?, is_current = 0,
+                            frozen_at = COALESCE(frozen_at, datetime('now'))
+                      WHERE id = ?`
+                ).run(freezeLabel, draft.id);
+                frozenVersionNo = draft.version_no;
+
+                // Capture the segment state of the just-frozen version so
+                // we can co-write it to the backend after the transaction
+                // commits. Reading inside the txn keeps it consistent with
+                // what we just froze.
+                const rawSegments = db.prepare(
+                    `SELECT id, start, end, text FROM raw_transcript_segment
+                      WHERE raw_transcript_id = ? ORDER BY start`
+                ).all(row.raw_transcript_id);
+
+                const editRows = db.prepare(
+                    `SELECT content FROM transcript_edit
+                      WHERE version_id = ? ORDER BY edited_at, id`
+                ).all(draft.id);
+
+                const edits = [];
+                for (const r of editRows) {
+                    try {
+                        const parsed = JSON.parse(r.content);
+                        if (parsed && typeof parsed === 'object') edits.push(parsed);
+                    } catch { /* skip malformed */ }
+                }
+                appliedSegmentsForCoWrite = applyEdits(rawSegments, edits);
+            }
+            // No draft = nothing to freeze (e.g. approve on a file that
+            // was already approved-with-no-edits earlier). Silent no-op.
+        }
+
         recordAuditEvent({
             fileId: externalId,
             actor,
             actionKey,
-            details,
+            details: frozenVersionNo == null
+                ? details
+                : { ...(details || {}), versionNo: frozenVersionNo },
         });
     });
     tx();
 
-    return { id: externalId, status: newStatus };
+    // Co-write OUTSIDE the SQLite transaction — network I/O must not hold
+    // the DB write lock. Failure is non-fatal (poc.db just lags by one
+    // freeze; retraining will pick up the next one).
+    if (appliedSegmentsForCoWrite) {
+        await coWriteEditedTranscriptToBackend(
+            row.backend_rt_id,
+            row.backend_et_id,
+            appliedSegmentsForCoWrite,
+        );
+    }
+
+    await invalidateDetail(externalId);
+
+    return { id: externalId, status: newStatus, versionNo: frozenVersionNo };
 }

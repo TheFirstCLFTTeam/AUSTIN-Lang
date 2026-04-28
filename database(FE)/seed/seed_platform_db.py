@@ -23,6 +23,8 @@ import json
 import sqlite3
 from pathlib import Path
 
+from migrate import stamp as stamp_migrations
+
 HERE = Path(__file__).resolve().parent
 DB_DIR = HERE.parent
 DB_PATH = DB_DIR / "platform.db"
@@ -501,6 +503,12 @@ def main() -> None:
             seed_leaderboard(conn)
             seed_holdouts(conn)
             seed_audit(conn)
+
+        # Schema is the source of truth on a fresh seed; the migrations
+        # under seed/migrations/platform/ are conceptually already in the
+        # DB. Stamp them so a later `migrate.py platform` is a no-op
+        # instead of trying to ALTER an already-modified schema.
+        stamp_migrations("platform", conn)
 
         print(f"platform.db seeded -> {DB_PATH}")
         for t in TABLES_FOR_COUNT:

@@ -29,6 +29,7 @@ DROP TABLE IF EXISTS recording_error_cause;
 DROP TABLE IF EXISTS recording;
 DROP TABLE IF EXISTS processing_job;
 DROP TABLE IF EXISTS transcript_edit;
+DROP TABLE IF EXISTS transcript_version;
 DROP TABLE IF EXISTS edited_transcript_segment;
 DROP TABLE IF EXISTS edited_transcript;
 DROP TABLE IF EXISTS raw_transcript_segment;
@@ -179,11 +180,40 @@ CREATE TABLE edited_transcript_segment (
     text                 TEXT NOT NULL
 );
 
--- Character-level diff edits against a raw transcript. Each row is one
--- element of the edit array: (start_char, content, operation).
+-- Append-only version pointer. Each "submit for review" / "approve" /
+-- "request changes" freezes the current draft into a permanent, addressable
+-- revision; only the draft (is_current=1) is mutable. See
+-- docs/07 Integration CAA 27APR2026/transcript-versioning-plan.md.
+CREATE TABLE transcript_version (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    raw_transcript_id INTEGER NOT NULL REFERENCES raw_transcript(id) ON DELETE CASCADE,
+    version_no        INTEGER NOT NULL,
+    parent_version_id INTEGER REFERENCES transcript_version(id),
+    label             TEXT NOT NULL CHECK (label IN
+                          ('draft','submitted','approved','changes_requested','restored')),
+    is_current        INTEGER NOT NULL DEFAULT 0 CHECK (is_current IN (0,1)),
+    created_by        TEXT NOT NULL,
+    created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+    frozen_at         TEXT,
+    note              TEXT,
+    UNIQUE (raw_transcript_id, version_no)
+);
+
+-- Exactly one current version per transcript.
+CREATE UNIQUE INDEX ux_transcript_version_current
+    ON transcript_version (raw_transcript_id) WHERE is_current = 1;
+
+CREATE INDEX ix_transcript_version_rt
+    ON transcript_version (raw_transcript_id, version_no);
+
+-- Edit rows belong to a single transcript_version. Frozen versions' rows
+-- are immutable (enforced at the application layer in writeEditsForFile).
+-- The JSON-in-content encoding stays — see writeEditsForFile in
+-- frontend/src/server/audio-files.js for why.
 CREATE TABLE transcript_edit (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
     raw_transcript_id INTEGER NOT NULL REFERENCES raw_transcript(id) ON DELETE CASCADE,
+    version_id        INTEGER REFERENCES transcript_version(id) ON DELETE CASCADE,
     start_char        INTEGER NOT NULL,
     content           TEXT NOT NULL,
     operation         TEXT NOT NULL CHECK (operation IN ('add','delete')),
@@ -192,6 +222,7 @@ CREATE TABLE transcript_edit (
 );
 
 CREATE INDEX ix_transcript_edit_raw ON transcript_edit(raw_transcript_id, start_char);
+CREATE INDEX ix_transcript_edit_version ON transcript_edit(version_id);
 
 -- ---------------------------------------------------------------------------
 -- Processing queue

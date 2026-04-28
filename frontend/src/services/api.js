@@ -19,7 +19,7 @@
 import { users, MOCK_FILE_STORE, MOCK_PROCESSING_JOBS, MOCK_USER_PROFILES } from './mock-data';
 import { addReviewNotification, addReviewActionNotification } from './notifications';
 import { assertTransition } from '../lib/statusFlow';
-import { http } from './http';
+import { http, readCsrfToken } from './http';
 import { pseudonymiseSegments, triggerPseudonymisationRun } from './pseudonymisation';
 import { refreshMetricsCache } from './metrics';
 import { applyEdits, recomputeSegmentEdits } from '../lib/transcriptEdits';
@@ -238,9 +238,11 @@ export async function uploadAudio(file, { domain, language } = {}) {
         formData.append('file', file);
         if (domain && domain !== 'base') formData.append('domain', domain);
         if (language) formData.append('language', language);
+        const csrf = readCsrfToken();
         const response = await fetch('/api/upload', {
             method: 'POST',
             credentials: 'include',
+            headers: csrf ? { 'X-CSRF-Token': csrf } : undefined,
             body: formData,
         });
         if (!response.ok) {
@@ -539,4 +541,128 @@ export async function requestChanges(fileId, reason) {
     });
 
     return { fileId: String(fileId), status: 'needs action', ...result };
+}
+
+// ── Transcript versions (slice 2 of transcript-versioning-plan.md) ─────────
+
+export async function fetchVersions(fileId) {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        return { fileId: String(fileId), versions: file?.versions || [] };
+    }
+    return http.get(`/api/audio-files/${encodeURIComponent(fileId)}/versions`);
+}
+
+export async function fetchVersion(fileId, versionNo) {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        const version = (file?.versions || []).find((v) => v.versionNo === Number(versionNo));
+        if (!version) throw Object.assign(new Error('Version not found'), { status: 404 });
+        return { fileId: String(fileId), version };
+    }
+    return http.get(
+        `/api/audio-files/${encodeURIComponent(fileId)}/versions/${encodeURIComponent(versionNo)}`,
+    );
+}
+
+export async function diffVersions(fileId, versionNoA, versionNoB) {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        const versions = file?.versions || [];
+        const a = versions.find((v) => v.versionNo === Number(versionNoA));
+        const b = versions.find((v) => v.versionNo === Number(versionNoB));
+        if (!a || !b) throw Object.assign(new Error('Version not found'), { status: 404 });
+        const keyOf = (e) =>
+            `${e?.segmentId ?? ''}:${e?.wordIndex ?? ''}:${e?.op ?? ''}:${e?.before ?? ''}->${e?.after ?? ''}`;
+        const aMap = new Map((a.edits || []).map((e) => [keyOf(e), e]));
+        const bMap = new Map((b.edits || []).map((e) => [keyOf(e), e]));
+        const onlyInA = [], onlyInB = [], shared = [];
+        for (const [k, e] of aMap) (bMap.has(k) ? shared : onlyInA).push(e);
+        for (const [k, e] of bMap) if (!aMap.has(k)) onlyInB.push(e);
+        return {
+            fileId: String(fileId),
+            from: { versionNo: Number(versionNoA), editCount: (a.edits || []).length },
+            to:   { versionNo: Number(versionNoB), editCount: (b.edits || []).length },
+            onlyInA, onlyInB, shared,
+        };
+    }
+    return http.get(
+        `/api/audio-files/${encodeURIComponent(fileId)}` +
+        `/versions/${encodeURIComponent(versionNoA)}/diff/${encodeURIComponent(versionNoB)}`,
+    );
+}
+
+// Restore version `versionNo`. When the file has a non-empty draft, the
+// server returns 409 with `code: 'DIRTY_DRAFT'` unless `existingDraft`
+// is `'save'` (freeze the draft) or `'discard'` (delete it). Caller is
+// expected to surface the 409 to the user and re-call with the choice.
+export async function restoreVersion(fileId, versionNo, { existingDraft = null } = {}) {
+    requireAuth();
+    if (MOCK_MODE) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        const file = MOCK_FILE_STORE.find((f) => f.id === String(fileId));
+        if (!file) throw Object.assign(new Error('File not found'), { status: 404 });
+        const versions = file.versions || (file.versions = []);
+        const source = versions.find((v) => v.versionNo === Number(versionNo));
+        if (!source) throw Object.assign(new Error('Version not found'), { status: 404 });
+
+        const draftIdx = versions.findIndex((v) => v.isCurrent);
+        const dirty = draftIdx >= 0 && (versions[draftIdx].edits || []).length > 0;
+        if (dirty && !existingDraft) {
+            const err = new Error('A draft with unsaved edits exists.');
+            err.status = 409;
+            err.body = {
+                detail: err.message, code: 'DIRTY_DRAFT',
+                draftVersionNo: versions[draftIdx].versionNo,
+                draftEditCount: (versions[draftIdx].edits || []).length,
+            };
+            throw err;
+        }
+        let disposition = null;
+        if (draftIdx >= 0) {
+            if (existingDraft === 'save') {
+                versions[draftIdx] = { ...versions[draftIdx], isCurrent: false, frozenAt: new Date().toISOString() };
+                disposition = 'saved';
+            } else {
+                versions.splice(draftIdx, 1);
+                disposition = dirty ? 'discarded' : 'discarded-empty';
+            }
+        }
+
+        const nextNo = (versions.reduce((m, v) => Math.max(m, v.versionNo), 0)) + 1;
+        const restored = {
+            id: nextNo,
+            versionNo: nextNo,
+            label: 'restored',
+            isDraft: true,
+            isCurrent: true,
+            createdAt: new Date().toISOString(),
+            createdBy: getCurrentUser()?.id || 'system',
+            createdByName: getCurrentUser()?.name || 'System',
+            frozenAt: null,
+            parentVersionNo: source.versionNo,
+            note: null,
+            edits: [...(source.edits || [])],
+        };
+        versions.push(restored);
+        // Also surface as the file's working edits.
+        file.edits = [...restored.edits];
+        return {
+            fileId: String(fileId),
+            newVersionNo: nextNo,
+            restoredFromVersionNo: source.versionNo,
+            existingDraftDisposition: disposition,
+        };
+    }
+    return http.post(
+        `/api/audio-files/${encodeURIComponent(fileId)}` +
+        `/versions/${encodeURIComponent(versionNo)}/restore`,
+        { existingDraft },
+    );
 }

@@ -7,6 +7,7 @@ import AudioPlayer from '../../../../components/AudioPlayer';
 import Dialog from '../../components/Dialog';
 import PseudonymisationPanel from '../../components/PseudonymisationPanel';
 import SpeakerPickerSection from '../../components/SpeakerPickerSection';
+import TranscriptVersioning from '../../components/TranscriptVersioning';
 import {
     fetchFileDetail,
     saveEdits,
@@ -1024,6 +1025,21 @@ export default function FileDetailPage() {
                             ⚠ AUTO-MASKING SKIPPED
                         </span>
                     )}
+                    <TranscriptVersioning
+                        fileId={id}
+                        onAfterRestore={() => {
+                            fetchFileDetail(id).then((data) => {
+                                if (!data) return;
+                                setFileData(data);
+                                const initial = data.edits || [];
+                                setEdits(initial);
+                                setSavedEdits(initial);
+                                setUndoStack([]);
+                                setRedoStack([]);
+                                setFileStatus(data.status || 'needs action');
+                            });
+                        }}
+                    />
                 </div>
                 <div className="flex items-center gap-3">
                     <SaveStatus

@@ -10,7 +10,7 @@ import {
   subscribe as subscribeNotifications,
   generateNotification,
 } from "@/services/notifications";
-import { TRAINING_JOBS } from "@/services/training-jobs";
+import { TRAINING_JOBS, submitTrainingJob } from "@/services/training-jobs";
 import { getDatasets, subscribeDatasets } from "@/services/datasets";
 import { users } from "@/services/mock_data-users";
 
@@ -20,6 +20,17 @@ import { users } from "@/services/mock_data-users";
 const MOCK_COMPLETION_DELAY_MS = 8000;
 
 const BASE_MODELS = ["Whisper Large-v3", "Whisper Tiny", "MERaLiON", "Qwen3-ASR"];
+
+// Display name → HF base id. The orchestrator persists the HF id so the
+// training-pipeline + adapter_config.json can match (see
+// docs/06 server/metrics-service-module.md §3.2 — base_model + adapter_name
+// is the join key).
+const BASE_MODEL_HF_IDS = {
+  "Whisper Large-v3": "openai/whisper-large-v3-turbo",
+  "Whisper Tiny": "openai/whisper-tiny",
+  "MERaLiON": "MERaLiON/MERaLiON-AudioLLM-Whisper-SEA-LION",
+  "Qwen3-ASR": "Qwen/Qwen3-ASR",
+};
 
 // Datasets are referenced across the training pipeline as `{email}/{timestamp}`
 // so a job can unambiguously re-mount the engineer set its analysis VM was
@@ -221,6 +232,47 @@ export default function TrainingJobsPage() {
   }, [expTarget, envLines, expScriptPath, expJobName]);
 
   const canLaunch = Boolean(expJobName.trim() && expDatasetRef);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  const resetExperimentForm = () => {
+    setSubmitError(null);
+    setShowExperiment(false);
+  };
+
+  const handleLaunchExperiment = async () => {
+    if (!canLaunch || submitting) return;
+    setSubmitError(null);
+    setSubmitting(true);
+    const env = {
+      LORA: expUseLora ? "1" : "0",
+      LEARNING_RATE: String(expLr),
+      EPOCHS: String(expEpochs),
+      BATCH_SIZE: String(expBatchSize),
+    };
+    if (expUseLora) {
+      env.LORA_RANK = String(expLoraRank);
+      env.LORA_ALPHA = String(expLoraAlpha);
+    }
+    if (expTarget === "local") {
+      env.MODEL_CONFIG = expModelConfig;
+      env.SCRIPT_PATH = expScriptPath;
+    }
+    try {
+      await submitTrainingJob({
+        name: expJobName.trim(),
+        target: expTarget,
+        base_model: BASE_MODEL_HF_IDS[expBaseModel] || expBaseModel,
+        dataset_ref: expDatasetRef,
+        env,
+      });
+      resetExperimentForm();
+    } catch (err) {
+      setSubmitError(err?.detail || err?.message || "Failed to submit job");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => () => {
     completionTimersRef.current.forEach((id) => clearTimeout(id));
@@ -522,18 +574,24 @@ export default function TrainingJobsPage() {
               </pre>
             </section>
 
+            {submitError && (
+              <p className="mb-3 text-[0.75rem]" style={{ color: "#b20100" }}>
+                {submitError}
+              </p>
+            )}
             <div className="flex gap-3 pt-2">
               <button
-                onClick={() => setShowExperiment(false)}
-                disabled={!canLaunch}
+                onClick={handleLaunchExperiment}
+                disabled={!canLaunch || submitting}
                 className="flex-1 py-2.5 text-[0.8125rem] font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{ background: "linear-gradient(135deg, #b20100, #e10000)", color: "#ffffff", border: "none", borderRadius: "0px" }}
               >
-                LAUNCH EXPERIMENT
+                {submitting ? "SUBMITTING…" : "LAUNCH EXPERIMENT"}
               </button>
               <button
-                onClick={() => setShowExperiment(false)}
-                className="px-6 py-2.5 text-[0.8125rem] font-medium cursor-pointer"
+                onClick={resetExperimentForm}
+                disabled={submitting}
+                className="px-6 py-2.5 text-[0.8125rem] font-medium cursor-pointer disabled:opacity-40"
                 style={{ backgroundColor: "transparent", border: "1.5px solid rgba(233, 188, 181, 0.3)", borderRadius: "0px", color: "#1c1b1b" }}
               >
                 CANCEL

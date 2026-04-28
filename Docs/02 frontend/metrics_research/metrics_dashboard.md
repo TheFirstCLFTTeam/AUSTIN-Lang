@@ -1,5 +1,7 @@
 # Metrics to consider for the dashboard
 
+> **Implementation status:** each metric below maps onto a `MetricStrategy` in `backend/metrics_service/strategies/` (see [`../../06 server/metrics-service-module.md`](../../06%20server/metrics-service-module.md) §4 for the strategy pattern + how to add a new one). `f1` (Entity-Level F1, §5 of this doc) is the first one shipped; the rest are one-file additions.
+
 For a production-grade ASR system in 2026, we need a **Multi-Dimensional Signal-to-Noise** approach. Some metrics and frameworks to consider are outlined below.
 
 ## Baselines

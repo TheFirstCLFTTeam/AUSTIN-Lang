@@ -88,5 +88,11 @@
     "verb": "signed out",
     "category": "Auth",
     "color": "#7a7574"
+  },
+  "version_restored": {
+    "label": "Version restored",
+    "verb": "restored a previous transcript version",
+    "category": "Authoring",
+    "color": "#9e6a00"
   }
 }

@@ -17,6 +17,8 @@ from transformers import (
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
 from dotenv import load_dotenv
 
+from post_train_hook import post_train_evaluate
+
 load_dotenv()
 
 # --- MONKEY PATCH FOR OLDER TORCH VERSIONS ---
@@ -200,6 +202,11 @@ def train_one_round():
     # is consumed by downstream services. These leak hyperparameters chosen on
     # private data — see fl-dp-risk-assessment.md §4.5 / P5.
     _strip_published_artifacts(OUTPUT_DIR)
+
+    # 10. Best-effort post-train evaluation. Logged-and-swallowed on failure;
+    # training success does not depend on metrics availability. See
+    # docs/06 server/metrics-service-module.md §5.3.
+    post_train_evaluate(adapter_dir=OUTPUT_DIR, adapter_name=ADAPTER_NAME)
 
 
 # Anything not in this allow-list is removed from a saved adapter directory.

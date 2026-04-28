@@ -12,10 +12,15 @@ import { platformDb } from './db';
 // login_failed / logout) are also upserted at module load so login can be
 // audited even on DBs seeded before those keys existed.
 
-const AUTH_EVENT_KEYS = [
+// Catalog keys upserted at module load so the corresponding flows still
+// audit cleanly on DBs that were seeded before those keys existed. Add new
+// entries here AND to seed/fixtures/audit_actions.json so a fresh seed
+// matches.
+const RUNTIME_UPSERT_KEYS = [
     { key: 'login_succeeded', label: 'Login succeeded', verb: 'signed in', category: 'Auth', color: '#1a7f37' },
     { key: 'login_failed', label: 'Login failed', verb: 'tried to sign in with the wrong credentials', category: 'Auth', color: '#b20100' },
     { key: 'logout', label: 'Logout', verb: 'signed out', category: 'Auth', color: '#7a7574' },
+    { key: 'version_restored', label: 'Version restored', verb: 'restored a previous transcript version', category: 'Authoring', color: '#9e6a00' },
 ];
 
 let _catalogEnsured = false;
@@ -25,7 +30,7 @@ function ensureAuthCatalog() {
         `INSERT OR IGNORE INTO audit_action (key, label, verb, category, color)
          VALUES (?, ?, ?, ?, ?)`
     );
-    for (const a of AUTH_EVENT_KEYS) {
+    for (const a of RUNTIME_UPSERT_KEYS) {
         stmt.run(a.key, a.label, a.verb, a.category, a.color);
     }
     _catalogEnsured = true;

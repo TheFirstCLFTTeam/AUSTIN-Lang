@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { requireUser } from '@/server/route-helpers';
 import { getAudioFileDetail } from '@/server/audio-files';
+import { invalidateDetail } from '@/server/cache';
 import { applyEdits } from '@/lib/transcriptEdits';
 
 const ORCHESTRATOR_URL =
@@ -57,6 +58,9 @@ export const POST = requireUser(async (request, { params, user }) => {
                 { status: 502 },
             );
         }
+        // Kicking off a run flips the flag pair on the file detail —
+        // drop the cache so the next read picks up the fresh state.
+        await invalidateDetail(fileId);
         return NextResponse.json(await res.json());
     } catch (err) {
         return NextResponse.json(

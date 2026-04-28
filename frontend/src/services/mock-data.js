@@ -122,3 +122,107 @@ export const MOCK_FILE_STORE = [
     ...ROOT_LEVEL_SAMPLED_FILES,
     ...SAMPLED_DATASET_FILES,
 ];
+
+// Seed a few representative files with non-trivial version histories so the
+// version chip + panel + diff viewer have something to render in mock mode.
+// Files past the first three start out with no versions (UI just shows a
+// "no submissions yet" empty state).
+//
+// Shape mirrors what the real backend returns from
+// GET /api/audio-files/{id}/versions and /versions/{vNo}:
+//   { id, versionNo, label, isDraft, isCurrent, createdAt, createdBy,
+//     createdByName, frozenAt, parentVersionNo, note, edits: [...] }
+//
+// `edits` carries the same word-level objects the editor produces — keep
+// the canonical-key shape (segmentId/wordIndex/op/before/after) so diffs
+// in mock mode match the server's diff algorithm.
+function seedVersionHistoryFor(file, history) {
+    file.versions = history.map((v, i) => ({
+        id: i + 1,
+        versionNo: i + 1,
+        label: v.label,
+        isDraft: v.label === 'draft' && v.isCurrent,
+        isCurrent: !!v.isCurrent,
+        createdAt: v.createdAt,
+        createdBy: v.createdBy,
+        createdByName: v.createdByName,
+        frozenAt: v.isCurrent ? null : (v.frozenAt || v.createdAt),
+        parentVersionNo: i === 0 ? null : i,
+        note: v.note || null,
+        edits: v.edits || [],
+    }));
+}
+
+(function seedDemoVersions() {
+    const targets = MOCK_FILE_STORE.slice(0, 3);
+    if (targets[0]) {
+        seedVersionHistoryFor(targets[0], [
+            {
+                label: 'submitted',
+                createdAt: '2026-04-20T09:00:00Z',
+                createdBy: 'u-larry',
+                createdByName: 'Larry',
+                edits: [
+                    { segmentId: 1, wordIndex: 2, op: 'replace', before: 'Q1', after: 'Q one', editedAt: '2026-04-20T09:00:00Z' },
+                ],
+            },
+            {
+                label: 'changes_requested',
+                createdAt: '2026-04-22T15:30:00Z',
+                createdBy: 'u-priya',
+                createdByName: 'Priya',
+                note: 'Please double-check speaker labels around 12:04',
+                edits: [
+                    { segmentId: 1, wordIndex: 2, op: 'replace', before: 'Q1', after: 'Q one', editedAt: '2026-04-20T09:00:00Z' },
+                    { segmentId: 3, wordIndex: 4, op: 'delete',  before: 'um',   editedAt: '2026-04-22T15:30:00Z' },
+                ],
+            },
+            {
+                label: 'submitted',
+                createdAt: '2026-04-25T10:15:00Z',
+                createdBy: 'u-larry',
+                createdByName: 'Larry',
+                edits: [
+                    { segmentId: 1, wordIndex: 2, op: 'replace', before: 'Q1', after: 'Q one',   editedAt: '2026-04-20T09:00:00Z' },
+                    { segmentId: 3, wordIndex: 4, op: 'delete',  before: 'um',                  editedAt: '2026-04-22T15:30:00Z' },
+                    { segmentId: 5, wordIndex: 0, op: 'replace', before: 'okay', after: 'OK',    editedAt: '2026-04-25T10:15:00Z' },
+                ],
+            },
+        ]);
+    }
+    if (targets[1]) {
+        seedVersionHistoryFor(targets[1], [
+            {
+                label: 'approved',
+                createdAt: '2026-04-18T14:22:00Z',
+                createdBy: 'u-andreas',
+                createdByName: 'Andreas',
+                edits: [],
+            },
+        ]);
+    }
+    if (targets[2]) {
+        seedVersionHistoryFor(targets[2], [
+            {
+                label: 'submitted',
+                createdAt: '2026-04-26T11:00:00Z',
+                createdBy: 'u-larry',
+                createdByName: 'Larry',
+                edits: [
+                    { segmentId: 2, wordIndex: 0, op: 'replace', before: 'okey', after: 'okay', editedAt: '2026-04-26T11:00:00Z' },
+                ],
+            },
+            {
+                label: 'draft',
+                isCurrent: true,
+                createdAt: '2026-04-28T08:30:00Z',
+                createdBy: 'u-larry',
+                createdByName: 'Larry',
+                edits: [
+                    { segmentId: 2, wordIndex: 0, op: 'replace', before: 'okay', after: 'OK', editedAt: '2026-04-28T08:30:00Z' },
+                    { segmentId: 4, wordIndex: 1, op: 'delete',  before: 'so',                editedAt: '2026-04-28T08:32:00Z' },
+                ],
+            },
+        ]);
+    }
+})();

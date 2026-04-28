@@ -83,25 +83,56 @@ services:
       - ZOOM_WEBHOOK_SECRET_TOKEN=${ZOOM_WEBHOOK_SECRET_TOKEN}
       - ALLOW_MOCK_CONNECT=true
 
-  # Redis cache — commented out until the team is ready to wire it in.
-  # See docs/07 Integration CAA 27APR2026/azure-deployment-requirements.md §9
-  # for what we'd use it for (rate limits, CSRF tokens, session caching,
-  # privacy-budget ledger) and the cloud setup. To enable: uncomment this
-  # block, the `redis_data` volume at the bottom, and the `redis` entry in
-  # the frontend's `depends_on` + `REDIS_URL` env var.
+  # Redis cache — read-through cache for /api/audio-files/{id} + per-user
+  # recents list. Treated as fully reconstructible from platform.db, hence
+  # `--appendonly no` and no persistent volume. allkeys-lru gives us a
+  # bounded LRU even if a key forgets to TTL. See
+  # docs/07 Integration CAA 27APR2026/redis-cache-integration.md.
   #
-  # redis:
-  #   image: redis:7-alpine
-  #   command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - redis_data:/data
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 5s
-  #     timeout: 3s
-  #     retries: 5
+  # When prod reuse cases land (rate limits / CSRF tokens / privacy-budget
+  # ledger per azure-deployment-requirements.md §9), bump to AOF + a real
+  # volume — that's a separate Redis instance concern, not this one.
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  training-orchestrator:
+    build: "./backend/training_orchestrator"
+    ports:
+      - "${TRAINING_ORCHESTRATOR_PORT}:${TRAINING_ORCHESTRATOR_PORT}"
+    volumes:
+      - "./backend/training_orchestrator:/app"
+      - training_orchestrator_data:/app/data
+    environment:
+      - TRAINING_ORCHESTRATOR_PORT=${TRAINING_ORCHESTRATOR_PORT}
+      - TRAINING_DB_PATH=/app/data/training_orchestrator.db
+
+  metrics-service:
+    build: "./backend/metrics_service"
+    ports:
+      - "${METRICS_SERVICE_PORT}:${METRICS_SERVICE_PORT}"
+    depends_on:
+      - database
+    volumes:
+      - "./backend/metrics_service:/app"
+      - "./backend/retraining-pipeline/adapters:/app/adapters:ro"
+      - metrics_data:/app/data
+    environment:
+      - METRICS_SERVICE_PORT=${METRICS_SERVICE_PORT}
+      - DATABASE_URL=http://database:${DATABASE_PORT}
+      - METRICS_DB_PATH=/app/data/metrics.db
+      - ADAPTERS_DIR=/app/adapters
+      # Seeds metrics.db with the FE dashboard mock on first boot if the DB
+      # is empty. Set to "false" in prod. See
+      # docs/06 server/metrics-service-module.md §5.3.
+      - SEED_ON_BOOT=${METRICS_SEED_ON_BOOT:-true}
 
   pseudonymisation-orchestrator:
     build: "./backend/pseudonymization/orchestrator"
@@ -133,7 +164,9 @@ services:
       - transcription-orchestrator
       - database
       - pseudonymisation-orchestrator
-      # - redis
+      - metrics-service
+      - training-orchestrator
+      - redis
       - meeting-webhooks
     volumes:
       # Mounted so the real-mode build can read/write the seeded SQLite files.
@@ -146,12 +179,15 @@ services:
       - TRANSCRIPTION_ORCHESTRATOR_URL=http://transcription-orchestrator:${TRANSCRIPTION_ORCHESTRATOR_PORT}
       - BACKEND_DB_URL=http://database:${DATABASE_PORT}
       - PSEUDONYM_ORCHESTRATOR_URL=http://pseudonymisation-orchestrator:${PSEUDONYMISATION_ORCHESTRATOR_PORT}
-      # - REDIS_URL=redis://redis:6379
+      - METRICS_SERVICE_URL=http://metrics-service:${METRICS_SERVICE_PORT}
+      - TRAINING_ORCHESTRATOR_URL=http://training-orchestrator:${TRAINING_ORCHESTRATOR_PORT}
+      - REDIS_URL=redis://redis:6379
       - MEETING_WEBHOOKS_URL=http://meeting-webhooks:8007
       - MEETING_WEBHOOKS_INGEST_SECRET=${MEETING_WEBHOOKS_INGEST_SECRET}
 
 volumes:
   hf_models_cache:
   pseudonymisation_data:
-  # redis_data:
   meeting_webhooks_data:
+  metrics_data:
+  training_orchestrator_data:

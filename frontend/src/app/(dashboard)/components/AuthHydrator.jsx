@@ -2,15 +2,19 @@
 
 // Receives the server-resolved user object from the dashboard layout and
 // writes it into sessionStorage so sync getCurrentUser() call sites resolve
-// without a round-trip. Renders nothing.
+// without a round-trip. Also kicks off the one-time recents hydrate from
+// the Redis-backed /api/recents (see redis-cache-integration.md §7).
+// Renders nothing.
 
 import { useEffect } from 'react';
 import { setCachedUser, bootstrapAuth } from '@/services/api';
+import { hydrateFromServer as hydrateRecentsFromServer } from '@/lib/recents';
 
 export default function AuthHydrator({ user }) {
     useEffect(() => {
         if (user) {
             setCachedUser(user);
+            hydrateRecentsFromServer(user.id);
             return;
         }
         // Fallback: if the server didn't pre-resolve (e.g. API was down during

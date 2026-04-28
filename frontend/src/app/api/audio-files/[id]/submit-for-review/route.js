@@ -13,7 +13,7 @@ export const POST = requireOwnerOrRole(async (request, { params, user }) => {
     }
     const reviewerId = body?.reviewerId || null;
     try {
-        const result = setAudioFileStatus(id, 'in review', user, {
+        const result = await setAudioFileStatus(id, 'in review', user, {
             actionKey: 'submitted_for_review',
             details: { reviewerId },
         });

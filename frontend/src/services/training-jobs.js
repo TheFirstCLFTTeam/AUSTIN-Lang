@@ -2,6 +2,13 @@
 // job detail page, and downstream flows (e.g. dataset export dialog) that
 // need to let the user pick a model tied to an in-flight or queued
 // experiment.
+//
+// The MOCK list below stays as the demo data. The real-mode submission +
+// listing functions at the bottom of the file talk to the
+// training-orchestrator via /api/training-jobs (see
+// docs/07 Integration CAA 27APR2026/training-job-pipeline.md §4.1).
+
+import { readCsrfToken } from './http';
 
 export const TRAINING_JOBS = [
     {
@@ -230,6 +237,89 @@ export function detectMetricsFromLogs(logs) {
     });
 
     return result;
+}
+
+// ---------------------------------------------------------------------------
+// Real-mode orchestrator client (POST /jobs, GET /jobs, cancel)
+// ---------------------------------------------------------------------------
+
+const REQUEST_TIMEOUT_MS = 15000;
+
+const STATE_CHANGING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+async function _request(path, { method = 'GET', body } = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const headers = body
+        ? { Accept: 'application/json', 'Content-Type': 'application/json' }
+        : { Accept: 'application/json' };
+    if (STATE_CHANGING.has(method)) {
+        const csrf = readCsrfToken();
+        if (csrf) headers['X-CSRF-Token'] = csrf;
+    }
+    let res;
+    try {
+        res = await fetch(path, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : undefined,
+            signal: controller.signal,
+            credentials: 'same-origin',
+        });
+    } finally {
+        clearTimeout(timer);
+    }
+    let data = null;
+    const text = await res.text();
+    if (text) {
+        try { data = JSON.parse(text); } catch { /* leave null */ }
+    }
+    if (!res.ok) {
+        const detail = data?.detail || `HTTP ${res.status}`;
+        const err = new Error(`training jobs request failed: ${detail}`);
+        err.status = res.status;
+        err.detail = data?.detail;
+        throw err;
+    }
+    return data;
+}
+
+// POST /api/training-jobs — submit a new job.
+// Body shape mirrors the orchestrator's SubmitJobRequest minus
+// submitted_by, which the proxy stamps from the session cookie.
+export function submitTrainingJob({
+    name,
+    target,
+    base_model,
+    dataset_ref,
+    env = {},
+    data_zone = 'green',
+    fl_enabled = false,
+    dp_enabled = false,
+}) {
+    return _request('/api/training-jobs', {
+        method: 'POST',
+        body: { name, target, base_model, dataset_ref, env, data_zone, fl_enabled, dp_enabled },
+    });
+}
+
+export function listTrainingJobs({ submitter, status, limit } = {}) {
+    const params = new URLSearchParams();
+    if (submitter) params.set('submitter', submitter);
+    if (status) params.set('status', status);
+    if (limit != null) params.set('limit', String(limit));
+    const q = params.toString();
+    return _request(`/api/training-jobs${q ? `?${q}` : ''}`);
+}
+
+export function getTrainingJobDetail(jobId) {
+    return _request(`/api/training-jobs/${encodeURIComponent(jobId)}`);
+}
+
+export function cancelTrainingJob(jobId) {
+    return _request(`/api/training-jobs/${encodeURIComponent(jobId)}/cancel`, {
+        method: 'POST',
+    });
 }
 
 export function getTrainingLogs(job) {
