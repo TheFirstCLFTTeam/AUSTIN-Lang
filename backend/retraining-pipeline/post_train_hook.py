@@ -63,8 +63,18 @@ def post_train_evaluate(
     manifest_path: Optional[str] = None,
     adapter_version: Optional[str] = None,
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    refresh_baseline: bool = True,
 ) -> bool:
     """Fire the evaluation. Returns True on 2xx, False on any failure.
+
+    When `refresh_baseline=True` (the default), a `POST
+    /evaluations/baseline` request fires before the adapter run. The
+    metrics-service short-circuits that call when the latest baseline
+    is within the `METRICS_BASELINE_FRESHNESS_DAYS` window (default
+    30 days), so this is cheap on subsequent training rounds — the
+    expensive inference pass only happens when the baseline is absent
+    or stale. Set `refresh_baseline=False` to skip the call entirely
+    (e.g. when you've just submitted a baseline manually).
 
     Failures are logged at WARNING level. Callers should not branch on the
     return value to gate downstream behaviour — it exists for tests only.
@@ -87,18 +97,33 @@ def post_train_evaluate(
         )
         return False
 
+    resolved_dataset = dataset_name or os.getenv(
+        "EVAL_DATASET_NAME", DEFAULT_DATASET_NAME
+    )
+    resolved_strategies = list(strategies) if strategies else DEFAULT_STRATEGIES
+
+    base_url = url.rstrip("/")
+
+    if refresh_baseline:
+        _maybe_refresh_baseline(
+            base_url=base_url,
+            base_model=base_model,
+            dataset_name=resolved_dataset,
+            manifest_path=resolved_manifest,
+            strategies=resolved_strategies,
+            timeout_seconds=timeout_seconds,
+        )
+
     payload = {
         "adapter_name": adapter_name,
-        "dataset_name": dataset_name or os.getenv(
-            "EVAL_DATASET_NAME", DEFAULT_DATASET_NAME
-        ),
+        "dataset_name": resolved_dataset,
         "manifest_path": resolved_manifest,
-        "strategies": list(strategies) if strategies else DEFAULT_STRATEGIES,
+        "strategies": resolved_strategies,
         "base_model": base_model,
         "adapter_version": adapter_version,
     }
 
-    endpoint = url.rstrip("/") + "/evaluations/run"
+    endpoint = base_url + "/evaluations/run"
     try:
         response = requests.post(endpoint, json=payload, timeout=timeout_seconds)
     except requests.RequestException as err:
@@ -125,3 +150,54 @@ def post_train_evaluate(
     except ValueError:
         log.info("post-train hook: evaluation accepted (non-JSON response)")
     return True
+
+
+def _maybe_refresh_baseline(
+    *,
+    base_url: str,
+    base_model: str,
+    dataset_name: str,
+    manifest_path: str,
+    strategies: list,
+    timeout_seconds: float,
+) -> None:
+    """Best-effort `POST /evaluations/baseline`. The metrics-service
+    short-circuits when the latest baseline is fresh — that's the
+    cheap path. On re-run after a stale window the inference pass
+    fires server-side. Either outcome is logged at INFO; failures
+    swallowed at WARNING (training success doesn't depend on this).
+    """
+    endpoint = base_url + "/evaluations/baseline"
+    payload = {
+        "base_model": base_model,
+        "dataset_name": dataset_name,
+        "manifest_path": manifest_path,
+        "strategies": strategies,
+    }
+    try:
+        response = requests.post(endpoint, json=payload, timeout=timeout_seconds)
+    except requests.RequestException as err:
+        log.warning("post-train hook: baseline POST %s failed: %s", endpoint, err)
+        return
+    if not response.ok:
+        log.warning(
+            "post-train hook: baseline %s returned HTTP %s: %s",
+            endpoint, response.status_code, response.text[:300],
+        )
+        return
+    try:
+        body = response.json()
+    except ValueError:
+        log.info("post-train hook: baseline accepted (non-JSON response)")
+        return
+    if body.get("skipped"):
+        log.info(
+            "post-train hook: baseline skipped — fresh row exists "
+            "(eval id %s, age %.1f days)",
+            body.get("evaluation_id"), body.get("age_days", -1),
+        )
+    else:
+        log.info(
+            "post-train hook: baseline %s recorded for %r on %r",
+            body.get("id"), base_model, dataset_name,
+        )

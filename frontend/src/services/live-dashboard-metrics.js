@@ -25,9 +25,23 @@ export const DEFAULT_SERIES_POINTS = 5;
 
 // Format a raw metric value for the KPI card. The unit determines display:
 // %, ms, k/hr fall through to the existing mock conventions.
+//
+// Percentage scale convention: the dashboard mock uses 0-100 (e.g. 97.2)
+// for any card with `unit: "%"`, but the strategies in
+// metrics_service/strategies/ follow the ML-literature convention of
+// returning fractions (0.0–1.0) for WER/CER/F1/accuracy. We bridge here:
+// when the unit is "%" and the value is in [0, 1.0001], scale by 100
+// before formatting. The 1.0001 epsilon keeps a strategy that
+// genuinely hits 1.0 from being misclassified as a "this is already
+// 0-100" value sitting at 100 (still scales correctly to "100.0%").
+// Anything > 1.0001 is assumed already-scaled (e.g. RTF, latency
+// ratios mistakenly given a "%" unit).
 export function formatMetricValue(value, unit) {
     if (value == null || !Number.isFinite(value)) return '—';
-    if (unit === '%') return `${value.toFixed(1)}%`;
+    if (unit === '%') {
+        const scaled = (value >= 0 && value <= 1.0001) ? value * 100 : value;
+        return `${scaled.toFixed(1)}%`;
+    }
     if (unit === 'ms') return `${Math.round(value)}ms`;
     if (unit === 'k/hr') return `${value.toFixed(1)}k/hr`;
     return String(value);
@@ -36,11 +50,19 @@ export function formatMetricValue(value, unit) {
 // "+0.3% difference" / "-18ms difference" / "+0.4k/hr difference".
 function formatSublabel(delta, unit, lowerIsBetter) {
     if (delta == null || !Number.isFinite(delta)) return null;
-    const sign = delta > 0 ? '+' : '';
-    if (unit === '%') return `${sign}${delta.toFixed(1)}% difference`;
-    if (unit === 'ms') return `${sign}${Math.round(delta)}ms difference`;
-    if (unit === 'k/hr') return `${sign}${delta.toFixed(2)}k/hr difference`;
-    return `${sign}${delta.toFixed(2)} difference`;
+    // Same fraction → percentage scaling as formatMetricValue. The
+    // 1.0001 ceiling is symmetric on the negative side so a delta of
+    // -0.005 (improvement of 0.5 percentage points) renders as
+    // "-0.5% difference", not "-0.0% difference".
+    let scaledDelta = delta;
+    if (unit === '%' && Math.abs(delta) <= 1.0001) {
+        scaledDelta = delta * 100;
+    }
+    const sign = scaledDelta > 0 ? '+' : '';
+    if (unit === '%') return `${sign}${scaledDelta.toFixed(1)}% difference`;
+    if (unit === 'ms') return `${sign}${Math.round(scaledDelta)}ms difference`;
+    if (unit === 'k/hr') return `${sign}${scaledDelta.toFixed(2)}k/hr difference`;
+    return `${sign}${scaledDelta.toFixed(2)} difference`;
     // lowerIsBetter is intentionally not used in the label text — the sign
     // already encodes direction; the renderer's accent colour can flip
     // based on that field if/when we want red-for-up.

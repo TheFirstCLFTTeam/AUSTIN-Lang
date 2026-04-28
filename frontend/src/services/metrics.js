@@ -102,3 +102,27 @@ export function fetchMetricsByDataset({ dataset, baseModel, strategies, seriesPo
     }
     return request(`/api/metrics/by-dataset?${params.toString()}`);
 }
+
+// GET /api/leaderboard?dataset_id=…&base_family=…&only_finetuned=…
+// Response shape:
+//   {
+//     dataset_id, base_family,
+//     rows: [{ rank, base_model, base_family, adapter_name,
+//              adapter_version, model_name, submitted_by,
+//              training_job_id, evaluation_id, evaluated_at,
+//              wer, cer, rtf }, …]
+//   }
+//
+// Returns `{ rows: [] }` (200) when no real evaluations exist for the
+// dataset yet. Distinguish from a 502 (upstream down) so the page can
+// show different fall-back banners — see leaderboard/page.jsx.
+export function fetchLeaderboard({ datasetId, baseFamily, onlyFinetuned, limit } = {}) {
+    if (!datasetId) {
+        return Promise.reject(new Error('fetchLeaderboard: datasetId is required'));
+    }
+    const params = new URLSearchParams({ dataset_id: datasetId });
+    if (baseFamily) params.set('base_family', baseFamily);
+    if (onlyFinetuned != null) params.set('only_finetuned', String(onlyFinetuned));
+    if (limit != null) params.set('limit', String(limit));
+    return request(`/api/leaderboard?${params.toString()}`);
+}

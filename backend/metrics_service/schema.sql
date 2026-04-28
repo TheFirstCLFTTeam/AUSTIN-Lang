@@ -10,7 +10,14 @@ CREATE TABLE IF NOT EXISTS model_evaluation (
     evaluated_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
     sample_count    INTEGER NOT NULL DEFAULT 0,
     status          TEXT NOT NULL DEFAULT 'completed',
-    notes           TEXT
+    notes           TEXT,
+    -- Provenance for the leaderboard endpoint (training-job-pipeline.md §4.7).
+    -- Stamped by the post-train hook when a real training job triggers the
+    -- evaluation; NULL for the seeded mock rows + ad-hoc evals so the
+    -- leaderboard query can WHERE training_job_id IS NOT NULL to filter
+    -- competition rows from baseline / synthetic data.
+    training_job_id TEXT,
+    submitted_by    TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_model_evaluation_lookup

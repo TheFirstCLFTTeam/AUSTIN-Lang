@@ -55,6 +55,105 @@ def test_skips_when_metrics_url_unset(tmp_path, monkeypatch):
     post.assert_not_called()
 
 
+def test_baseline_refresh_call_fires_before_adapter_run(tmp_path):
+    """When refresh_baseline=True (default), the hook hits
+    /evaluations/baseline first, then /evaluations/run for the
+    adapter."""
+    adapter_dir = _write_adapter(tmp_path)
+    manifest = _write_manifest(tmp_path)
+
+    calls = []
+
+    def _fake_post(url, json=None, timeout=None):
+        calls.append((url, json))
+        return _ok_response({"id": 7, "skipped": False})
+
+    with patch("post_train_hook.requests.post", side_effect=_fake_post):
+        ok = post_train_evaluate(
+            adapter_dir=str(adapter_dir),
+            adapter_name="fypaudio",
+            manifest_path=manifest,
+            metrics_service_url="http://metrics:8006",
+        )
+    assert ok is True
+    # Two calls: baseline then run, in that order.
+    assert len(calls) == 2
+    assert calls[0][0].endswith("/evaluations/baseline")
+    assert calls[1][0].endswith("/evaluations/run")
+
+
+def test_refresh_baseline_false_skips_baseline_call(tmp_path):
+    adapter_dir = _write_adapter(tmp_path)
+    manifest = _write_manifest(tmp_path)
+
+    calls = []
+
+    def _fake_post(url, json=None, timeout=None):
+        calls.append(url)
+        return _ok_response({"id": 7})
+
+    with patch("post_train_hook.requests.post", side_effect=_fake_post):
+        post_train_evaluate(
+            adapter_dir=str(adapter_dir),
+            adapter_name="fypaudio",
+            manifest_path=manifest,
+            metrics_service_url="http://metrics:8006",
+            refresh_baseline=False,
+        )
+    assert len(calls) == 1
+    assert calls[0].endswith("/evaluations/run")
+
+
+def test_baseline_refresh_failure_does_not_block_adapter_run(tmp_path):
+    """A flaky baseline call must not stop the adapter eval — that's the
+    fail-soft contract documented in the hook docstring."""
+    adapter_dir = _write_adapter(tmp_path)
+    manifest = _write_manifest(tmp_path)
+
+    def _fake_post(url, json=None, timeout=None):
+        if "baseline" in url:
+            raise requests.ConnectionError("baseline upstream down")
+        return _ok_response({"id": 7})
+
+    with patch("post_train_hook.requests.post", side_effect=_fake_post):
+        ok = post_train_evaluate(
+            adapter_dir=str(adapter_dir),
+            adapter_name="fypaudio",
+            manifest_path=manifest,
+            metrics_service_url="http://metrics:8006",
+        )
+    assert ok is True
+
+
+def test_baseline_skipped_response_is_logged_at_info(tmp_path, caplog):
+    """When the baseline endpoint short-circuits (fresh row), the hook
+    should log an INFO line acknowledging the skip — not WARNING."""
+    adapter_dir = _write_adapter(tmp_path)
+    manifest = _write_manifest(tmp_path)
+
+    def _fake_post(url, json=None, timeout=None):
+        if "baseline" in url:
+            return _ok_response({
+                "skipped": True,
+                "evaluation_id": 99,
+                "age_days": 3.5,
+                "reason": "within window",
+            })
+        return _ok_response({"id": 7})
+
+    import logging
+    with caplog.at_level(logging.INFO, logger="post_train_hook"):
+        with patch("post_train_hook.requests.post", side_effect=_fake_post):
+            post_train_evaluate(
+                adapter_dir=str(adapter_dir),
+                adapter_name="fypaudio",
+                manifest_path=manifest,
+                metrics_service_url="http://metrics:8006",
+            )
+    skip_log = [r for r in caplog.records if "baseline skipped" in r.message]
+    assert skip_log, f"expected 'baseline skipped' log line, got {[r.message for r in caplog.records]}"
+
+
 def test_skips_when_adapter_config_missing(tmp_path):
     adapter_dir = tmp_path / "anon"
     adapter_dir.mkdir()
@@ -113,6 +212,7 @@ def test_posts_expected_payload(tmp_path):
             manifest_path=manifest,
             metrics_service_url="http://metrics:8006/",
             adapter_version="abc123",
+            refresh_baseline=False,
         )
 
     assert ok is True

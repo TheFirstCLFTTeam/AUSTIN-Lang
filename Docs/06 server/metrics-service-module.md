@@ -165,16 +165,28 @@ Today's overlap (real strategy auto-flows to dashboard card):
 | Real strategy | Dashboard card it surfaces in | Notes |
 |---|---|---|
 | `sequence_match_rate` | `sequence_match_rate` | Direct match — name is a display ID |
+| `financial_term_accuracy` | `financial_term_accuracy` | Direct match — slice 4 of the financial-terms-dictionary work |
+| `weighted_wer` | `weighted_wer` | Direct match (2026-04-28) — consumes `Sample.info_values`; falls back to uniform weights when missing |
+| `language_cer` | `language_cer` | Direct match (2026-04-28) — groups by `Sample.language`, macro-averages |
+| `entity_f1` | `entity_f1` | Direct match (2026-04-28) — closed-set span recovery via `Sample.entity_spans` |
+| `punctuation_accuracy` | `punctuation_accuracy` | Direct match (2026-04-28) — no manifest metadata required |
+| `english_accuracy` | `english_accuracy` | Direct match (2026-04-28) — `(1 - WER)` on samples tagged `en` / `en-us` / `en-gb` / `en-sg` / etc. |
+| `mandarin_accuracy` | `mandarin_accuracy` | Direct match (2026-04-28) — `(1 - WER)` on samples tagged `zh` / `zh-cn` / `zh-tw` / `cmn` (Cantonese excluded; `tokenisation_warning` flag in breakdown when avg tokens-per-sample < 3, signalling unsegmented CJK) |
+| `code_switch_pier` | `code_switch_pier` | Direct match (2026-04-28) — fraction of intra-sentence language-tagged spans the model dropped. Consumes `Sample.language_spans`; per-language `recovered.<lang>` + `total.<lang>` in breakdown |
+| `word_diarization_error` | `word_diarization_error` | Direct match (2026-04-28) — char-aligned ref ↔ hyp speaker disagreement. Consumes `Sample.speakers` + `Sample.hypothesis_speakers`. Today's pipeline doesn't produce hyp-side speakers → metric short-circuits with `samples_skipped_no_hypothesis_speakers` (auto-flows when WhisperX/pyannote lands) |
+| `speaker_diarization` | `speaker_diarization` | Direct match (2026-04-28) — Jaccard distance over the speaker *sets* on each side (ref ∆ hyp / ref ∪ hyp). Proxy for full DER until time-aligned diarization output exists; same skip-on-no-hyp-speakers semantics as WDER |
 
-The other four shipped strategies (`f1`, `wer`, `cer`) don't yet auto-flow because the dashboard's matching cards expect richer variants:
+The generic strategies (`f1`, `wer`, `cer`) keep their semantic names; the dashboard merge layer falls back to them when no specialised metric ran.
 
-| Real strategy | Closest dashboard card | What's missing for auto-flow |
-|---|---|---|
-| `f1` | `entity_f1` | `f1` is generic token F1; the card implies entity-tagged F1 (needs entity tags in the manifest) |
-| `wer` | `weighted_wer` | The card implies weighted WER (needs per-word `info_value` weights) |
-| `cer` | `language_cer` | The card implies per-language stratification (needs language tag per sample) |
+`Sample` was extended (2026-04-28) with three optional fields to feed the new strategies — see `strategies/base.py`:
 
-The "missing" pieces are all manifest-format additions (richer `tags` on `Sample`). When a strategy is upgraded to consume those, rename it to match the dashboard ID and the FE merge layer picks it up automatically — no FE change required.
+- `info_values: Optional[List[float]]` — per-word weight aligned to `tokenise_words(reference)`
+- `language: Optional[str]` — BCP-47 short form
+- `entity_spans: Optional[List[Tuple[int, int, str]]]` — half-open char ranges + label
+
+`manifest_loader.py` parses + validates the new fields; legacy manifests stay valid (`None` defaults).
+
+**All 9 dashboard strategies have shipped as of 2026-04-28.** Three of them (`word_diarization_error`, `speaker_diarization`, `code_switch_pier`) consume manifest fields the current ASR pipeline doesn't yet populate on the hypothesis side — they ship correctly-shaped and short-circuit with explicit `samples_skipped_*` counters until a diarisation post-processor (e.g. WhisperX + pyannote) and language-id pass land. The metrics auto-flow the day those become available; no schema change required.
 
 ---
 

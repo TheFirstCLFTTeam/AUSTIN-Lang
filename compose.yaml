@@ -120,6 +120,7 @@ services:
       - "${METRICS_SERVICE_PORT}:${METRICS_SERVICE_PORT}"
     depends_on:
       - database
+      - transcription-service-2
     volumes:
       - "./backend/metrics_service:/app"
       - "./backend/retraining-pipeline/adapters:/app/adapters:ro"
@@ -133,6 +134,12 @@ services:
       # is empty. Set to "false" in prod. See
       # docs/06 server/metrics-service-module.md §5.3.
       - SEED_ON_BOOT=${METRICS_SEED_ON_BOOT:-true}
+      # Inference fan-out (§3.1 #2): when an eval manifest declares
+      # audio_path but no hypothesis, metrics-service POSTs each clip
+      # here to fill it in. Concurrency is capped to avoid starving
+      # the GPU.
+      - TRANSCRIPTION_SERVICE_2_URL=http://transcription-service-2:8005
+      - INFERENCE_FANOUT_CONCURRENCY=${INFERENCE_FANOUT_CONCURRENCY:-4}
 
   financial-terms-dictionary:
     build: "./backend/Financial_terms_dictionary"

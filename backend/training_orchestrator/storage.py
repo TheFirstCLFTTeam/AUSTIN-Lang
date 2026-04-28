@@ -49,6 +49,10 @@ class TrainingJobRecord:
     started_at: Optional[str]
     finished_at: Optional[str]
     failure_reason: Optional[str]
+    script_filename: Optional[str] = None
+    script_sha256: Optional[str] = None
+    script_size_bytes: Optional[int] = None
+    script_uploaded_at: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -89,6 +93,29 @@ class JobStore:
     def _init_schema(self) -> None:
         with self._conn() as conn:
             conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+            # Idempotent ALTERs: when this binary runs against a DB that
+            # was created before the script-upload columns landed, the
+            # CREATE TABLE IF NOT EXISTS above is a no-op and the new
+            # columns are missing. Add them on the fly. SQLite raises
+            # OperationalError("duplicate column name") if they're
+            # already present — swallow it.
+            for col_def in (
+                "script_filename TEXT",
+                "script_sha256 TEXT",
+                "script_size_bytes INTEGER",
+                "script_uploaded_at TEXT",
+                # base_model_id (FK to base_model.id) — nullable for
+                # backwards compat with rows submitted before the
+                # registry tables existed; the existing string column
+                # `base_model` (HF id, never null) stays canonical for
+                # those rows.
+                "base_model_id TEXT REFERENCES base_model(id)",
+            ):
+                try:
+                    conn.execute(f"ALTER TABLE training_job ADD COLUMN {col_def}")
+                except sqlite3.OperationalError as exc:
+                    if "duplicate column" not in str(exc).lower():
+                        raise
 
     def submit(
         self,
@@ -234,6 +261,43 @@ class JobStore:
     def cancel(self, job_id: str) -> TrainingJobRecord:
         return self.transition(job_id, "cancelled")
 
+    def attach_script(
+        self,
+        job_id: str,
+        *,
+        filename: str,
+        sha256: str,
+        size_bytes: int,
+    ) -> TrainingJobRecord:
+        """Stamp script metadata on a job record. Allowed only while the
+        job is still `queued` — once a worker has picked it up, the
+        script the orchestrator records must match what actually ran.
+        Uploaded_at uses microsecond-precision UTC for stable ordering."""
+        record = self.get(job_id)
+        if record is None:
+            raise JobError(f"job {job_id!r} not found", status_code=404)
+        if record.status != "queued":
+            raise JobError(
+                f"script can only be uploaded while job is queued; "
+                f"job {job_id!r} is {record.status!r}",
+                status_code=409,
+            )
+        uploaded_at = _utc_iso_now()
+        with self._conn() as conn:
+            with conn:
+                conn.execute(
+                    """UPDATE training_job
+                       SET script_filename = ?,
+                           script_sha256 = ?,
+                           script_size_bytes = ?,
+                           script_uploaded_at = ?
+                       WHERE id = ?""",
+                    (filename, sha256, int(size_bytes), uploaded_at, job_id),
+                )
+        updated = self.get(job_id)
+        assert updated is not None
+        return updated
+
     def update_progress(self, job_id: str, progress_pct: float) -> TrainingJobRecord:
         """Set progress_pct without changing status. Used by the real
         worker to stream training progress between status transitions —
@@ -265,6 +329,7 @@ def _row_to_record(row: sqlite3.Row) -> TrainingJobRecord:
         env = json.loads(env_raw)
     except json.JSONDecodeError:
         env = {}
+    keys = row.keys()
     return TrainingJobRecord(
         id=row["id"],
         name=row["name"],
@@ -282,4 +347,8 @@ def _row_to_record(row: sqlite3.Row) -> TrainingJobRecord:
         started_at=row["started_at"],
         finished_at=row["finished_at"],
         failure_reason=row["failure_reason"],
+        script_filename=row["script_filename"] if "script_filename" in keys else None,
+        script_sha256=row["script_sha256"] if "script_sha256" in keys else None,
+        script_size_bytes=row["script_size_bytes"] if "script_size_bytes" in keys else None,
+        script_uploaded_at=row["script_uploaded_at"] if "script_uploaded_at" in keys else None,
     )

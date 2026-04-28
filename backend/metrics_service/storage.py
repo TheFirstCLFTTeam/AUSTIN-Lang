@@ -25,6 +25,28 @@ class EvaluationRecord:
     sample_count: int
     status: str
     notes: Optional[str]
+    training_job_id: Optional[str] = None
+    submitted_by: Optional[str] = None
+
+
+@dataclass
+class LeaderboardRow:
+    """Denormalised leaderboard row — one entry per (base_model,
+    adapter_name) on a dataset, picking the latest evaluation. WER/CER/
+    RTF are pulled from `evaluation_metric` and pivoted column-wise so
+    a single SQL query produces the full ranking without per-row
+    enrichment."""
+    base_model: str
+    adapter_name: Optional[str]
+    adapter_version: Optional[str]
+    dataset_name: str
+    evaluated_at: str
+    training_job_id: Optional[str]
+    submitted_by: Optional[str]
+    wer: Optional[float]
+    cer: Optional[float]
+    rtf: Optional[float]
+    evaluation_id: int
 
 
 @dataclass
@@ -83,6 +105,18 @@ class MetricsStore:
         ddl = SCHEMA_PATH.read_text(encoding="utf-8")
         with self._conn() as conn:
             conn.executescript(ddl)
+            # Idempotent retro-fit for long-running DBs created before
+            # the leaderboard provenance columns landed. Same pattern
+            # used in training_orchestrator/storage.py for script_*.
+            for col_def in (
+                "training_job_id TEXT",
+                "submitted_by TEXT",
+            ):
+                try:
+                    conn.execute(f"ALTER TABLE model_evaluation ADD COLUMN {col_def}")
+                except sqlite3.OperationalError as exc:
+                    if "duplicate column" not in str(exc).lower():
+                        raise
 
     def record_evaluation(
         self,
@@ -96,6 +130,8 @@ class MetricsStore:
         evaluated_at: Optional[str] = None,
         status: str = "completed",
         notes: Optional[str] = None,
+        training_job_id: Optional[str] = None,
+        submitted_by: Optional[str] = None,
     ) -> int:
         evaluated_at = evaluated_at or _utc_iso_now()
         with self._conn() as conn:
@@ -103,8 +139,9 @@ class MetricsStore:
                 cur = conn.execute(
                     """INSERT INTO model_evaluation
                        (base_model, adapter_name, adapter_version, dataset_name,
-                        evaluated_at, sample_count, status, notes)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        evaluated_at, sample_count, status, notes,
+                        training_job_id, submitted_by)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         base_model,
                         adapter_name,
@@ -114,6 +151,8 @@ class MetricsStore:
                         sample_count,
                         status,
                         notes,
+                        training_job_id,
+                        submitted_by,
                     ),
                 )
                 evaluation_id = cur.lastrowid
@@ -218,6 +257,162 @@ class MetricsStore:
                 # FK CASCADE removes the matching evaluation_metric rows.
                 return cur.rowcount
 
+    def latest_baseline_age_days(
+        self,
+        *,
+        base_model: str,
+        dataset_name: str,
+    ) -> Optional[float]:
+        """Days elapsed since the most recent base-only (`adapter_name IS NULL`)
+        evaluation row for `(base_model, dataset_name)`. Returns None when
+        no baseline row exists. Days as a float so sub-day comparisons
+        work for the test suite.
+
+        Drives `METRICS_BASELINE_FRESHNESS_DAYS` enforcement in the
+        post-train hook + the `/evaluations/baseline` short-circuit
+        (training-job-pipeline.md §3.1 pending #3 / metrics-service-
+        module.md §5.4).
+        """
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT evaluated_at FROM model_evaluation "
+                "WHERE base_model = ? AND dataset_name = ? "
+                "  AND adapter_name IS NULL AND status = 'completed' "
+                "ORDER BY evaluated_at DESC, id DESC LIMIT 1",
+                (base_model, dataset_name),
+            ).fetchone()
+        if not row:
+            return None
+        try:
+            ts = datetime.strptime(row["evaluated_at"], "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError:
+            try:
+                ts = datetime.strptime(
+                    row["evaluated_at"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                )
+            except ValueError:
+                return None
+        ts = ts.replace(tzinfo=timezone.utc)
+        delta = datetime.now(timezone.utc) - ts
+        return delta.total_seconds() / 86400.0
+
+    def is_baseline_fresh(
+        self,
+        *,
+        base_model: str,
+        dataset_name: str,
+        freshness_days: float,
+    ) -> bool:
+        """True when the latest baseline for the pair is within the
+        freshness window. False when no baseline exists OR the latest
+        is stale. The post-train hook treats this as "skip the baseline
+        re-run if True"."""
+        age = self.latest_baseline_age_days(
+            base_model=base_model, dataset_name=dataset_name,
+        )
+        if age is None:
+            return False
+        return age <= freshness_days
+
+    def list_leaderboard(
+        self,
+        *,
+        dataset_name: str,
+        base_family: Optional[str] = None,
+        only_finetuned: bool = True,
+        limit: int = 100,
+    ) -> List[LeaderboardRow]:
+        """Latest evaluation per (base_model, adapter_name) on a dataset,
+        with WER/CER/RTF pivoted out of evaluation_metric so the FE gets
+        a flat row shape ready to render. Sorted by WER ascending (lower
+        is better) — rows with no WER recorded sort to the bottom.
+
+        `base_family` filters by HF-id prefix (e.g. 'whisper' matches
+        'openai/whisper-large-v3-turbo' and 'openai/whisper-tiny'). The
+        comparison is a case-insensitive substring on the slash-tail of
+        `base_model` so it works for both 'openai/whisper-…' and the
+        bare-id rows that older fixtures use.
+
+        `only_finetuned=True` (default) excludes adapter_name IS NULL
+        rows so the leaderboard ranks fine-tunes against each other,
+        not against their own baselines. Set False to include base rows
+        when the caller wants a single combined chart.
+        """
+        # Step 1: find the latest evaluation_id per (base_model, adapter_name)
+        # on this dataset. Use a window-style aggregate via correlated
+        # subquery — SQLite has supported window functions since 3.25
+        # but the simpler subquery form keeps the SQL portable.
+        clauses = ["dataset_name = ?", "status = 'completed'"]
+        params: List[Any] = [dataset_name]
+        if only_finetuned:
+            clauses.append("adapter_name IS NOT NULL")
+        if base_family:
+            clauses.append("LOWER(base_model) LIKE ?")
+            params.append(f"%{base_family.lower()}%")
+        where = " AND ".join(clauses)
+
+        # Latest row per (base_model, COALESCE(adapter_name, '__base__'))
+        # to keep null-safe grouping.
+        latest_sql = f"""
+            SELECT id, base_model, adapter_name, adapter_version, dataset_name,
+                   evaluated_at, training_job_id, submitted_by
+            FROM model_evaluation me
+            WHERE {where}
+              AND id = (
+                  SELECT id FROM model_evaluation
+                  WHERE base_model = me.base_model
+                    AND COALESCE(adapter_name, '__base__') = COALESCE(me.adapter_name, '__base__')
+                    AND dataset_name = me.dataset_name
+                    AND status = 'completed'
+                  ORDER BY evaluated_at DESC, id DESC LIMIT 1
+              )
+            LIMIT ?
+        """
+        params.append(int(limit))
+
+        with self._conn() as conn:
+            latest_rows = conn.execute(latest_sql, params).fetchall()
+            if not latest_rows:
+                return []
+
+            # Step 2: pull WER/CER/RTF for each evaluation in one query.
+            ids = [r["id"] for r in latest_rows]
+            placeholders = ",".join("?" for _ in ids)
+            metric_rows = conn.execute(
+                f"""SELECT evaluation_id, strategy_name, value
+                    FROM evaluation_metric
+                    WHERE evaluation_id IN ({placeholders})
+                      AND strategy_name IN ('wer', 'cer', 'rtf')""",
+                ids,
+            ).fetchall()
+
+        # Pivot: evaluation_id → {wer, cer, rtf}.
+        per_eval: Dict[int, Dict[str, float]] = {}
+        for m in metric_rows:
+            per_eval.setdefault(m["evaluation_id"], {})[m["strategy_name"]] = float(m["value"])
+
+        out: List[LeaderboardRow] = []
+        for r in latest_rows:
+            metrics = per_eval.get(r["id"], {})
+            keys = r.keys()
+            out.append(LeaderboardRow(
+                base_model=r["base_model"],
+                adapter_name=r["adapter_name"],
+                adapter_version=r["adapter_version"],
+                dataset_name=r["dataset_name"],
+                evaluated_at=r["evaluated_at"],
+                training_job_id=r["training_job_id"] if "training_job_id" in keys else None,
+                submitted_by=r["submitted_by"] if "submitted_by" in keys else None,
+                wer=metrics.get("wer"),
+                cer=metrics.get("cer"),
+                rtf=metrics.get("rtf"),
+                evaluation_id=r["id"],
+            ))
+
+        # Sort by WER asc; rows without WER sink to the bottom.
+        out.sort(key=lambda x: (x.wer is None, x.wer if x.wer is not None else 0.0))
+        return out
+
     def latest_metric_series(
         self,
         *,
@@ -319,6 +514,7 @@ class MetricsStore:
 
 
 def _row_to_evaluation(row: sqlite3.Row) -> EvaluationRecord:
+    keys = row.keys()
     return EvaluationRecord(
         id=row["id"],
         base_model=row["base_model"],
@@ -329,6 +525,8 @@ def _row_to_evaluation(row: sqlite3.Row) -> EvaluationRecord:
         sample_count=row["sample_count"],
         status=row["status"],
         notes=row["notes"],
+        training_job_id=row["training_job_id"] if "training_job_id" in keys else None,
+        submitted_by=row["submitted_by"] if "submitted_by" in keys else None,
     )
 
 

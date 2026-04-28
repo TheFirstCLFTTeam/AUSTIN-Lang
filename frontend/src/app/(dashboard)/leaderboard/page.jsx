@@ -19,7 +19,42 @@ import {
   getCustomMockLeaderboard,
   hasCustomMockLeaderboard,
 } from '@/services/mock_data-leaderboard-custom';
+import { fetchLeaderboard } from '@/services/metrics';
+import { users as MOCK_USERS } from '@/services/mock_data-users';
 import SubmissionDrawer from './SubmissionDrawer';
+
+const MOCK_API = process.env.NEXT_PUBLIC_MOCK_API === 'true';
+
+// Adapter — turn a metrics-service row into the shape the page renders.
+// Engineer-attribution lookup falls back to the user id when the live
+// rows haven't been reconciled with users.db yet (the mock leaderboard
+// uses fake ids like `eng-priya` that don't exist in users.db; the
+// reconciliation work is tracked separately, see backend_integration_
+// status.md §3.2 work item 3).
+function adaptLiveLeaderboardRow(r) {
+  const userId = r.submitted_by || null;
+  const displayName = (() => {
+    if (!userId) return 'Unknown engineer';
+    const user = MOCK_USERS.find((u) => u.id === userId);
+    return user?.name || userId;
+  })();
+  return {
+    id: `eval-${r.evaluation_id}`,
+    engineerId: userId || 'unknown',
+    engineerName: displayName,
+    modelName: r.model_name || r.base_model,
+    baseFamily: r.base_family || 'custom',
+    wer: r.wer ?? null,
+    cer: r.cer ?? null,
+    rtf: r.rtf ?? null,
+    submissionCount: 1,  // server doesn't yet aggregate; one row per pair
+    submittedAt: r.evaluated_at,
+    reproducibility: { config: false, checkpoint: false, notebook: false },
+    worstExamples: [],
+    trainingJobId: r.training_job_id || null,
+    live: true,
+  };
+}
 
 const HEADER_TOOLTIPS = {
   engineer: 'The engineer in your user group who submitted this model. The row with a "You" badge is yours.',
@@ -157,6 +192,15 @@ export default function LeaderboardPage() {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [familyFilter, setFamilyFilter] = useState('all');
+  // Live rows from metrics-service for the currently-selected dataset.
+  // null = haven't fetched yet (mock mode, or first paint); empty array
+  // = fetched but empty (real mode + no real submissions yet → fall
+  // back to mock); populated array = real-mode wins, mock is hidden.
+  const [liveRows, setLiveRows] = useState(null);
+  // 'mock' (NEXT_PUBLIC_MOCK_API=true) | 'live' (got real rows) |
+  // 'empty-fallback' (real mode + 0 rows) | 'error-fallback' (fetch
+  // failed). Drives the small banner above the table.
+  const [liveSource, setLiveSource] = useState(MOCK_API ? 'mock' : 'pending');
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -205,6 +249,32 @@ export default function LeaderboardPage() {
     return allOptions.find((o) => o.id === datasetId) || null;
   }, [allOptions, datasetId]);
 
+  // Live-mode fetch. Re-runs every time the dataset selection changes;
+  // mock mode short-circuits so the existing fixture path stays exact.
+  useEffect(() => {
+    if (MOCK_API || !datasetId) {
+      setLiveRows(null);
+      return undefined;
+    }
+    let cancelled = false;
+    setLiveSource('pending');
+    fetchLeaderboard({ datasetId })
+      .then((body) => {
+        if (cancelled) return;
+        const adapted = (body?.rows || []).map(adaptLiveLeaderboardRow);
+        setLiveRows(adapted);
+        setLiveSource(adapted.length > 0 ? 'live' : 'empty-fallback');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setLiveRows(null);
+        setLiveSource('error-fallback');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [datasetId]);
+
   // Scope rows to the viewer's Access Permissions group. Admins bypass
   // scoping (they supervise every group); engineers see their own group plus
   // the baseline reference line they're trying to beat; anyone else sees
@@ -219,11 +289,20 @@ export default function LeaderboardPage() {
 
   const rows = useMemo(() => {
     if (!datasetId) return [];
-    const sourceIds = new Set(getLeaderboardDatasets());
+    // Real-mode rows win when they exist. Empty real result + mock
+    // available → show mock so the page has visual content (the
+    // banner spells out the fallback). All-or-nothing: never merge
+    // real + mock rankings into one ranked list — that would mix
+    // engineer attribution from two timelines and confuse the user.
     let all = [];
-    if (sourceIds.has(datasetId)) all = getLeaderboard(datasetId);
-    else if (hasCustomMockLeaderboard(datasetId)) all = getCustomMockLeaderboard(datasetId);
-    else all = []; // real user-curated → no submissions yet
+    if (!MOCK_API && liveRows && liveRows.length > 0) {
+      all = liveRows;
+    } else {
+      const sourceIds = new Set(getLeaderboardDatasets());
+      if (sourceIds.has(datasetId)) all = getLeaderboard(datasetId);
+      else if (hasCustomMockLeaderboard(datasetId)) all = getCustomMockLeaderboard(datasetId);
+      else all = [];
+    }
 
     let scoped;
     if (isAdminView) {
@@ -239,17 +318,21 @@ export default function LeaderboardPage() {
 
     if (familyFilter === 'all') return scoped;
     return scoped.filter((r) => r.baseFamily === familyFilter);
-  }, [datasetId, familyFilter, viewerAccessGroup, isAdminView, isEngineerView]);
+  }, [datasetId, familyFilter, viewerAccessGroup, isAdminView, isEngineerView, liveRows]);
 
   // Family chips are derived from the already-scoped rows (ignoring the active
   // family filter so all chips stay visible once one is selected), so a family
   // with no rows in the viewer's group doesn't render as an empty chip.
   const familyOptions = useMemo(() => {
     if (!datasetId) return [];
-    const sourceIds = new Set(getLeaderboardDatasets());
     let all = [];
-    if (sourceIds.has(datasetId)) all = getLeaderboard(datasetId);
-    else if (hasCustomMockLeaderboard(datasetId)) all = getCustomMockLeaderboard(datasetId);
+    if (!MOCK_API && liveRows && liveRows.length > 0) {
+      all = liveRows;
+    } else {
+      const sourceIds = new Set(getLeaderboardDatasets());
+      if (sourceIds.has(datasetId)) all = getLeaderboard(datasetId);
+      else if (hasCustomMockLeaderboard(datasetId)) all = getCustomMockLeaderboard(datasetId);
+    }
 
     let scoped;
     if (isAdminView) {
@@ -264,7 +347,7 @@ export default function LeaderboardPage() {
     }
 
     return Array.from(new Set(scoped.map((r) => r.baseFamily)));
-  }, [datasetId, viewerAccessGroup, isAdminView, isEngineerView]);
+  }, [datasetId, viewerAccessGroup, isAdminView, isEngineerView, liveRows]);
 
   const yourRow = useMemo(() => {
     if (!currentUser || rows.length === 0) return null;
@@ -281,6 +364,21 @@ export default function LeaderboardPage() {
         <span className="uppercase tracking-widest" style={{ color: '#b20100' }}>Engineering</span>
         <span>/</span>
         <span className="uppercase tracking-widest">Leaderboard</span>
+        {liveSource === 'live' && (
+          <span className="ml-3 px-2 py-0.5 text-[0.625rem] font-semibold uppercase" style={{ backgroundColor: 'rgba(16, 122, 87, 0.1)', color: '#107a57' }}>
+            LIVE
+          </span>
+        )}
+        {liveSource === 'empty-fallback' && (
+          <span className="ml-3 px-2 py-0.5 text-[0.625rem] font-semibold uppercase" style={{ backgroundColor: 'rgba(0, 78, 198, 0.06)', color: '#004ec6' }}>
+            DEMO DATA &mdash; NO LIVE SUBMISSIONS YET
+          </span>
+        )}
+        {liveSource === 'error-fallback' && (
+          <span className="ml-3 px-2 py-0.5 text-[0.625rem] font-semibold uppercase" style={{ backgroundColor: 'rgba(178, 1, 0, 0.12)', color: '#7a0000' }}>
+            METRICS UNREACHABLE &mdash; SHOWING MOCKS
+          </span>
+        )}
       </div>
 
       {/* Header */}

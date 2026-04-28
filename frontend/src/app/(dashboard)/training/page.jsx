@@ -10,7 +10,13 @@ import {
   subscribe as subscribeNotifications,
   generateNotification,
 } from "@/services/notifications";
-import { TRAINING_JOBS, submitTrainingJob } from "@/services/training-jobs";
+import {
+  TRAINING_JOBS,
+  adaptOrchestratorJob,
+  listTrainingJobs,
+  submitTrainingJob,
+  uploadTrainingScript,
+} from "@/services/training-jobs";
 import { getDatasets, subscribeDatasets } from "@/services/datasets";
 import { users } from "@/services/mock_data-users";
 
@@ -18,6 +24,15 @@ import { users } from "@/services/mock_data-users";
 // notification. In production this would be replaced by a real event
 // (websocket / polling) — and by a Teams webhook for external delivery.
 const MOCK_COMPLETION_DELAY_MS = 8000;
+
+const MOCK_API = process.env.NEXT_PUBLIC_MOCK_API === 'true';
+
+// How often to refresh the job list while the page is open. The
+// orchestrator's simulated worker walks a job through queued → published
+// in ~30 s, so 5 s gives roughly one update per state transition. The
+// detail page already SSE-streams the per-job log; this is just the
+// list-page row refresh.
+const LIST_POLL_INTERVAL_MS = 5000;
 
 const BASE_MODELS = ["Whisper Large-v3", "Whisper Tiny", "MERaLiON", "Qwen3-ASR"];
 
@@ -51,6 +66,9 @@ function StatusBadge({ status }) {
     running: { bg: "rgba(178, 1, 0, 0.08)", color: "#b20100", label: "RUNNING" },
     paused: { bg: "rgba(122, 117, 116, 0.1)", color: "#7a7574", label: "PAUSED" },
     queued: { bg: "rgba(0, 78, 198, 0.08)", color: "#004ec6", label: "QUEUED" },
+    completed: { bg: "rgba(16, 122, 87, 0.1)", color: "#107a57", label: "COMPLETED" },
+    failed: { bg: "rgba(178, 1, 0, 0.18)", color: "#7a0000", label: "FAILED" },
+    cancelled: { bg: "rgba(122, 117, 116, 0.15)", color: "#5a5755", label: "CANCELLED" },
   };
   const s = map[status] || map.queued;
   return (
@@ -154,7 +172,14 @@ function FormField({ label, children }) {
 const inputStyle = { backgroundColor: "#f6f3f2", border: "none", borderBottom: "2px solid #c4c4c4", borderRadius: "0px", color: "#1c1b1b" };
 
 export default function TrainingJobsPage() {
-  const [jobs] = useState(TRAINING_JOBS);
+  // `jobs` is the list rendered in the table. In mock mode it stays the
+  // bundled TRAINING_JOBS fixture; in real mode it's the orchestrator's
+  // listTrainingJobs() result, run through `adaptOrchestratorJob` so
+  // every row matches the shape the render below assumes. If the
+  // orchestrator is unreachable on first load, we fall back to the
+  // mock list so the page never goes blank (with a banner).
+  const [jobs, setJobs] = useState(MOCK_API ? TRAINING_JOBS : []);
+  const [liveSource, setLiveSource] = useState(MOCK_API ? 'mock' : 'pending');
   const [showExperiment, setShowExperiment] = useState(false);
   const [, forceUpdate] = useState(0);
   const completionTimersRef = useRef(new Map());
@@ -174,6 +199,16 @@ export default function TrainingJobsPage() {
   const [expEpochs, setExpEpochs] = useState(3);
   const [expBatchSize, setExpBatchSize] = useState(8);
   const [expScriptPath, setExpScriptPath] = useState("./scripts/train.sh");
+  // Optional Python training script that the orchestrator persists per
+  // job under TRAINING_SCRIPT_DIR/{id}/script.py. Distinct from the
+  // local-mode bash entrypoint above (`expScriptPath`) — that's a path
+  // string the engineer types in for their local invocation, this is
+  // a real file uploaded with the job. See
+  // docs/07 Integration CAA 27APR2026/training-job-pipeline.md §4.1
+  // and the F6-mirrored upload harness at
+  // backend/training_orchestrator/script_storage.py.
+  const [expScriptFile, setExpScriptFile] = useState(null);
+  const scriptInputRef = useRef(null);
 
   useEffect(() => subscribeNotifications(() => forceUpdate((n) => n + 1)), []);
 
@@ -182,6 +217,48 @@ export default function TrainingJobsPage() {
     setCurrentUser(getCurrentUser());
     return subscribeDatasets(setCustomDatasets);
   }, []);
+
+  // Live-mode poll. Mock mode skips this — TRAINING_JOBS is static.
+  // Single in-flight request guard via cancelled flag so a slow tick
+  // can't overwrite the result of a faster subsequent tick.
+  const refreshJobs = useCallback(async () => {
+    if (MOCK_API) return;
+    try {
+      const rows = await listTrainingJobs({ limit: 100 });
+      const adapted = (Array.isArray(rows) ? rows : [])
+        .map(adaptOrchestratorJob)
+        .filter(Boolean);
+      // Empty real list on first paint → fall back to the mock fixture
+      // so the demo loop has something to show before any submission.
+      // Once a real submission lands the API is no longer empty and
+      // the mock disappears.
+      if (adapted.length === 0) {
+        setJobs(TRAINING_JOBS);
+        setLiveSource('empty-fallback');
+      } else {
+        setJobs(adapted);
+        setLiveSource('live');
+      }
+    } catch {
+      setJobs(TRAINING_JOBS);
+      setLiveSource('error-fallback');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (MOCK_API) return undefined;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      await refreshJobs();
+    };
+    tick();
+    const handle = setInterval(tick, LIST_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(handle);
+    };
+  }, [refreshJobs]);
 
   const datasetRefs = useMemo(
     () => customDatasets.map((d) => ({ value: datasetRef(d), name: d.name })),
@@ -238,6 +315,8 @@ export default function TrainingJobsPage() {
   const resetExperimentForm = () => {
     setSubmitError(null);
     setShowExperiment(false);
+    setExpScriptFile(null);
+    if (scriptInputRef.current) scriptInputRef.current.value = "";
   };
 
   const handleLaunchExperiment = async () => {
@@ -259,13 +338,37 @@ export default function TrainingJobsPage() {
       env.SCRIPT_PATH = expScriptPath;
     }
     try {
-      await submitTrainingJob({
+      const job = await submitTrainingJob({
         name: expJobName.trim(),
         target: expTarget,
         base_model: BASE_MODEL_HF_IDS[expBaseModel] || expBaseModel,
         dataset_ref: expDatasetRef,
         env,
       });
+      // If the engineer attached a script, upload it to the new job. The
+      // orchestrator validates (size cap + MIME + magic-byte sniff) and
+      // returns a non-2xx with `detail` we can surface verbatim. We do
+      // not auto-rollback the job on upload failure — a queued job with
+      // no script is still a valid record the engineer can retry the
+      // upload against (orchestrator only freezes scripts at first
+      // worker pickup).
+      if (job?.id && expScriptFile) {
+        try {
+          await uploadTrainingScript(job.id, expScriptFile);
+        } catch (uploadErr) {
+          setSubmitError(
+            `Job submitted (id ${job.id}) but script upload failed: ${
+              uploadErr?.detail || uploadErr?.message || "unknown error"
+            }`,
+          );
+          // Even on script-upload failure, refresh the list — the queued
+          // job exists upstream and the engineer can retry the upload.
+          refreshJobs();
+          return;
+        }
+      }
+      // Don't await — let the dialog close while the refresh runs.
+      refreshJobs();
       resetExperimentForm();
     } catch (err) {
       setSubmitError(err?.detail || err?.message || "Failed to submit job");
@@ -312,13 +415,23 @@ export default function TrainingJobsPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 items-center">
         <span className="px-2 py-0.5 text-[0.625rem] font-semibold uppercase" style={{ backgroundColor: "rgba(178, 1, 0, 0.08)", color: "#b20100" }}>
           {jobs.filter(j => j.status === "running").length} RUNNING
         </span>
         <span className="px-2 py-0.5 text-[0.625rem] font-semibold uppercase" style={{ backgroundColor: "rgba(122, 117, 116, 0.1)", color: "#7a7574" }}>
           {jobs.filter(j => j.status === "queued").length} QUEUED
         </span>
+        {liveSource === 'empty-fallback' && (
+          <span className="px-2 py-0.5 text-[0.625rem] font-semibold uppercase" style={{ backgroundColor: "rgba(0, 78, 198, 0.06)", color: "#004ec6" }}>
+            DEMO DATA — NO LIVE JOBS YET
+          </span>
+        )}
+        {liveSource === 'error-fallback' && (
+          <span className="px-2 py-0.5 text-[0.625rem] font-semibold uppercase" style={{ backgroundColor: "rgba(178, 1, 0, 0.12)", color: "#7a0000" }}>
+            ORCHESTRATOR UNREACHABLE — SHOWING MOCKS
+          </span>
+        )}
       </div>
 
       <div className="mb-6">
@@ -543,6 +656,32 @@ export default function TrainingJobsPage() {
                 </p>
               )}
             </section>
+
+            {/* Training script (Python) — optional. Cloud + federated
+                jobs use this; local jobs invoke the bash entrypoint
+                below directly on the engineer's machine. */}
+            {expTarget !== "local" && (
+              <section className="mb-6">
+                <FormField label="Training Script (.py, optional)">
+                  <input
+                    ref={scriptInputRef}
+                    type="file"
+                    accept=".py,text/x-python,text/plain"
+                    onChange={(e) => setExpScriptFile(e.target.files?.[0] || null)}
+                    className="w-full px-3 py-2 text-[0.8125rem] font-mono"
+                    style={inputStyle}
+                  />
+                </FormField>
+                {expScriptFile && (
+                  <p className="text-[0.6875rem] mt-1.5" style={{ color: "#1c1b1b" }}>
+                    {expScriptFile.name} &mdash; {(expScriptFile.size / 1024).toFixed(1)} KB
+                  </p>
+                )}
+                <p className="text-[0.6875rem] mt-1.5" style={{ color: "#7a7574" }}>
+                  Up to 256 KB. The orchestrator validates the upload (size, MIME, magic-byte sniff) and persists it under the job id. Skip to use the bundled retraining-pipeline default.
+                </p>
+              </section>
+            )}
 
             {/* Launch script (local only) */}
             {expTarget === "local" && (

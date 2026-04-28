@@ -49,13 +49,15 @@ def test_load_manifest_skips_blank_lines(tmp_path):
     assert len(samples) == 2
 
 
-def test_load_manifest_missing_hypothesis_defaults_to_empty(tmp_path):
-    # Future use: hypothesis filled in by inference fan-out. Today the
-    # absence is allowed but the value falls back to "" so strategies
-    # treat it as a total miss rather than crashing.
+def test_load_manifest_missing_hypothesis_marks_for_fanout(tmp_path):
+    # Inference fan-out (§3.1 #2): an absent `hypothesis` key signals
+    # that metrics-service should call transcription-service-2 to fill
+    # it in. The loader returns None to mark this; an explicit empty
+    # string is a distinct case ("model produced silence", do NOT
+    # fan out).
     path = _write(tmp_path, [json.dumps({"reference": "hello"})])
     s = load_manifest(path)[0]
-    assert s.hypothesis == ""
+    assert s.hypothesis is None
 
 
 def test_load_manifest_missing_reference_raises(tmp_path):

@@ -240,6 +240,124 @@ export function detectMetricsFromLogs(logs) {
 }
 
 // ---------------------------------------------------------------------------
+// JobResponse → table-row adapter
+// ---------------------------------------------------------------------------
+//
+// The orchestrator's JobResponse shape is documented in
+// backend/training_orchestrator/main.py::JobResponse. The /training table
+// rows below this comment have a richer shape (gpu, lossHistory, infra,
+// metrics) — those fields aren't reportable from the orchestrator yet
+// (heartbeat + log SSE is for the detail page; aggregate worker metrics
+// roll up later, see training-job-pipeline.md §4.6). The adapter
+// produces a lossy projection that's enough for the list-page render
+// and leaves the rich fields null/empty so unaware consumers fall back
+// to safe defaults.
+
+// HF id → display label. Mirrors BASE_MODEL_HF_IDS in training/page.jsx
+// but inverted; kept here so both pages share one source.
+const HF_ID_TO_DISPLAY = {
+    'openai/whisper-large-v3-turbo': 'Whisper Large-v3',
+    'openai/whisper-tiny': 'Whisper Tiny',
+    'MERaLiON/MERaLiON-AudioLLM-Whisper-SEA-LION': 'MERaLiON',
+    'Qwen/Qwen3-ASR': 'Qwen3-ASR',
+};
+
+// Status mapping. Orchestrator's state machine (queued → preparing →
+// running → evaluating → published / cancelled / failed / paused)
+// projects onto the four states the existing StatusBadge renders.
+// `evaluating` displays as `running` because the bar is still moving;
+// `preparing` displays as `queued` because no GPU work has started.
+const STATUS_PROJECTION = {
+    queued: 'queued',
+    preparing: 'queued',
+    running: 'running',
+    evaluating: 'running',
+    paused: 'paused',
+    published: 'completed',
+    cancelled: 'cancelled',
+    failed: 'failed',
+};
+
+function _baseModelDisplay(hfId) {
+    if (!hfId) return '—';
+    if (HF_ID_TO_DISPLAY[hfId]) return HF_ID_TO_DISPLAY[hfId];
+    // Unknown id — strip vendor prefix, keep the family name.
+    const tail = hfId.includes('/') ? hfId.split('/').pop() : hfId;
+    return tail || hfId;
+}
+
+function _formatStartTime(iso) {
+    if (!iso) return '—';
+    try {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return '—';
+        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const mm = months[d.getUTCMonth()];
+        const dd = String(d.getUTCDate()).padStart(2, '0');
+        const hh = String(d.getUTCHours()).padStart(2, '0');
+        const mi = String(d.getUTCMinutes()).padStart(2, '0');
+        return `${mm} ${dd}, ${hh}:${mi} GMT`;
+    } catch {
+        return '—';
+    }
+}
+
+// Public for tests + the page.
+export function adaptOrchestratorJob(job) {
+    if (!job || typeof job !== 'object') return null;
+    const env = job.env || {};
+    const rank = env.LORA_RANK != null ? Number(env.LORA_RANK) : null;
+    const loraAlpha = env.LORA_ALPHA != null ? Number(env.LORA_ALPHA) : null;
+    const epochs = env.EPOCHS != null ? Number(env.EPOCHS) : null;
+    const batchSize = env.BATCH_SIZE != null ? Number(env.BATCH_SIZE) : null;
+    const lr = env.LEARNING_RATE != null ? String(env.LEARNING_RATE) : '—';
+    const useLora = env.LORA === '1' || env.LORA === 1 || env.LORA === true;
+
+    return {
+        id: job.id,
+        status: STATUS_PROJECTION[job.status] || 'queued',
+        // Carry the unmapped status forward so the detail page (or a
+        // future tooltip) can show "evaluating" / "published" verbatim.
+        rawStatus: job.status,
+        progress: job.progress_pct != null ? Math.round(job.progress_pct) : 0,
+        // GPU util isn't yet reported by either worker — heartbeat hook
+        // will fill this in (training-job-pipeline.md §4.1, /heartbeat
+        // endpoint). Until then, 0 just paints the bars empty.
+        gpu: 0,
+        startTime: _formatStartTime(job.started_at || job.submitted_at),
+        startedAtIso: job.started_at || null,
+        submittedBy: job.submitted_by || null,
+        submittedAtIso: job.submitted_at || null,
+        description: job.name || job.id,
+        baseModel: _baseModelDisplay(job.base_model),
+        baseModelHfId: job.base_model || null,
+        useLora,
+        rank,
+        loraAlpha,
+        lr,
+        epochs,
+        batchSize,
+        currentEpoch: 0,
+        datasetRef: job.dataset_ref || null,
+        datasetName: job.dataset_ref || null,
+        currentStep: 0,
+        totalSteps: 0,
+        // Empty-but-shaped placeholders so the detail page render doesn't
+        // need to special-case live-mode rows.
+        metrics: {
+            trainLoss: null, valLoss: null, learningRate: null,
+            tokensPerSec: 0, gradNorm: null,
+        },
+        lossHistory: [],
+        elapsedMin: 0,
+        etaMin: null,
+        infra: { cluster: '—', gpuType: '—', region: '—' },
+        failureReason: job.failure_reason || null,
+        live: true,
+    };
+}
+
+// ---------------------------------------------------------------------------
 // Real-mode orchestrator client (POST /jobs, GET /jobs, cancel)
 // ---------------------------------------------------------------------------
 
@@ -320,6 +438,57 @@ export function cancelTrainingJob(jobId) {
     return _request(`/api/training-jobs/${encodeURIComponent(jobId)}/cancel`, {
         method: 'POST',
     });
+}
+
+// Multipart upload of a Python training script onto a queued job. The
+// upstream guard (orchestrator) does the size cap + MIME + magic-byte
+// sniff — we only need to package the file and propagate any error.
+//
+// Returns the orchestrator's ScriptUploadResponse on success
+// ({job_id, filename, sha256, size_bytes, uploaded_at}).
+// Throws an Error with .status + .detail on any non-2xx response so the
+// caller can branch on 413/415/409/etc and show a useful message.
+export async function uploadTrainingScript(jobId, file) {
+    if (!jobId) throw new Error('jobId is required');
+    if (!file) throw new Error('file is required');
+
+    const form = new FormData();
+    form.append('file', file, file.name);
+
+    const headers = { Accept: 'application/json' };
+    const csrf = readCsrfToken();
+    if (csrf) headers['X-CSRF-Token'] = csrf;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let res;
+    try {
+        res = await fetch(
+            `/api/training-jobs/${encodeURIComponent(jobId)}/script`,
+            {
+                method: 'POST',
+                headers,
+                body: form,
+                signal: controller.signal,
+                credentials: 'same-origin',
+            },
+        );
+    } finally {
+        clearTimeout(timer);
+    }
+    let data = null;
+    const text = await res.text();
+    if (text) {
+        try { data = JSON.parse(text); } catch { /* leave null */ }
+    }
+    if (!res.ok) {
+        const detail = data?.detail || `HTTP ${res.status}`;
+        const err = new Error(`script upload failed: ${detail}`);
+        err.status = res.status;
+        err.detail = data?.detail;
+        throw err;
+    }
+    return data;
 }
 
 export function getTrainingLogs(job) {
